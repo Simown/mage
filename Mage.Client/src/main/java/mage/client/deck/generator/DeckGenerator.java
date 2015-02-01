@@ -42,13 +42,9 @@ import mage.utils.DeckBuilder;
  * Generates random card pool and builds a deck.
  *
  * @author nantuko
+ * @author Simown
  */
 public class DeckGenerator {
-
-    private static JDialog dlg;
-    private static String selectedColors;
-    private static JComboBox cbSets;
-    private static JComboBox cbDeckSize;
 
     private static final int SPELL_CARD_POOL_SIZE = 180;
 
@@ -56,142 +52,33 @@ public class DeckGenerator {
     private static final int MAX_NON_BASIC_SOURCE = DECK_LANDS / 2;
 
     private static final int MAX_TRIES = 4096;
-
-    private static Deck deck = new Deck();
     private static final int ADDITIONAL_CARDS_FOR_3_COLOR_DECKS = 20;
+    private static DeckGenerationDialog genDialog;
 
-    /**
-     * Opens color chooser dialog. Generates deck.
-     * Saves generated deck and use it as selected deck to play.
-     *
-     * @return
-     */
     public static String generateDeck() {
-        JPanel p0 = new JPanel();
-        p0.setLayout(new BoxLayout(p0, BoxLayout.Y_AXIS));
-
-        JLabel text = new JLabel("Choose color for your deck: ");
-        text.setAlignmentX(Component.CENTER_ALIGNMENT);
-        p0.add(text);
-
-        p0.add(Box.createVerticalStrut(5));
-        String chosen = MageFrame.getPreferences().get("genDeckColor", "u");
-        final ColorsChooser colorsChooser = new ColorsChooser(chosen);
-        p0.add(colorsChooser);
-
-        p0.add(Box.createVerticalStrut(5));
-        JLabel text2 = new JLabel("(X - random color)");
-        text2.setAlignmentX(Component.CENTER_ALIGNMENT);
-        p0.add(text2);
-
-        p0.add(Box.createVerticalStrut(5));
-        JPanel jPanel = new JPanel();
-        JLabel text3 = new JLabel("Choose sets:");
-        cbSets = new JComboBox(ConstructedFormats.getTypes());
-        cbSets.setSelectedIndex(0);
-        cbSets.setPreferredSize(new Dimension(300, 25));
-        cbSets.setMaximumSize(new Dimension(300, 25));
-        cbSets.setAlignmentX(Component.LEFT_ALIGNMENT);
-        jPanel.add(text3);
-        jPanel.add(cbSets);
-        p0.add(jPanel);
-
-        String prefSet = PreferencesDialog.getCachedValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_SET, null);
-        if (prefSet != null) {
-            cbSets.setSelectedItem(prefSet);
-        }
-
-        p0.add(Box.createVerticalStrut(5));
-        JPanel jPanel2 = new JPanel();
-        JLabel textDeckSize = new JLabel("Deck size:");
-        cbDeckSize = new JComboBox(new String[]{"40","60"});
-        cbDeckSize.setSelectedIndex(0);
-        cbDeckSize.setPreferredSize(new Dimension(300, 25));
-        cbDeckSize.setMaximumSize(new Dimension(300, 25));
-        cbDeckSize.setAlignmentX(Component.LEFT_ALIGNMENT);
-        jPanel2.add(textDeckSize);
-        jPanel2.add(cbDeckSize);
-        p0.add(jPanel2);
-
-        String prefSize = PreferencesDialog.getCachedValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_DECK_SIZE, "60");
-        if (prefSet != null) {
-            cbDeckSize.setSelectedItem(prefSize);
-        }
-
-        final JButton btnGenerate = new JButton("Ok");
-        btnGenerate.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                btnGenerate.setEnabled(false);
-                colorsChooser.setEnabled(false);
-                selectedColors = (String) colorsChooser.getSelectedItem();
-                dlg.setVisible(false);
-                MageFrame.getPreferences().put("genDeckColor", selectedColors);
-            }
-        });
-        final JButton btnCancel = new JButton("Cancel");
-        btnCancel.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dlg.setVisible(false);
-                selectedColors = null;
-            }
-        });
-        Object[] options = {btnGenerate, btnCancel};
-        JOptionPane optionPane = new JOptionPane(p0, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[1]);
-        dlg = optionPane.createDialog("Generating deck");
-        dlg.setVisible(true);
-        dlg.dispose();
-
-        if (selectedColors != null) {
-            // save values to prefs
-             PreferencesDialog.saveValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_DECK_SIZE, cbDeckSize.getSelectedItem().toString());
-             PreferencesDialog.saveValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_SET, cbSets.getSelectedItem().toString());
-
-            // build deck
-            buildDeck();
-            try {
-                File tmp = File.createTempFile("tempDeck" + UUID.randomUUID().toString(), ".dck");
-                tmp.createNewFile();
-                deck.setName("Generated-Deck-" + UUID.randomUUID());
-                Sets.saveDeck(tmp.getAbsolutePath(), deck.getDeckCardLists());
-                deck = null;
-                //JOptionPane.showMessageDialog(null, "Deck has been generated.");
-                DeckGenerator.cleanUp(btnGenerate, btnCancel);
-                return tmp.getAbsolutePath();
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Couldn't generate deck. Try again.");
-            }
-        }
-        DeckGenerator.cleanUp(btnGenerate, btnCancel);
-        return selectedColors;
+        genDialog = new DeckGenerationDialog();
+        Deck deck = buildDeck();
+        String deckPath = genDialog.saveDeck(deck);
+        return deckPath;
     }
 
-    private static void cleanUp(JButton btnGenerate, JButton btnCancel) {
-        for (ActionListener al: btnGenerate.getActionListeners()) {
-            btnGenerate.removeActionListener(al);
-        }
-        for (ActionListener al: btnCancel.getActionListeners()) {
-            btnCancel.removeActionListener(al);
-        }        
-        deck = null;
-    }
-    
     /**
      * Generates card pool
      */
-    protected static void buildDeck() {
+    protected static Deck buildDeck() {
+
+        String selectedColors = genDialog.getSelectedColors();
         List<ColoredManaSymbol> allowedColors = new ArrayList<ColoredManaSymbol>();
         selectedColors = selectedColors != null ? selectedColors.toUpperCase() : getRandomColors("X");
 
-        String format = (String) cbSets.getSelectedItem();
+        String format = genDialog.getSelectedFormat();
         List<String> setsToUse = ConstructedFormats.getSetsByFormat(format);
         if (setsToUse.isEmpty()) {
             // use all
             setsToUse = ExpansionRepository.instance.getSetCodes();
         }
 
-        int deckSize = Integer.parseInt(cbDeckSize.getSelectedItem().toString());
+        int deckSize = genDialog.getDeckSize();
         if (deckSize < 40) {
             deckSize = 40;
         }
@@ -215,7 +102,7 @@ public class DeckGenerator {
 
         final List<String> setsToUseFinal = setsToUse;
 
-        deck = DeckBuilder.buildDeck(spellCardPool, allowedColors, setsToUseFinal, landCardPool, deckSize, new RateCallback() {
+        Deck deck = DeckBuilder.buildDeck(spellCardPool, allowedColors, setsToUseFinal, landCardPool, deckSize, new RateCallback() {
             @Override
             public int rateCard(Card card) {
                 return 6;
@@ -226,6 +113,7 @@ public class DeckGenerator {
                 return DeckGenerator.getBestBasicLand(color, setsToUseFinal);
             }
         });
+        return deck;
     }
 
     private static String getRandomColors(String _selectedColors) {
@@ -285,7 +173,7 @@ public class DeckGenerator {
                 }
                 tries++;
                 if (tries > MAX_TRIES) { // to avoid infinite loop
-                    throw new IllegalStateException("Not enough cards for chosen colors to generate deck: " + selectedColors);
+                    throw new IllegalStateException("Not enough cards for chosen colors to generate deck: " + allowedColors);
                 }
             }
         } else {
