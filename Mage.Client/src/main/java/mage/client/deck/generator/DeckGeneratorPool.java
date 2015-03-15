@@ -29,6 +29,7 @@ package mage.client.deck.generator;
 
 import mage.Mana;
 import mage.cards.Card;
+import mage.cards.decks.Deck;
 import mage.constants.ColoredManaSymbol;
 
 import java.util.HashMap;
@@ -55,7 +56,9 @@ public class DeckGeneratorPool
 
     private final int creatureCount;
     private final int nonCreatureCount;
-    private final int nonBasicLandCount;
+    private final int landCount;
+
+    private boolean monoColored = false;
 
     private int deckSize;
     private List<ColoredManaSymbol> allowedColors;
@@ -68,18 +71,23 @@ public class DeckGeneratorPool
         if(deckSize > 40) {
             this.creatureCount = (int)Math.ceil(deckSize * CREATURE_PERCENTAGE_60);
             this.nonCreatureCount = (int)Math.ceil(deckSize * NONCREATURE_PERCENTAGE_60);
-            this.nonBasicLandCount = (int)Math.ceil(deckSize * LAND_PERCENTAGE_60);
+            this.landCount = (int)Math.ceil(deckSize * LAND_PERCENTAGE_60);
         }
         else {
             this.creatureCount = (int)Math.ceil(deckSize * CREATURE_PERCENTAGE_40);
             this.nonCreatureCount = (int)Math.ceil(deckSize * NONCREATURE_PERCENTAGE_40);
-            this.nonBasicLandCount = (int)Math.ceil(deckSize * LAND_PERCENTAGE_40);
+            this.landCount = (int)Math.ceil(deckSize * LAND_PERCENTAGE_40);
+        }
+
+        if(allowedColors.size() == 1) {
+            monoColored = true;
         }
     }
 
     public boolean isValidSpellCard(Card card)
     {
         int cardCount = cardCounts.get((card.getName()));
+        // Check it hasn't already got 4 copies in the deck
         if(cardCount < 4) {
             if(cardFitsChosenColors(card)) {
                 return true;
@@ -133,6 +141,15 @@ public class DeckGeneratorPool
         return symbol.equals("W") || symbol.equals("G") || symbol.equals("U") || symbol.equals("B") || symbol.equals("R") || symbol.contains("/");
     }
 
+    public void addBasicLands(int numberLands) {
+        // Get basic lands and add em
+    }
+
+    public Deck getDeck() {
+        // Reconstruct the pool and return the deck
+        return null;
+    }
+
     public void addCard(Card card)
     {
         int existingCount = cardCounts.get((card.getName()));
@@ -147,7 +164,11 @@ public class DeckGeneratorPool
         return nonCreatureCount;
     }
 
-    public int getNonBasicLandCount() {
-        return nonBasicLandCount;
+    public int getLandCount() {
+        return landCount;
+    }
+
+    public boolean isMonoColoredDeck() {
+        return monoColored;
     }
 }
