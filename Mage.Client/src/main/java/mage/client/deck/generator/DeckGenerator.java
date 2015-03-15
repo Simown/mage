@@ -54,12 +54,7 @@ import mage.constants.Rarity;
 public class DeckGenerator {
 
     private static final int SPELL_CARD_POOL_SIZE = 180;
-
-    private static final int DECK_LANDS = 17;
-    private static final int MAX_NON_BASIC_SOURCE = DECK_LANDS / 2;
-
     private static final int MAX_TRIES = 4096;
-    private static final int ADDITIONAL_CARDS_FOR_3_COLOR_DECKS = 20;
 
     private static DeckGeneratorDialog genDialog;
     private static DeckGeneratorPool genPool;
@@ -85,9 +80,6 @@ public class DeckGenerator {
         }
 
         int deckSize = genDialog.getDeckSize();
-        if (deckSize < 40) {
-            deckSize = 40;
-        }
 
         if (selectedColors.contains("X")) {
             selectedColors = getRandomColors(selectedColors);
@@ -98,19 +90,15 @@ public class DeckGenerator {
             allowedColors.add(ColoredManaSymbol.lookup(c));
         }
 
-        int cardPoolSize = SPELL_CARD_POOL_SIZE;
-        if (selectedColors.length() > 2) {
-            cardPoolSize += ADDITIONAL_CARDS_FOR_3_COLOR_DECKS;
-        }
-
-        genPool = new DeckGeneratorPool(deckSize, allowedColors);
-        generateCards(allowedColors, setsToUse);
-
-        return new Deck();
+        Deck finalDeck = generateDeck(deckSize, allowedColors, setsToUse);
+        return finalDeck;
     }
 
-    private static void generateCards(List<ColoredManaSymbol> allowedColors, List<String> setsToUse)
+    private static Deck generateDeck(int deckSize, List<ColoredManaSymbol> allowedColors, List<String> setsToUse)
     {
+
+        genPool = new DeckGeneratorPool(deckSize, allowedColors);
+
         final String [] sets = setsToUse.toArray(new String[0]);
 
         // Creatures
@@ -132,7 +120,10 @@ public class DeckGenerator {
 
         generateSpells(creatureCriteria, genPool.getCreatureCount());
         generateSpells(nonCreatureCriteria, genPool.getNonCreatureCount());
-        generateLands(nonBasicLandCriteria, genPool.getNonBasicLandCount());
+        generateLands(nonBasicLandCriteria, genPool.getLandCount());
+
+        // Reconstructs the final deck and adjusts for Math rounding and/or missing cards
+        return genPool.getDeck();
     }
 
     private static void generateSpells(CardCriteria criteria, int cardsCount)
@@ -163,29 +154,42 @@ public class DeckGenerator {
 
     private static void generateLands(CardCriteria criteria, int landsCount) {
 
-        List<CardInfo> landCards = CardRepository.instance.findCards(criteria);
+        // TODO: Add basic lands at the bottom of this function
+        int tries = 0;
+        int countNonBasic = 0;
 
-        int allCount = landCards.size();
-        Random random = new Random();
-        if (allCount > 0) {
-            int tries = 0;
-            int count = 0;
-            while (count < landsCount) {
-                Card card = landCards.get(random.nextInt(allCount)).getMockCard();
-                if (genPool.isValidLandCard(card)) {
-                    genPool.addCard(card);
-                    count++;
-                }
-                tries++;
-                // to avoid infinite loop
-                if (tries > MAX_TRIES) {
-                    // Not a problem, just use what we have
-                    break;
+        // If it's a monocolored deck, don't include any nonbasic/dual lands
+        if(!genPool.isMonoColoredDeck()) {
+
+            List<CardInfo> landCards = CardRepository.instance.findCards(criteria);
+
+            int allCount = landCards.size();
+            Random random = new Random();
+            if (allCount > 0) {
+                // Up to 50% of lands can be dual lands
+                while (countNonBasic < landsCount/2) {
+                    Card card = landCards.get(random.nextInt(allCount)).getMockCard();
+                    if (genPool.isValidLandCard(card)) {
+                        genPool.addCard(card);
+                        countNonBasic++;
+                    }
+                    tries++;
+                    // to avoid infinite loop
+                    if (tries > MAX_TRIES) {
+                        // Not a problem, just use what we have
+                        break;
+                    }
                 }
             }
         }
+        // The remaining lands are basic lands
+        addBasicLands(landsCount - countNonBasic);
     }
 
+    private static void addBasicLands(int count)  {
+
+
+    }
 
     private static String getRandomColors(String _selectedColors) {
         Random random = new Random();
