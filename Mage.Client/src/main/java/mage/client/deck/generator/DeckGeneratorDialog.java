@@ -45,7 +45,7 @@ import java.util.UUID;
  *
  * @author Simown
  */
-public class DeckGenerationDialog {
+public class DeckGeneratorDialog {
 
     private static JDialog dlg;
     private static String selectedColors;
@@ -53,7 +53,7 @@ public class DeckGenerationDialog {
     private static JComboBox cbDeckSize;
     private static JButton btnGenerate, btnCancel;
 
-    public DeckGenerationDialog()
+    public DeckGeneratorDialog()
     {
         initDialog();
     }
@@ -152,7 +152,7 @@ public class DeckGenerationDialog {
             tmp.createNewFile();
             deck.setName("Generated-Deck-" + UUID.randomUUID());
             Sets.saveDeck(tmp.getAbsolutePath(), deck.getDeckCardLists());
-            DeckGenerationDialog.cleanUp();
+            DeckGeneratorDialog.cleanUp();
             return tmp.getAbsolutePath();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Couldn't generate deck. Try again.");
