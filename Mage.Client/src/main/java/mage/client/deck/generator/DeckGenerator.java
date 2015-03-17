@@ -96,7 +96,6 @@ public class DeckGenerator {
 
     private static Deck generateDeck(int deckSize, List<ColoredManaSymbol> allowedColors, List<String> setsToUse)
     {
-
         genPool = new DeckGeneratorPool(deckSize, allowedColors);
 
         final String [] sets = setsToUse.toArray(new String[0]);
@@ -131,16 +130,20 @@ public class DeckGenerator {
         List<CardInfo> cardPool = CardRepository.instance.findCards(criteria);
         int retrievedCount = cardPool.size();
         Random random = new Random();
+        int count = 0;
         if (retrievedCount > 0) {
             int tries = 0;
-            while (!genPool.hasCompleteSpells()) {
+            while (count < cardsCount) {
                 Card card = cardPool.get(random.nextInt(retrievedCount)).getMockCard();
                 if (genPool.isValidSpellCard(card)) {
-                    genPool.addCard(card);
+                    // Return if it was successfully added (and needed in our pool)
+                    boolean added = genPool.addCard(card);
+                    if(added)
+                        count++;
                 }
                 tries++;
                 if (tries > MAX_TRIES) { // to avoid infinite loop
-                    throw new IllegalStateException("Not enough cards for chosen colors to generate deck for the chosen colors.");
+                    throw new IllegalStateException("Not enough cards of the chosen colors to generate deck for the chosen colors.");
                 }
             }
         } else {
