@@ -184,7 +184,7 @@ public class DeckGeneratorPool
         return null;
     }
 
-    public void addCard(Card card)
+    public boolean addCard(Card card)
     {
         // Get the CMC of this card to add
         int cardCMC = card.getManaCost().convertedManaCost();
@@ -196,10 +196,12 @@ public class DeckGeneratorPool
                     int existingCount = cardCounts.get((card.getName()));
                     cardCounts.put(card.getName(), existingCount+1);
                     poolCMC.amount -= 1;
-                    break;
+                    return true;
                 }
             }
         }
+        // Failed to add it to any pool
+        return false;
     }
 
     public boolean hasCompleteSpells()
