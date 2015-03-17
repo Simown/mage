@@ -32,6 +32,7 @@ import mage.cards.Card;
 import mage.cards.decks.Deck;
 import mage.constants.ColoredManaSymbol;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,21 @@ import java.util.Map;
  */
 public class DeckGeneratorPool
 {
+
+    private static class PoolCMC
+    {
+        protected int min;
+        protected int max;
+        protected int amount;
+
+        PoolCMC(int min, int max, int amount)
+        {
+            this.min = min;
+            this.max = max;
+            this.amount = amount;
+        }
+    }
+
     // 40 card deck
     private static final float CREATURE_PERCENTAGE_40 = 0.33f;
     private static final float LAND_PERCENTAGE_40 = 0.33f;
@@ -60,25 +76,44 @@ public class DeckGeneratorPool
 
     private boolean monoColored = false;
 
-    private int deckSize;
-    private List<ColoredManaSymbol> allowedColors;
+    private final int deckSize;
+    private final List<ColoredManaSymbol> allowedColors;
+    private final List<PoolCMC> poolCMCs;
+    private List<Card> deckCards;
 
-    public DeckGeneratorPool(int deckSize, List<ColoredManaSymbol> allowedColors)
+    public DeckGeneratorPool(final int deckSize, final List<ColoredManaSymbol> allowedColors)
     {
         this.deckSize = deckSize;
         this.allowedColors = allowedColors;
 
-        if(deckSize > 40) {
+        if(this.deckSize > 40) {
             this.creatureCount = (int)Math.ceil(deckSize * CREATURE_PERCENTAGE_60);
             this.nonCreatureCount = (int)Math.ceil(deckSize * NONCREATURE_PERCENTAGE_60);
             this.landCount = (int)Math.ceil(deckSize * LAND_PERCENTAGE_60);
+            // TODO: TESTING OUT SOME DIFFERENT NUMBERS
+            final int nonLands = deckSize - landCount;
+            poolCMCs = new ArrayList<PoolCMC>() {{
+                add(new PoolCMC(0, 2, (int)Math.ceil(nonLands*0.20)));
+                add(new PoolCMC(3, 4, (int)Math.ceil(nonLands*0.40)));
+                add(new PoolCMC(5, 6, (int)Math.ceil(nonLands*0.30)));
+                add(new PoolCMC(7, 100, (int)Math.ceil(nonLands*0.10)));
+            }};
+
         }
         else {
             this.creatureCount = (int)Math.ceil(deckSize * CREATURE_PERCENTAGE_40);
             this.nonCreatureCount = (int)Math.ceil(deckSize * NONCREATURE_PERCENTAGE_40);
             this.landCount = (int)Math.ceil(deckSize * LAND_PERCENTAGE_40);
-        }
 
+            // TODO: TESTING OUT SOME DIFFERENT NUMBERS
+            final int nonLands = deckSize - landCount;
+            poolCMCs = new ArrayList<PoolCMC>() {{
+                add(new PoolCMC(0, 2, (int)Math.ceil(nonLands*0.20)));
+                add(new PoolCMC(3, 5, (int)Math.ceil(nonLands*0.50)));
+                add(new PoolCMC(6, 7, (int)Math.ceil(nonLands*0.20)));
+                add(new PoolCMC(7, 100, (int)Math.ceil(nonLands*0.10)));
+            }};
+        }
         if(allowedColors.size() == 1) {
             monoColored = true;
         }
@@ -136,7 +171,6 @@ public class DeckGeneratorPool
         return valid;
     }
 
-    // Remove this?
     protected static boolean isColoredMana(String symbol) {
         return symbol.equals("W") || symbol.equals("G") || symbol.equals("U") || symbol.equals("B") || symbol.equals("R") || symbol.contains("/");
     }
@@ -152,8 +186,30 @@ public class DeckGeneratorPool
 
     public void addCard(Card card)
     {
-        int existingCount = cardCounts.get((card.getName()));
-        cardCounts.put(card.getName(), existingCount+1);
+        // Get the CMC of this card to add
+        int cardCMC = card.getManaCost().convertedManaCost();
+        // Check
+        for(PoolCMC poolCMC: poolCMCs)
+        {
+            if(cardCMC >= poolCMC.min && cardCMC <= poolCMC.max) {
+                if(poolCMC.amount != 0) {
+                    int existingCount = cardCounts.get((card.getName()));
+                    cardCounts.put(card.getName(), existingCount+1);
+                    poolCMC.amount -= 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    public boolean hasCompleteSpells()
+    {
+        for(PoolCMC poolCMC: poolCMCs)
+        {
+            if(poolCMC.amount > 0)
+                return false;
+        }
+        return true;
     }
 
     public int getCreatureCount() {
