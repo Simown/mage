@@ -130,16 +130,13 @@ public class DeckGenerator {
     {
         List<CardInfo> cardPool = CardRepository.instance.findCards(criteria);
         int retrievedCount = cardPool.size();
-
         Random random = new Random();
         if (retrievedCount > 0) {
             int tries = 0;
-            int count = 0;
-            while (count < cardsCount) {
+            while (!genPool.hasCompleteSpells()) {
                 Card card = cardPool.get(random.nextInt(retrievedCount)).getMockCard();
                 if (genPool.isValidSpellCard(card)) {
                     genPool.addCard(card);
-                    count++;
                 }
                 tries++;
                 if (tries > MAX_TRIES) { // to avoid infinite loop
