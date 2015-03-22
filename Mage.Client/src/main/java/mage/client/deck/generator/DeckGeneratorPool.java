@@ -83,24 +83,24 @@ public class DeckGeneratorPool
             poolCMCs = new ArrayList<DeckGeneratorCMC>() {{
                 add(new DeckGeneratorCMC(0, 2, 0.20f));
                 add(new DeckGeneratorCMC(3, 5, 0.45f));
-                add(new DeckGeneratorCMC(6, 7, 0.25f));
-                add(new DeckGeneratorCMC(8, 100, 0.10f));
+                add(new DeckGeneratorCMC(6, 7, 0.30f));
+                add(new DeckGeneratorCMC(8, 100, 0.5f));
             }};
 
         }
         else {
 //            this.creatureCount = (int)Math.ceil(deckSize * CREATURE_PERCENTAGE_40);
 //            this.nonCreatureCount = (int)Math.ceil(deckSize * NONCREATURE_PERCENTAGE_40);
-//            this.landCount = (int)Math.ceil(deckSize * LAND_PERCENTAGE_40);
+//            this.landCount = (int)Math.ceil(deckSize * niceilLAND_PERCENTAGE_40);
             this.creatureCount = CREATURE_COUNT_40;
             this.nonCreatureCount = NONCREATURE_COUNT_40;
             this.landCount = LAND_COUNT_40;
             // TODO: TESTING OUT SOME DIFFERENT NUMBERS
             poolCMCs = new ArrayList<DeckGeneratorCMC>() {{
-                add(new DeckGeneratorCMC(0, 2, 0.20f));
-                add(new DeckGeneratorCMC(3, 4, 0.35f));
+                add(new DeckGeneratorCMC(0, 2, 0.30f));
+                add(new DeckGeneratorCMC(3, 4, 0.40f));
                 add(new DeckGeneratorCMC(5, 6, 0.25f));
-                add(new DeckGeneratorCMC(7, 100, 0.15f));
+                add(new DeckGeneratorCMC(7, 100, 0.5f));
             }};
         }
         if(allowedColors.size() == 1) {
@@ -164,18 +164,13 @@ public class DeckGeneratorPool
         List<DeckGeneratorCMC> adjustedCMCs = new ArrayList<>(this.poolCMCs);
         // For each CMC calculate how many spell cards are needed, given the total amount of cards
         for(DeckGeneratorCMC deckCMC : adjustedCMCs) {
-            deckCMC.setAmount((int)Math.ceil(deckCMC.percentage * cardsCount)+3);
-            System.out.println("************************ added CMC " + deckCMC.min + " - " + deckCMC.max + " : " + deckCMC.getAmount());
+            deckCMC.setAmount((int)Math.ceil(deckCMC.percentage * cardsCount));
         }
         return adjustedCMCs;
     }
 
     public void addReserve(Card card) {
-        // Can't be more than a decks worth of cards to add after all the processing (probably too many!)
-        if(this.reserveSpells.size() < deckSize) {
-            this.reserveSpells.add(card);
-        }
-
+        this.reserveSpells.add(card);
     }
 
     private List<Card> getFixedSpells()
@@ -184,6 +179,7 @@ public class DeckGeneratorPool
         int spellSize = deckCards.size();
         // Less spells than needed
         if(spellSize < (deckSize - landCount)) {
+
             int spellsNeeded = (deckSize-landCount)-spellSize;
 
             for(int i = 0; i < spellsNeeded; ++i) {
@@ -211,6 +207,10 @@ public class DeckGeneratorPool
         for (final ColoredManaSymbol color : ColoredManaSymbol.values()) {
             colorCount.put(color.toString(), 0);
         }
+
+        // Counts how many colored mana symbols we've seen in total so we can get the percentage of each color
+        int totalCount = 0;
+
         List<Card> fixedSpells = getFixedSpells();
         for(Card spell: fixedSpells) {
             for (String symbol : spell.getManaCost().getSymbols()) {
@@ -220,18 +220,18 @@ public class DeckGeneratorPool
                         if (symbol.contains(allowed.toString())) {
                             int cnt = colorCount.get(allowed.toString());
                             colorCount.put(allowed.toString(), cnt+1);
+                            totalCount++;
                         }
                     }
                 }
             }
         }
         final Map<String, Double> percentages = new HashMap<>();
-        int fixedSpellsSize = fixedSpells.size();
         for(Map.Entry<String, Integer> singleCount: colorCount.entrySet()) {
-
             String color = singleCount.getKey();
             int count = singleCount.getValue();
-            double percentage = (count / (double) fixedSpellsSize) * 100;
+            // Calculate the percentage this colour has out of the total colour counts
+            double percentage = (count / (double) totalCount) * 100;
             percentages.put(color, percentage);
         }
         return percentages;
@@ -310,4 +310,7 @@ public class DeckGeneratorPool
         return monoColored;
     }
 
+    public int getDeckSize() {
+        return deckSize;
+    }
 }
