@@ -41,6 +41,7 @@ import mage.client.util.sets.ConstructedFormats;
 import mage.constants.CardType;
 import mage.constants.ColoredManaSymbol;
 import mage.constants.Rarity;
+import org.jboss.util.Null;
 
 
 /**
@@ -51,8 +52,7 @@ import mage.constants.Rarity;
  */
 public class DeckGenerator {
 
-    private static final int MAX_TRIES = 10000;
-
+    private static final int MAX_TRIES = 8196;
     private static DeckGeneratorDialog genDialog;
     private static DeckGeneratorPool genPool;
 
@@ -112,9 +112,9 @@ public class DeckGenerator {
 
         // Non-basic land
         final CardCriteria nonBasicLandCriteria = new CardCriteria();
-        //nonBasicLandCriteria.setCodes(sets);
+        nonBasicLandCriteria.setCodes(sets);
         nonBasicLandCriteria.types(CardType.LAND);
-        nonBasicLandCriteria.notSupertypes("Basic");
+        //nonBasicLandCriteria.notSupertypes("Basic");
 
         generateSpells(creatureCriteria, genPool.getCreatureCount());
         generateSpells(nonCreatureCriteria, genPool.getNonCreatureCount());
@@ -131,34 +131,35 @@ public class DeckGenerator {
         List<DeckGeneratorCMC> deckCMCs = genPool.getCMCsForSpellCount(spellCount);
         Random random = new Random();
         int count = 0;
-        if (retrievedCount > 0) {
+        int reservesAdded = 0;
+        if (retrievedCount > 0 && retrievedCount >= spellCount) {
             int tries = 0;
             while (count < spellCount) {
                 Card card = cardPool.get(random.nextInt(retrievedCount)).getMockCard();
                 if (genPool.isValidSpellCard(card)) {
                     int cardCMC = card.getManaCost().convertedManaCost();
                     for(DeckGeneratorCMC deckCMC: deckCMCs) {
-//                        System.out.println("!!!!!!!!!!! Card " + card.getName() + " fits colours and has CMC " + cardCMC);
-//                        System.out.println("!!!!!!!!!!! CMC max = " + deckCMC.min + " and CMC max = " + deckCMC.max);
-//                        System.out.println("!!!!!!!!!!! CMC currentAmount = " + deckCMC.getAmount());
                         if(cardCMC >= deckCMC.min && cardCMC <= deckCMC.max) {
                             int currentAmount = deckCMC.getAmount();
                             if(currentAmount > 0) {
                                 deckCMC.setAmount(currentAmount - 1);
                                 genPool.addCard(card);
                                 count++;
-                                System.out.println(">>>>>>>>> " + card.getName() + " was added!");
-                                System.out.println(">>>>>>>>> count is :" + count + " spellCount is: " + spellCount);
                             }
                         }
                         else {
-                            genPool.addReserve(card);
+                            // Needs working out more - what number is best?
+                            if(reservesAdded < genPool.getDeckSize()/2) {
+                                genPool.addReserve(card);
+                                reservesAdded++;
+                            }
                         }
                     }
                 }
                 tries++;
-                if (tries > MAX_TRIES) { // to avoid infinite loop
-                    throw new IllegalStateException("Not enough cards of the chosen colors to generate deck for the chosen colors.");
+                if (tries > MAX_TRIES) {
+                    // Break here, we'll fill in random missing ones later
+                    break;
                 }
             }
         } else {
@@ -175,8 +176,9 @@ public class DeckGenerator {
         List<Card> deckLands = new ArrayList<>();
 
         // If it's a monocolored deck, don't include any nonbasic/dual lands
-//        if(!genPool.isMonoColoredDeck()) {
+        if(!genPool.isMonoColoredDeck()) {
 
+            // Add all nonbasic?
             List<CardInfo> landCards = CardRepository.instance.findCards(criteria);
 
             int allCount = landCards.size();
@@ -197,7 +199,7 @@ public class DeckGenerator {
                     }
                 }
             }
-//        }
+        }
 
         // Calculates the percentage of colors over all spells in the deck
         Map<String, Double> percentage = genPool.calculateSpellColourPercentages();
@@ -223,22 +225,21 @@ public class DeckGenerator {
                 if(neededPercentage <= 0) {
                     continue;
                 }
-                Object currentCount = count.get(color.toString());
-                if(currentCount == null)
-                    continue;
+                int currentCount = count.get(color.toString());
                 double thisPercentage = 0.0;
-                if((int)currentCount > 0)
-                    thisPercentage = ((int)currentCount/colorTotal) * 100;
+                if(currentCount > 0)
+                    thisPercentage = (currentCount/(double)colorTotal) * 100.0;
                 if(neededPercentage-thisPercentage > minPercentage) {
                     colourToAdd = color;
                     minPercentage = (neededPercentage-thisPercentage);
                 }
             }
             genPool.addCard(getBestBasicLand(colourToAdd, setsToUse));
-            count.put(colourToAdd.toString(), count.get(colourToAdd.toString()+1));
+            count.put(colourToAdd.toString(), count.get(colourToAdd.toString())+1);
             colorTotal++;
             landsNeeded--;
         }
+        System.out.print("Done!");
     }
 
     private static String getRandomColors(String _selectedColors) {
