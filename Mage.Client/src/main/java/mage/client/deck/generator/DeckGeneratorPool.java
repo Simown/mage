@@ -166,7 +166,7 @@ public class DeckGeneratorPool
         // Only cards with CMC < 7 and don't already exist in the deck
         // can be added to our reserve pool as not to overwhelm the curve
         // with high CMC cards
-        if(!(cardCMC >= 6) && getCardCount(card.getName()) == 0);
+        if(cardCMC < 7 && getCardCount(card.getName()) == 0);
             this.reserveSpells.add(card);
     }
 
@@ -212,6 +212,10 @@ public class DeckGeneratorPool
                 deckCards.remove(random.nextInt(deckCards.size()));
             }
         }
+
+        if(deckCards.size() != (spellSize-nonLandSize))
+            throw new IllegalStateException("Not enough cards found to generate deck. Please try again");
+
         // Return the fixed amount
         return deckCards;
     }
