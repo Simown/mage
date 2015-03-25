@@ -29,7 +29,6 @@ package mage.client.deck.generator;
 
 import java.util.*;
 
-import mage.Mana;
 import mage.cards.Card;
 import mage.cards.decks.Deck;
 import mage.cards.repository.CardCriteria;
@@ -41,7 +40,6 @@ import mage.client.util.sets.ConstructedFormats;
 import mage.constants.CardType;
 import mage.constants.ColoredManaSymbol;
 import mage.constants.Rarity;
-import org.jboss.util.Null;
 
 
 /**
@@ -150,7 +148,7 @@ public class DeckGenerator {
                         else {
                             // Needs working out more - what number is best?
                             if(reservesAdded < genPool.getDeckSize()/2) {
-                                genPool.addReserve(card);
+                                genPool.tryAddReserve(card, cardCMC);
                                 reservesAdded++;
                             }
                         }
@@ -175,31 +173,32 @@ public class DeckGenerator {
         // Store the nonbasic lands (if any) we'll add
         List<Card> deckLands = new ArrayList<>();
 
-        // If it's a monocolored deck, don't include any nonbasic/dual lands
-        if(!genPool.isMonoColoredDeck()) {
-
-            // Add all nonbasic?
-            List<CardInfo> landCards = CardRepository.instance.findCards(criteria);
-
-            int allCount = landCards.size();
-            Random random = new Random();
-            if (allCount > 0) {
-                // Up to 50% of lands can be dual lands
-                while (countNonBasic < landsCount/2) {
-                    Card card = landCards.get(random.nextInt(allCount)).getMockCard();
-                    if (genPool.isValidLandCard(card)) {
-                        genPool.addCard(card);
-                        countNonBasic++;
-                    }
-                    tries++;
-                    // to avoid infinite loop
-                    if (tries > MAX_TRIES) {
-                        // Not a problem, just use what we have
-                        break;
-                    }
-                }
-            }
-        }
+        // TODO: Make this work
+//        // If it's a monocolored deck, don't include any nonbasic/dual lands
+//        if(!genPool.isMonoColoredDeck()) {
+//
+//            // Add all nonbasic?
+//            List<CardInfo> landCards = CardRepository.instance.findCards(criteria);
+//
+//            int allCount = landCards.size();
+//            Random random = new Random();
+//            if (allCount > 0) {
+//                // Up to 50% of lands can be dual lands
+//                while (countNonBasic < landsCount/2) {
+//                    Card card = landCards.get(random.nextInt(allCount)).getMockCard();
+//                    if (genPool.isValidLandCard(card)) {
+//                        genPool.addCard(card);
+//                        countNonBasic++;
+//                    }
+//                    tries++;
+//                    // to avoid infinite loop
+//                    if (tries > MAX_TRIES) {
+//                        // Not a problem, just use what we have
+//                        break;
+//                    }
+//                }
+//            }
+//        }
 
         // Calculates the percentage of colors over all spells in the deck
         Map<String, Double> percentage = genPool.calculateSpellColourPercentages();

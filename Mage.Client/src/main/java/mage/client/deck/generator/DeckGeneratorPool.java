@@ -82,8 +82,8 @@ public class DeckGeneratorPool
             // TODO: TESTING OUT SOME DIFFERENT NUMBERS
             poolCMCs = new ArrayList<DeckGeneratorCMC>() {{
                 add(new DeckGeneratorCMC(0, 2, 0.20f));
-                add(new DeckGeneratorCMC(3, 5, 0.45f));
-                add(new DeckGeneratorCMC(6, 7, 0.30f));
+                add(new DeckGeneratorCMC(3, 5, 0.50f));
+                add(new DeckGeneratorCMC(6, 7, 0.25f));
                 add(new DeckGeneratorCMC(8, 100, 0.5f));
             }};
 
@@ -98,8 +98,8 @@ public class DeckGeneratorPool
             // TODO: TESTING OUT SOME DIFFERENT NUMBERS
             poolCMCs = new ArrayList<DeckGeneratorCMC>() {{
                 add(new DeckGeneratorCMC(0, 2, 0.30f));
-                add(new DeckGeneratorCMC(3, 4, 0.40f));
-                add(new DeckGeneratorCMC(5, 6, 0.25f));
+                add(new DeckGeneratorCMC(3, 4, 0.45f));
+                add(new DeckGeneratorCMC(5, 6, 0.20f));
                 add(new DeckGeneratorCMC(7, 100, 0.5f));
             }};
         }
@@ -110,11 +110,7 @@ public class DeckGeneratorPool
 
     public boolean isValidSpellCard(Card card)
     {
-        Object cC = cardCounts.get((card.getName()));
-        if(cC == null)
-            cardCounts.put(card.getName(), 0);
-
-        int cardCount = cardCounts.get((card.getName()));
+        int cardCount = getCardCount((card.getName()));
 
         // Check it hasn't already got 4 copies in the deck
         if(cardCount < 4) {
@@ -125,13 +121,10 @@ public class DeckGeneratorPool
         return false;
     }
 
+    // TODO: add helper function that checks for null and increases count
     public boolean isValidLandCard(Card card)
     {
-        Object cC = cardCounts.get((card.getName()));
-        if(cC == null)
-            cardCounts.put(card.getName(), 0);
-
-        int cardCount = cardCounts.get((card.getName()));
+        int cardCount = getCardCount((card.getName()));
 
         if(cardCount < 4) {
             if(cardProducesChosenColors(card)) {
@@ -169,23 +162,47 @@ public class DeckGeneratorPool
         return adjustedCMCs;
     }
 
-    public void addReserve(Card card) {
-        this.reserveSpells.add(card);
+    public void tryAddReserve(Card card, int cardCMC) {
+        // Only cards with CMC < 7 and don't already exist in the deck
+        // can be added to our reserve pool as not to overwhelm the curve
+        // with high CMC cards
+        if(!(cardCMC >= 6) && getCardCount(card.getName()) == 0);
+            this.reserveSpells.add(card);
     }
 
+    private int getCardCount(String cardName) {
+        Object cC = cardCounts.get((cardName));
+        if(cC == null)
+            cardCounts.put(cardName, 0);
+        return  cardCounts.get((cardName));
+    }
+
+    // TODO: Check card to add is valid
     private List<Card> getFixedSpells()
     {
         Random random = new Random();
         int spellSize = deckCards.size();
+        int nonLandSize = (deckSize - landCount);
+
         // Less spells than needed
-        if(spellSize < (deckSize - landCount)) {
+        if(spellSize < nonLandSize) {
 
-            int spellsNeeded = (deckSize-landCount)-spellSize;
+            int spellsNeeded = nonLandSize-spellSize;
+            List<Card> spellsToAdd = new ArrayList<>(spellsNeeded);
 
-            for(int i = 0; i < spellsNeeded; ++i) {
-                // Need to ensure there are reserved spells or weirdness ensues
-                deckCards.add(reserveSpells.get(random.nextInt(reserveSpells.size())));
+            // Initial reservoir
+            for(int i = 0; i < spellsNeeded-1; i++)
+                spellsToAdd.add(reserveSpells.get(i));
+
+            for(int j = spellsNeeded+1; j < reserveSpells.size()-1; j++) {
+                int index = random.nextInt(j);
+                Card randomCard = reserveSpells.get(index);
+                if (index < j && isValidSpellCard(randomCard)) {
+                    spellsToAdd.set(j, randomCard);
+                }
             }
+            // Add randomly selected spells needed
+            deckCards.addAll(spellsToAdd);
         }
         // More spells than needed
         else if(spellSize > (deckSize - landCount)) {
@@ -214,7 +231,7 @@ public class DeckGeneratorPool
         List<Card> fixedSpells = getFixedSpells();
         for(Card spell: fixedSpells) {
             for (String symbol : spell.getManaCost().getSymbols()) {
-            symbol = symbol.replace("{", "").replace("}", "");
+                symbol = symbol.replace("{", "").replace("}", "");
                 if (isColoredMana(symbol)) {
                     for (ColoredManaSymbol allowed : allowedColors) {
                         if (symbol.contains(allowed.toString())) {
