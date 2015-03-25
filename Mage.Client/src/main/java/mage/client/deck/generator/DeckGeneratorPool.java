@@ -212,10 +212,6 @@ public class DeckGeneratorPool
                 deckCards.remove(random.nextInt(deckCards.size()));
             }
         }
-
-        if(deckCards.size() != (spellSize-nonLandSize))
-            throw new IllegalStateException("Not enough cards found to generate deck. Please try again");
-
         // Return the fixed amount
         return deckCards;
     }
