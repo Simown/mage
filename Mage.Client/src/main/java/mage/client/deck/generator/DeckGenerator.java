@@ -55,10 +55,14 @@ public class DeckGenerator {
     private static DeckGeneratorPool genPool;
 
     public static String generateDeck() {
+
         genDialog = new DeckGeneratorDialog();
-        Deck deck = buildDeck();
-        String deckPath = genDialog.saveDeck(deck);
-        return deckPath;
+        if(genDialog.getSelectedColors() != null) {
+            Deck deck = buildDeck();
+            String deckPath = genDialog.saveDeck(deck);
+            return deckPath;
+        }
+        return "";
     }
 
     protected static Deck buildDeck() {
@@ -91,7 +95,7 @@ public class DeckGenerator {
 
     private static Deck generateDeck(int deckSize, List<ColoredManaSymbol> allowedColors, List<String> setsToUse)
     {
-        genPool = new DeckGeneratorPool(deckSize, allowedColors);
+        genPool = new DeckGeneratorPool(deckSize, allowedColors, genDialog.isSingleton());
 
         final String [] sets = setsToUse.toArray(new String[0]);
 
@@ -100,13 +104,16 @@ public class DeckGenerator {
         creatureCriteria.setCodes(sets);
         creatureCriteria.notTypes(CardType.LAND);
         creatureCriteria.types(CardType.CREATURE);
+        if(!(genDialog.useArtifacts()))
+            creatureCriteria.notTypes(CardType.ARTIFACT);
 
         // Non-creatures (sorcery, instant, enchantment, artifact etc.)
         final CardCriteria nonCreatureCriteria = new CardCriteria();
         nonCreatureCriteria.setCodes(sets);
         nonCreatureCriteria.notTypes(CardType.LAND);
         nonCreatureCriteria.notTypes(CardType.CREATURE);
-        nonCreatureCriteria.notTypes(CardType.ARTIFACT);
+        if(!(genDialog.useArtifacts()))
+            nonCreatureCriteria.notTypes(CardType.ARTIFACT);
 
         // Non-basic land
         final CardCriteria nonBasicLandCriteria = new CardCriteria();
@@ -174,31 +181,30 @@ public class DeckGenerator {
         List<Card> deckLands = new ArrayList<>();
 
         // TODO: Make this work
-//        // If it's a monocolored deck, don't include any nonbasic/dual lands
-//        if(!genPool.isMonoColoredDeck()) {
-//
-//            // Add all nonbasic?
-//            List<CardInfo> landCards = CardRepository.instance.findCards(criteria);
-//
-//            int allCount = landCards.size();
-//            Random random = new Random();
-//            if (allCount > 0) {
-//                // Up to 50% of lands can be dual lands
-//                while (countNonBasic < landsCount/2) {
-//                    Card card = landCards.get(random.nextInt(allCount)).getMockCard();
-//                    if (genPool.isValidLandCard(card)) {
-//                        genPool.addCard(card);
-//                        countNonBasic++;
-//                    }
-//                    tries++;
-//                    // to avoid infinite loop
-//                    if (tries > MAX_TRIES) {
-//                        // Not a problem, just use what we have
-//                        break;
-//                    }
-//                }
-//            }
-//        }
+        if(!genDialog.useNonBasicLand()) {
+
+            // Add all nonbasic?
+            List<CardInfo> landCards = CardRepository.instance.findCards(criteria);
+
+            int allCount = landCards.size();
+            Random random = new Random();
+            if (allCount > 0) {
+                // Up to 50% of lands can be dual lands
+                while (countNonBasic < landsCount/2) {
+                    Card card = landCards.get(random.nextInt(allCount)).getMockCard();
+                    if (genPool.isValidLandCard(card)) {
+                        genPool.addCard(card);
+                        countNonBasic++;
+                    }
+                    tries++;
+                    // to avoid infinite loop
+                    if (tries > MAX_TRIES) {
+                        // Not a problem, just use what we have
+                        break;
+                    }
+                }
+            }
+        }
 
         // Calculates the percentage of colors over all spells in the deck
         Map<String, Double> percentage = genPool.calculateSpellColourPercentages();
@@ -238,7 +244,6 @@ public class DeckGenerator {
             colorTotal++;
             landsNeeded--;
         }
-        System.out.print("Done!");
     }
 
     private static String getRandomColors(String _selectedColors) {
