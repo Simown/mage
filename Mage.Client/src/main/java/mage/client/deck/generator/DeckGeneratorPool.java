@@ -55,6 +55,7 @@ public class DeckGeneratorPool
     private final int creatureCount;
     private final int nonCreatureCount;
     private final int landCount;
+    private final boolean isSingleton;
 
     private boolean monoColored = false;
 
@@ -66,10 +67,12 @@ public class DeckGeneratorPool
     private List<Card> reserveSpells = new ArrayList();
     private Deck deck;
 
-    public DeckGeneratorPool(final int deckSize, final List<ColoredManaSymbol> allowedColors)
+    public DeckGeneratorPool(final int deckSize, final List<ColoredManaSymbol> allowedColors, boolean isSingleton)
     {
         this.deckSize = deckSize;
         this.allowedColors = allowedColors;
+        this.isSingleton = isSingleton;
+
         this.deck = new Deck();
 
         if(this.deckSize > 40) {
@@ -111,9 +114,8 @@ public class DeckGeneratorPool
     public boolean isValidSpellCard(Card card)
     {
         int cardCount = getCardCount((card.getName()));
-
         // Check it hasn't already got 4 copies in the deck
-        if(cardCount < 4) {
+        if(cardCount < (isSingleton ? 1 : 4)) {
             if(cardFitsChosenColors(card)) {
                 return true;
             }
@@ -125,8 +127,7 @@ public class DeckGeneratorPool
     public boolean isValidLandCard(Card card)
     {
         int cardCount = getCardCount((card.getName()));
-
-        if(cardCount < 4) {
+        if(cardCount < (isSingleton ? 1 : 4)) {
             if(cardProducesChosenColors(card)) {
                 return true;
             }

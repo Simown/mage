@@ -52,6 +52,7 @@ public class DeckGeneratorDialog {
     private static JComboBox cbSets;
     private static JComboBox cbDeckSize;
     private static JButton btnGenerate, btnCancel;
+    private static JCheckBox cArtifacts, cSingleton, cNonBasicLands;
 
     public DeckGeneratorDialog()
     {
@@ -110,6 +111,22 @@ public class DeckGeneratorDialog {
             cbDeckSize.setSelectedItem(prefSize);
         }
 
+        p0.add(Box.createVerticalStrut(5));
+        JPanel jCheckBoxes = new JPanel();
+        cSingleton = new JCheckBox("Singleton", false);
+        cSingleton.setToolTipText("Allow only a single copy of each card in your deck.");
+        cArtifacts = new JCheckBox("Artifacts", false);
+        cArtifacts.setToolTipText("Use artifacts and artifact creatures in your deck.");
+        cNonBasicLands = new JCheckBox("Non-basic Lands", false);
+        cNonBasicLands.setEnabled(false); // TODO: FIX AND TURN ON
+        cNonBasicLands.setToolTipText("Use non-basic lands in your deck.");
+        jCheckBoxes.setPreferredSize(new Dimension(300, 25));
+        jCheckBoxes.setMaximumSize(new Dimension(300, 25));
+        jCheckBoxes.add(cSingleton);
+        jCheckBoxes.add(cArtifacts);
+        jCheckBoxes.add(cNonBasicLands);
+        p0.add(jCheckBoxes);
+
         btnGenerate = new JButton("Ok");
         btnGenerate.addActionListener(new ActionListener() {
             @Override
@@ -162,6 +179,18 @@ public class DeckGeneratorDialog {
 
     public String getSelectedFormat() {
         return (String) cbSets.getSelectedItem();
+    }
+
+    public boolean isSingleton() {
+        return cSingleton.isSelected();
+    }
+
+    public boolean useArtifacts() {
+        return cArtifacts.isSelected();
+    }
+
+    public boolean useNonBasicLand() {
+        return cNonBasicLands.isSelected();
     }
 
     public int getDeckSize() {
