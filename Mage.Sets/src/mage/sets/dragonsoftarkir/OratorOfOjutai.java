@@ -32,7 +32,6 @@ import mage.MageInt;
 import mage.abilities.Ability;
 import mage.abilities.common.EntersBattlefieldTriggeredAbility;
 import mage.abilities.common.SimpleStaticAbility;
-import mage.abilities.costs.Cost;
 import mage.abilities.costs.common.RevealTargetFromHandCost;
 import mage.abilities.effects.OneShotEffect;
 import mage.abilities.effects.common.InfoEffect;
@@ -80,7 +79,7 @@ public class OratorOfOjutai extends CardImpl {
         this.addAbility(new SimpleStaticAbility(Zone.BATTLEFIELD, new InfoEffect("As an additional cost to cast {this}, you may reveal a Dragon card from your hand")));
 
         // When Orator of Ojutai enters the battlefield, if you revealed a Dragon card or controlled a Dragon as you cast Orator of Ojutai, draw a card.
-        this.addAbility(new EntersBattlefieldTriggeredAbility(new OratorOfOjutaiEffect()));
+        this.addAbility(new EntersBattlefieldTriggeredAbility(new OratorOfOjutaiEffect()), new DragonOnTheBattlefieldWhileSpellWasCastWatcher());
     }
 
     @Override
@@ -125,7 +124,7 @@ class OratorOfOjutaiEffect extends OneShotEffect {
     public boolean apply(Game game, Ability source) {
         Player controller = game.getPlayer(source.getControllerId());
         if (controller != null) {
-            Permanent sourcePermanent = game.getPermanent(source.getSourceId());
+            Permanent sourcePermanent = game.getPermanentOrLKIBattlefield(source.getSourceId());
             if (sourcePermanent != null) {
                 DragonOnTheBattlefieldWhileSpellWasCastWatcher watcher = (DragonOnTheBattlefieldWhileSpellWasCastWatcher) game.getState().getWatchers().get("DragonOnTheBattlefieldWhileSpellWasCastWatcher");
                 if (watcher != null && watcher.castWithConditionTrue(sourcePermanent.getSpellAbility().getId())) {
