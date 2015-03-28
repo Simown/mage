@@ -125,7 +125,7 @@ public class DeckGeneratorDialog {
         cArtifacts = new JCheckBox("Artifacts", false);
         cArtifacts.setToolTipText("Use artifacts and artifact creatures in your deck.");
         String artifactEnabled = PreferencesDialog.getCachedValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_ARTIFACTS, "false");
-        cSingleton.setSelected(Boolean.valueOf(artifactEnabled));
+        cArtifacts.setSelected(Boolean.valueOf(artifactEnabled));
         jCheckBoxes.add(cArtifacts);
 
         // Non-basic lands
