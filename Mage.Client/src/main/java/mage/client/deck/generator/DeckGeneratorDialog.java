@@ -113,18 +113,31 @@ public class DeckGeneratorDialog {
 
         p0.add(Box.createVerticalStrut(5));
         JPanel jCheckBoxes = new JPanel();
+
+        // Singletons
         cSingleton = new JCheckBox("Singleton", false);
         cSingleton.setToolTipText("Allow only a single copy of each card in your deck.");
+        String singletonEnabled = PreferencesDialog.getCachedValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_SINGLETON, "false");
+        cSingleton.setSelected(Boolean.valueOf(singletonEnabled));
+        jCheckBoxes.add(cSingleton);
+
+        // Artifacts
         cArtifacts = new JCheckBox("Artifacts", false);
         cArtifacts.setToolTipText("Use artifacts and artifact creatures in your deck.");
+        String artifactEnabled = PreferencesDialog.getCachedValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_ARTIFACTS, "false");
+        cSingleton.setSelected(Boolean.valueOf(artifactEnabled));
+        jCheckBoxes.add(cArtifacts);
+
+        // Non-basic lands
         cNonBasicLands = new JCheckBox("Non-basic Lands", false);
         cNonBasicLands.setEnabled(false); // TODO: FIX AND TURN ON
         cNonBasicLands.setToolTipText("Use non-basic lands in your deck.");
+        String nonBasicEnabled = PreferencesDialog.getCachedValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_NON_BASIC_LANDS, "false");
+        cNonBasicLands.setSelected(Boolean.valueOf(nonBasicEnabled));
+        jCheckBoxes.add(cNonBasicLands);
+
         jCheckBoxes.setPreferredSize(new Dimension(300, 25));
         jCheckBoxes.setMaximumSize(new Dimension(300, 25));
-        jCheckBoxes.add(cSingleton);
-        jCheckBoxes.add(cArtifacts);
-        jCheckBoxes.add(cNonBasicLands);
         p0.add(jCheckBoxes);
 
         btnGenerate = new JButton("Ok");
@@ -182,26 +195,29 @@ public class DeckGeneratorDialog {
     }
 
     public boolean isSingleton() {
-        return cSingleton.isSelected();
+        boolean selected = cSingleton.isSelected();
+        PreferencesDialog.saveValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_SINGLETON, Boolean.toString(selected));
+        return selected;
     }
 
     public boolean useArtifacts() {
-        return cArtifacts.isSelected();
+        boolean selected = cArtifacts.isSelected();
+        PreferencesDialog.saveValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_ARTIFACTS, Boolean.toString(selected));
+        return selected;
     }
 
     public boolean useNonBasicLand() {
-        return cNonBasicLands.isSelected();
+        boolean selected = cNonBasicLands.isSelected();
+        PreferencesDialog.saveValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_NON_BASIC_LANDS, Boolean.toString(selected));
+        return selected;
     }
 
     public int getDeckSize() {
-        // TODO: Check integer parsing doesn't fail
         return Integer.parseInt(cbDeckSize.getSelectedItem().toString());
     }
 
     public String getSelectedColors() {
-
         if (selectedColors != null) {
-            // save values to prefs
             PreferencesDialog.saveValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_DECK_SIZE, cbDeckSize.getSelectedItem().toString());
             PreferencesDialog.saveValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_SET, cbSets.getSelectedItem().toString());
         }
