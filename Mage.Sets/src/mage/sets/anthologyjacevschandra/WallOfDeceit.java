@@ -57,11 +57,11 @@ public class WallOfDeceit extends CardImpl {
         this.addAbility(DefenderAbility.getInstance());
         
         // {3}: Turn Wall of Deceit face down.
-        Effect effect = new BecomesFaceDownCreatureEffect(null, BecomesFaceDownCreatureEffect.FaceDownType.MANIFESTED);
-        effect.setText("Turn Wall of Deceit face down. <i>(It becomes a 2/2 creature.)</i>");
-        this.addAbility(new SimpleActivatedAbility(Zone.BATTLEFIELD, effect, new ManaCostsImpl("{3}")));
+        //Effect effect = new BecomesFaceDownCreatureEffect(null, BecomesFaceDownCreatureEffect.FaceDownType.MANIFESTED);
+        //effect.setText("Turn Wall of Deceit face down. <i>(It becomes a 2/2 creature.)</i>");
+        //this.addAbility(new SimpleActivatedAbility(Zone.BATTLEFIELD, effect, new ManaCostsImpl("{3}")));
         
-        // Morph {U}
+        // Morph {U}g
         this.addAbility(new MorphAbility(this, new ManaCostsImpl("{U}")));
     }
 
