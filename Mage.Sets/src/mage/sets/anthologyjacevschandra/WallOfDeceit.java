@@ -37,6 +37,7 @@ import mage.abilities.effects.common.continuous.BecomesFaceDownCreatureEffect;
 import mage.abilities.keyword.MorphAbility;
 import mage.cards.CardImpl;
 import mage.constants.CardType;
+import mage.constants.Duration;
 import mage.constants.Rarity;
 import mage.constants.Zone;
 
@@ -48,20 +49,20 @@ public class WallOfDeceit extends CardImpl {
 
     public WallOfDeceit(UUID ownerId) {
         super(ownerId, 5, "Wall of Deceit", Rarity.UNCOMMON, new CardType[]{CardType.CREATURE}, "{1}{U}");
-        this.expansionSetCode = "DD3";
+        this.expansionSetCode = "DD3D";
         this.subtype.add("Wall");
         this.power = new MageInt(0);
         this.toughness = new MageInt(5);
 
         // Defender
         this.addAbility(DefenderAbility.getInstance());
-        
+
         // {3}: Turn Wall of Deceit face down.
-        //Effect effect = new BecomesFaceDownCreatureEffect(null, BecomesFaceDownCreatureEffect.FaceDownType.MANIFESTED);
-        //effect.setText("Turn Wall of Deceit face down. <i>(It becomes a 2/2 creature.)</i>");
-        //this.addAbility(new SimpleActivatedAbility(Zone.BATTLEFIELD, effect, new ManaCostsImpl("{3}")));
-        
-        // Morph {U}g
+        Effect effect = new BecomesFaceDownCreatureEffect(Duration.Custom, BecomesFaceDownCreatureEffect.FaceDownType.MANIFESTED);
+        effect.setText("Turn Wall of Deceit face down. <i>(It becomes a 2/2 creature.)</i>");
+        this.addAbility(new SimpleActivatedAbility(Zone.BATTLEFIELD, effect, new ManaCostsImpl("{3}")));
+
+        // Morph {U}
         this.addAbility(new MorphAbility(this, new ManaCostsImpl("{U}")));
     }
 
@@ -74,3 +75,4 @@ public class WallOfDeceit extends CardImpl {
         return new WallOfDeceit(this);
     }
 }
+
