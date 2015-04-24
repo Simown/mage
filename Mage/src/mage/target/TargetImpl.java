@@ -60,6 +60,7 @@ public abstract class TargetImpl implements Target {
     // is the target handled as targeted spell/ability (notTarget = true is used for not targeted effects like e.g. sacrifice)
     protected boolean notTarget = false;
     protected boolean atRandom = false;
+    protected UUID targetController = null; // if null the ability controller is the targetController
 
     @Override
     public abstract TargetImpl copy();
@@ -84,6 +85,7 @@ public abstract class TargetImpl implements Target {
         this.zoneChangeCounters.putAll(target.zoneChangeCounters);
         this.atRandom = target.atRandom;
         this.notTarget = target.notTarget;
+        this.targetController = target.targetController;
     }
 
     @Override
@@ -252,7 +254,7 @@ public abstract class TargetImpl implements Target {
     private void rememberZoneChangeCounter(UUID id, Game game) {
         Card card = game.getCard(id);
         if (card != null) {
-            zoneChangeCounters.put(id, card.getZoneChangeCounter());
+            zoneChangeCounters.put(id, card.getZoneChangeCounter(game));
         }
     }
 
@@ -331,7 +333,7 @@ public abstract class TargetImpl implements Target {
         for (UUID targetId: targets.keySet()) {
             Card card = game.getCard(targetId);
             if (card != null) {
-                if (zoneChangeCounters.containsKey(targetId) && zoneChangeCounters.get(targetId) != card.getZoneChangeCounter()) {
+                if (zoneChangeCounters.containsKey(targetId) && zoneChangeCounters.get(targetId) != card.getZoneChangeCounter(game)) {
                     illegalTargets.add(targetId);
                     continue; // it's not legal so continue to have a look at other targeted objects
                 }
@@ -419,6 +421,16 @@ public abstract class TargetImpl implements Target {
     @Override
     public void setRandom(boolean atRandom) {
         this.atRandom = atRandom;
+    }
+
+    @Override
+    public void setTargetController(UUID playerId) {
+        this.targetController = playerId;
+    }
+
+    @Override
+    public UUID getTargetController() {
+        return targetController;
     }
 
 

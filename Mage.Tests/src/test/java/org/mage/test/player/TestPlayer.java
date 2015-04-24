@@ -69,6 +69,7 @@ import mage.cards.Card;
 import mage.constants.Zone;
 import mage.target.TargetSource;
 import mage.target.common.TargetCardInHand;
+import mage.target.common.TargetPermanentOrPlayer;
 
 /**
  *
@@ -126,7 +127,7 @@ public class TestPlayer extends ComputerPlayer {
                     String command = action.getAction();
                     command = command.substring(command.indexOf("activate:") + 9);
                     String[] groups = command.split("\\$");
-                    if (!checkSpellOnStackCondition(groups, game) || !checkSpellOnTopOfStackCondition(groups, game)) {
+                    if (groups.length > 2 && !checkExecuteCondition(groups, game)) {
                         break;
                     }
                     for (Ability ability: this.getPlayable(game, true)) {
@@ -301,22 +302,39 @@ public class TestPlayer extends ComputerPlayer {
     @Override
     public boolean choose(Outcome outcome, Target target, UUID sourceId, Game game, Map<String, Serializable> options) {
         if (!choices.isEmpty()) {
-            if (target instanceof TargetPermanent) {
-                for (Permanent permanent : game.getBattlefield().getAllActivePermanents((FilterPermanent)target.getFilter(), game)) {
-                    for (String choose2: choices) {
-                        if (permanent.getName().equals(choose2)) {
-                            if (((TargetPermanent)target).canTarget(playerId, permanent.getId(), null, game) && !target.getTargets().contains(permanent.getId())) {
-                                target.add(permanent.getId(), game);
-                                choices.remove(choose2);
-                                return true;
+            if ((target instanceof TargetPermanent) || (target instanceof TargetPermanentOrPlayer)) { // player target not implemted yet
+                FilterPermanent filterPermanent;
+                if (target instanceof TargetPermanentOrPlayer) {
+                    filterPermanent = ((TargetPermanentOrPlayer) target).getFilterPermanent();
+                } else {
+                    filterPermanent = ((TargetPermanent) target).getFilter();
+                }
+                for (String choose2: choices) {
+                    String[] targetList = choose2.split("\\^");
+                    boolean targetFound = false;
+                    for (String targetName: targetList) {
+                        for (Permanent permanent : game.getBattlefield().getAllActivePermanents(filterPermanent, game)) {
+                            if (target.getTargets().contains(permanent.getId())) {
+                                continue;
                             }
-                        } else if ((permanent.getName()+"-"+permanent.getExpansionSetCode()).equals(choose2)) {
-                            if (((TargetPermanent)target).canTarget(playerId, permanent.getId(), null, game) && !target.getTargets().contains(permanent.getId())) {
-                                target.add(permanent.getId(), game);
-                                choices.remove(choose2);
-                                return true;
+                            if (permanent.getName().equals(targetName)) {
+                                if (target.isNotTarget() || ((TargetPermanent)target).canTarget(playerId, permanent.getId(), null, game)) {
+                                    target.add(permanent.getId(), game);
+                                    targetFound = true;
+                                    break;
+                                }
+                            } else if ((permanent.getName()+"-"+permanent.getExpansionSetCode()).equals(targetName)) {
+                                if (target.isNotTarget() || ((TargetPermanent)target).canTarget(playerId, permanent.getId(), null, game)) {
+                                    target.add(permanent.getId(), game);
+                                    targetFound = true;
+                                    break;
+                                }
                             }
                         }
+                    }
+                    if (targetFound) {
+                        choices.remove(choose2);
+                        return true;
                     }
                 }
             }
@@ -362,7 +380,7 @@ public class TestPlayer extends ComputerPlayer {
     @Override
     public boolean chooseTarget(Outcome outcome, Target target, Ability source, Game game) {
         if (!targets.isEmpty()) {
-            if (target instanceof TargetPermanent) {
+            if ((target instanceof TargetPermanent) || (target instanceof TargetPermanentOrPlayer)) {
                 for (String targetDefinition: targets) {
                     String[] targetList = targetDefinition.split("\\^");
                     boolean targetFound = false;
@@ -436,7 +454,7 @@ public class TestPlayer extends ComputerPlayer {
     public TriggeredAbility chooseTriggeredAbility(List<TriggeredAbility> abilities, Game game) {
         if (!choices.isEmpty()) {
             for(TriggeredAbility ability :abilities) {
-                if (choices.get(0).equals(ability.toString())) {
+                if (ability.toString().startsWith(choices.get(0))) {
                     choices.remove(0);
                     return ability;
                 }
@@ -484,6 +502,18 @@ public class TestPlayer extends ComputerPlayer {
         return super.announceXCost(min, max, message, game, ability, null);
     }
 
+    @Override
+    public int getAmount(int min, int max, String message, Game game) {
+        if (!choices.isEmpty()) {
+            if (choices.get(0).startsWith("X=")) {
+                int xValue = Integer.parseInt(choices.get(0).substring(2));
+                choices.remove(0);
+                return xValue;
+            }
+        }
+        return super.getAmount(min, max, message, game);    
+    }
+
     protected Permanent findPermanent(FilterPermanent filter, UUID controllerId, Game game) {
         List<Permanent> permanents = game.getBattlefield().getAllActivePermanents(filter, controllerId, game);
         if (permanents.size() > 0) {
@@ -492,8 +522,8 @@ public class TestPlayer extends ComputerPlayer {
         return null;
     }
 
-    private boolean checkSpellOnStackCondition(String[] groups, Game game) {
-        if (groups.length > 2 && groups[2].startsWith("spellOnStack=")) {
+    private boolean checkExecuteCondition(String[] groups, Game game) {
+        if (groups[2].startsWith("spellOnStack=")) {
             String spellOnStack = groups[2].substring(13);
             for (StackObject stackObject: game.getStack()) {
                 if (stackObject.getStackAbility().toString().contains(spellOnStack)) {
@@ -501,7 +531,7 @@ public class TestPlayer extends ComputerPlayer {
                 }
             }
             return false;
-        } else if (groups.length > 2 && groups[2].startsWith("!spellOnStack=")) {
+        } else if (groups[2].startsWith("!spellOnStack=")) {
             String spellNotOnStack = groups[2].substring(14);
             for (StackObject stackObject: game.getStack()) {
                 if (stackObject.getStackAbility().toString().contains(spellNotOnStack)) {
@@ -509,12 +539,7 @@ public class TestPlayer extends ComputerPlayer {
                 }
             }
             return true;
-        }
-        return true;
-    }
-
-    private boolean checkSpellOnTopOfStackCondition(String[] groups, Game game) {
-        if (groups.length > 2 && groups[2].startsWith("spellOnTopOfStack=")) {
+        } else if (groups[2].startsWith("spellOnTopOfStack=")) {
             String spellOnTopOFStack = groups[2].substring(18);
             if (game.getStack().size() > 0) {
                 StackObject stackObject = game.getStack().getFirst();
@@ -523,15 +548,33 @@ public class TestPlayer extends ComputerPlayer {
                 }
             }
             return false;
+        } else if (groups[2].startsWith("manaInPool=")) {
+            String manaInPool = groups[2].substring(11);
+            int amountOfMana = Integer.parseInt(manaInPool);            
+            return this.getManaPool().getMana().count() >= amountOfMana;
         }
         return true;
     }
+
+//    private boolean checkSpellOnTopOfStackCondition(String[] groups, Game game) {
+//        if (groups.length > 2 && groups[2].startsWith("spellOnTopOfStack=")) {
+//            String spellOnTopOFStack = groups[2].substring(18);
+//            if (game.getStack().size() > 0) {
+//                StackObject stackObject = game.getStack().getFirst();
+//                if (stackObject != null && stackObject.getStackAbility().toString().contains(spellOnTopOFStack)) {
+//                    return true;
+//                }
+//            }
+//            return false;
+//        }
+//        return true;
+//    }
     
     private boolean addTargets(Ability ability, String[] groups, Game game) {
         boolean result = true;
         for (int i = 1; i < groups.length; i++) {
             String group = groups[i];
-            if (group.startsWith("spellOnStack") || group.startsWith("spellOnTopOfStack") || group.startsWith("!spellOnStack") || group.startsWith("target=null") ) {
+            if (group.startsWith("spellOnStack") || group.startsWith("spellOnTopOfStack") || group.startsWith("!spellOnStack") || group.startsWith("target=null") || group.startsWith("manaInPool=")) {
                 break;
             }
             if (ability instanceof SpellAbility && ((SpellAbility) ability).getSpellAbilityType().equals(SpellAbilityType.SPLIT_FUSED)) {

@@ -37,6 +37,7 @@ import java.util.UUID;
 public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implements CardTestAPI {
 
     static {
+//        CardScanner.scanned = true;
         CardScanner.scan();
     }
 
@@ -168,7 +169,7 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
                 if (card == null) {
                     throw new IllegalArgumentException("[TEST] Couldn't find a card: " + cardName);
                 }
-                PermanentCard p = new PermanentCard(card, null);
+                PermanentCard p = new PermanentCard(card, null, currentGame);
                 p.setTapped(tapped);
                 getBattlefieldCards(player).add(p);
             }
@@ -511,6 +512,28 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
      *
      * @param cardName  Name of the permanent that should be checked.
      * @param type      A type to test for
+     * @param flag      true if creature should have type, false if it should not
+     */
+    public void assertType(String cardName, CardType type, boolean flag) throws AssertionError {
+        Permanent found = null;
+        for (Permanent permanent : currentGame.getBattlefield().getAllActivePermanents()) {
+            if (permanent.getName().equals(cardName)) {
+                found = permanent;
+                break;
+            }
+        }
+
+        Assert.assertNotNull("There is no such permanent on the battlefield, cardName=" + cardName, found);
+
+        Assert.assertTrue("(Battlefield) card type not found (" + cardName + ":" + type + ")", (found.getCardType().contains(type) == flag));
+
+    }
+
+    /**
+     * Assert whether a permanent is a specified type
+     *
+     * @param cardName  Name of the permanent that should be checked.
+     * @param type      A type to test for
      * @param subType   a subtype to test for
      */
     public void assertType(String cardName, CardType type, String subType) throws AssertionError {
@@ -698,6 +721,10 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
 
     public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, Player target) {
         player.addAction(turnNum, step, "activate:Cast " + cardName + "$targetPlayer=" + target.getName());
+    }
+
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, Player target, int manaInPool) {
+        player.addAction(turnNum, step, "activate:Cast " + cardName + "$targetPlayer=" + target.getName() + "$manaInPool=" + manaInPool);
     }
 
     public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName) {

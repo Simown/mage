@@ -164,7 +164,7 @@ public class KickerAbility extends StaticAbility implements OptionalAdditionalSo
     public boolean isKicked(Game game) {
         Card card = game.getCard(sourceId);
         // kicked status counts only if card not changed zone since it was kicked
-        if (card != null && card.getZoneChangeCounter() <= zoneChangeCounter +1) {
+        if (card != null && card.getZoneChangeCounter(game) <= zoneChangeCounter +1) {
             for (OptionalAdditionalCost cost: kickerCosts) {
                 if(cost.isActivated()) {
                     return true;
@@ -186,7 +186,7 @@ public class KickerAbility extends StaticAbility implements OptionalAdditionalSo
         if (zoneChangeCounter == 0) {
             Card card = game.getCard(getSourceId());
             if (card != null) {
-                zoneChangeCounter = card.getZoneChangeCounter();
+                zoneChangeCounter = card.getZoneChangeCounter(game);
             } else {
                 throw new IllegalArgumentException("Kicker source card not found");
             }
@@ -218,7 +218,8 @@ public class KickerAbility extends StaticAbility implements OptionalAdditionalSo
                                         // use only first variable cost
                                         xManaValue = game.getPlayer(this.controllerId).announceXMana(varCosts.get(0).getMinX(), Integer.MAX_VALUE, "Announce kicker value for " + varCosts.get(0).getText(), game, this);
                                         // kicker variable X costs handled internally as multikicker with {1} cost (no multikicker on card)
-                                        game.informPlayers(new StringBuilder(game.getPlayer(this.controllerId).getName()).append(" announced a value of ").append(xManaValue).append(" for ").append(" kicker X ").toString());
+                                        if (!game.isSimulation())
+                                            game.informPlayers(new StringBuilder(game.getPlayer(this.controllerId).getName()).append(" announced a value of ").append(xManaValue).append(" for ").append(" kicker X ").toString());
                                         ability.getManaCostsToPay().add(new GenericManaCost(xManaValue));
                                     } else {
                                         ability.getManaCostsToPay().add((ManaCostsImpl) cost.copy());                                        

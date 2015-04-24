@@ -113,12 +113,12 @@ class JeskaiInfiltratorEffect extends OneShotEffect {
             Permanent sourcePermanent = game.getPermanent(source.getSourceId());
             Card sourceCard = game.getCard(source.getSourceId());
             if (sourcePermanent != null && sourceCard != null) {                
-                player.moveCardToExileWithInfo(sourcePermanent, sourcePermanent.getId(), sourcePermanent.getName(), source.getSourceId(), game, Zone.BATTLEFIELD);
+                player.moveCardToExileWithInfo(sourcePermanent, sourcePermanent.getId(), sourcePermanent.getName(), source.getSourceId(), game, Zone.BATTLEFIELD, true);
                 cardsToManifest.add(sourceCard);
             }
             if (sourcePermanent!= null && player.getLibrary().size() > 0) {
                 Card cardFromLibrary = player.getLibrary().removeFromTop(game);
-                player.moveCardToExileWithInfo(cardFromLibrary, sourcePermanent.getId(), sourcePermanent.getName(), source.getSourceId(), game, Zone.LIBRARY);
+                player.moveCardToExileWithInfo(cardFromLibrary, sourcePermanent.getId(), sourcePermanent.getName(), source.getSourceId(), game, Zone.LIBRARY, true);
                 cardsToManifest.add(cardFromLibrary);
             }
             Collections.shuffle(cardsToManifest);
@@ -133,7 +133,7 @@ class JeskaiInfiltratorEffect extends OneShotEffect {
                         manaCosts = new ManaCostsImpl("{0}");
                     }
                 }
-                MageObjectReference objectReference= new MageObjectReference(card.getId(), card.getZoneChangeCounter() +1, game);
+                MageObjectReference objectReference= new MageObjectReference(card.getId(), card.getZoneChangeCounter(game) +1, game);
                 game.addEffect(new BecomesFaceDownCreatureEffect(manaCosts, objectReference, Duration.Custom, FaceDownType.MANIFESTED), newSource);                                
                 if (player.putOntoBattlefieldWithInfo(card, game, Zone.EXILED, source.getSourceId(), false, true)) {
                     game.informPlayers(new StringBuilder(player.getName())

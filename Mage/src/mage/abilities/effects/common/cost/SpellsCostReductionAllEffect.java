@@ -27,16 +27,20 @@
  */
 package mage.abilities.effects.common.cost;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+import mage.Mana;
 import mage.abilities.Ability;
 import mage.abilities.SpellAbility;
-import mage.abilities.keyword.FlashbackAbility;
 import mage.cards.Card;
+import mage.choices.ChoiceImpl;
 import mage.constants.CostModificationType;
 import mage.constants.Duration;
 import mage.constants.Outcome;
 import mage.filter.FilterCard;
 import mage.game.Game;
 import mage.game.stack.Spell;
+import mage.players.Player;
 import mage.util.CardUtil;
 
 /**
@@ -47,27 +51,61 @@ public class SpellsCostReductionAllEffect extends CostModificationEffectImpl {
 
     private FilterCard filter;
     private int amount;
+    private final boolean upTo;
 
     public SpellsCostReductionAllEffect(int amount) {
         this(new FilterCard("All Spells "), amount);
     }
 
     public SpellsCostReductionAllEffect(FilterCard filter, int amount) {
+        this(filter, amount, false);
+    }
+    
+    public SpellsCostReductionAllEffect(FilterCard filter, int amount, boolean upTo) {
         super(Duration.WhileOnBattlefield, Outcome.Benefit, CostModificationType.REDUCE_COST);
         this.filter = filter;
         this.amount = amount;
-        this.staticText = new StringBuilder(filter.getMessage()).append(" cost {").append(amount).append("} less to cast").toString();
+        this.upTo = upTo;
+        
+        this.staticText = filter.getMessage() + " cost " + (upTo ?"up to " :"") + "{" +amount + "} less to cast";
     }
 
     protected SpellsCostReductionAllEffect(SpellsCostReductionAllEffect effect) {
         super(effect);
         this.filter = effect.filter;
         this.amount = effect.amount;
+        this.upTo = effect.upTo;
     }
 
     @Override
     public boolean apply(Game game, Ability source, Ability abilityToModify) {
-        CardUtil.reduceCost(abilityToModify, this.amount);
+        if (upTo) {
+            Mana mana = abilityToModify.getManaCostsToPay().getMana();
+            int reduceMax = mana.getColorless();
+            if (reduceMax > 2) {
+                reduceMax = 2;
+            }
+            if (reduceMax > 0) {
+                Player controller = game.getPlayer(abilityToModify.getControllerId());
+                if (controller == null) {
+                    return false;
+                }
+                ChoiceImpl choice = new ChoiceImpl(true);
+                Set<String> set = new LinkedHashSet<>();
+                for (int i = 0; i <= reduceMax; i++) {
+                    set.add(String.valueOf(i));
+                }
+                choice.setChoices(set);
+                choice.setMessage("Reduce cost of " + filter);
+                if (controller.choose(Outcome.Benefit, choice, game)) {
+                    int reduce = Integer.parseInt(choice.getChoice());
+                    CardUtil.reduceCost(abilityToModify, reduce);
+                }
+            }
+        } else {
+
+            CardUtil.reduceCost(abilityToModify, this.amount);
+        }
         return true;
     }
 

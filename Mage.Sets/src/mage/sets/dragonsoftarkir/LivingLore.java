@@ -110,10 +110,10 @@ class LivingLoreExileEffect extends OneShotEffect {
         if (sourceObject != null && controller != null){
             TargetCardInYourGraveyard target = new TargetCardInYourGraveyard(new FilterInstantOrSorceryCard("instant or sorcery card from your graveyard"));
             if (controller.chooseTarget(outcome, target, source, game)) {
-                UUID exileId = CardUtil.getObjectExileZoneId(game, sourceObject);
+                UUID exileId = CardUtil.getExileZoneId(game, source.getSourceId(), source.getSourceObjectZoneChangeCounter());
                 Card card = controller.getGraveyard().get(target.getFirstTarget(), game);
                 if (card != null) {
-                    controller.moveCardToExileWithInfo(card, exileId, sourceObject.getName(), source.getSourceId(), game, Zone.GRAVEYARD);
+                    controller.moveCardToExileWithInfo(card, exileId, sourceObject.getName(), source.getSourceId(), game, Zone.GRAVEYARD, true);
                 }
             }
             return true;
@@ -143,11 +143,11 @@ class LivingLoreSetPowerToughnessSourceEffect extends ContinuousEffectImpl {
     public boolean apply(Game game, Ability source) {
         MageObject mageObject = source.getSourceObject(game);
         Permanent permanent = game.getPermanent(source.getSourceId());
-        if (permanent != null && mageObject == null && new MageObjectReference(permanent).refersTo(mageObject)) {
+        if (permanent != null && mageObject == null && new MageObjectReference(permanent, game).refersTo(mageObject, game)) {
             discard();
             return false;
         }
-        UUID exileId = CardUtil.getObjectExileZoneId(game, mageObject);
+        UUID exileId = CardUtil.getExileZoneId(game, source.getSourceId(), source.getSourceObjectZoneChangeCounter());
         if (exileId != null) {
             ExileZone exileZone = game.getExile().getExileZone(exileId);
             if (exileZone == null) {
@@ -190,15 +190,17 @@ class LivingLoreSacrificeEffect extends OneShotEffect {
         if (controller != null) {
             MageObject mageObject = source.getSourceObject(game);
             Permanent permanent = game.getPermanent(source.getSourceId());
-            if (permanent != null && mageObject != null && new MageObjectReference(permanent).refersTo(mageObject)) {
+            if (permanent != null && mageObject != null && new MageObjectReference(permanent, game).refersTo(mageObject, game)) {
                 if (permanent.sacrifice(source.getSourceId(), game)) {
-                    UUID exileId = CardUtil.getObjectExileZoneId(game, mageObject);
+                    UUID exileId = CardUtil.getExileZoneId(game, source.getSourceId(), source.getSourceObjectZoneChangeCounter());
                     if (exileId != null) {
                         ExileZone exileZone = game.getExile().getExileZone(exileId);
                         Card exiledCard = null;
-                        for (Card card :exileZone.getCards(game)) {
-                            exiledCard = card;
-                            break;
+                        if (exileZone != null) {
+                            for (Card card :exileZone.getCards(game)) {
+                                exiledCard = card;
+                                break;
+                            }
                         }
                         if (exiledCard != null) {
                             if (exiledCard.getSpellAbility().canChooseTarget(game)) {

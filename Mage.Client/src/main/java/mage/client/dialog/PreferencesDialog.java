@@ -135,6 +135,9 @@ public class PreferencesDialog extends javax.swing.JDialog {
     // Size of frame to check if divider locations should be used
     public static final String KEY_MAGE_PANEL_LAST_SIZE = "gamepanelLastSize";
     
+    // pref settings of table settings and filtering
+    public static final String KEY_TABLES_SHOW_COMPLETED = "tablePanelShowCompleted";
+    
     // positions of divider bars
     public static final String KEY_TABLES_DIVIDER_LOCATION_1 = "tablePanelDividerLocation1";
     public static final String KEY_TABLES_DIVIDER_LOCATION_2 = "tablePanelDividerLocation2";
@@ -1684,9 +1687,9 @@ public class PreferencesDialog extends javax.swing.JDialog {
 
         try {
             MageFrame.getSession().updatePreferencesForServer(
-                        getSelectedAvatar(),
-                        dialog.cbAllowRequestToShowHandCards.isSelected(),
+                        getSelectedAvatar(),                        
                         dialog.showAbilityPickerForced.isSelected(),
+                        dialog.cbAllowRequestToShowHandCards.isSelected(),
                         getUserSkipPrioritySteps());
 
             prefs.flush();
@@ -2238,6 +2241,14 @@ public class PreferencesDialog extends javax.swing.JDialog {
         save(prefs, checkBox, propName, PHASE_ON, PHASE_OFF, false);
     }
 
+    public static void setPrefValue(String key, boolean value) {
+        switch(key) {
+            case KEY_GAME_ALLOW_REQUEST_SHOW_HAND_CARDS:
+                dialog.cbAllowRequestToShowHandCards.setSelected(value);
+                save(MageFrame.getPreferences(), dialog.cbAllowRequestToShowHandCards, KEY_GAME_ALLOW_REQUEST_SHOW_HAND_CARDS, "true", "false", UPDATE_CACHE_POLICY);
+                break;
+        }                
+    }
     private static void save(Preferences prefs, JCheckBox checkBox, String propName, String yesValue, String noValue, boolean updateCache) {
         prefs.put(propName, checkBox.isSelected() ? yesValue : noValue);
         if (updateCache) {

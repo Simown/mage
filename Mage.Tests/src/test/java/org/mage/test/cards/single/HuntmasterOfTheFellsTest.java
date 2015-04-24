@@ -11,12 +11,33 @@ import org.mage.test.serverside.base.CardTestPlayerBase;
  */
 public class HuntmasterOfTheFellsTest extends CardTestPlayerBase {
 
+    /**
+     * Huntmaster of the Fells
+     * Creature — Human Werewolf 2/2, 2RG (4)
+     * Whenever this creature enters the battlefield or transforms into Huntmaster 
+     * of the Fells, put a 2/2 green Wolf creature token onto the battlefield and 
+     * you gain 2 life.
+     * At the beginning of each upkeep, if no spells were cast last turn, transform 
+     * Huntmaster of the Fells.
+     * 
+     */
+    
+    /** 
+     * Ravager of the Fells
+     * Creature — Werewolf 4/4
+     * Trample
+     * Whenever this creature transforms into Ravager of the Fells, it deals 2 
+     * damage to target opponent and 2 damage to up to one target creature that 
+     * player controls.
+     * At the beginning of each upkeep, if a player cast two or more spells last 
+     * turn, transform Ravager of the Fells.
+     */
+    
     @Test
     public void testCard() {
         addCard(Zone.BATTLEFIELD, playerA, "Forest", 3);
         addCard(Zone.BATTLEFIELD, playerA, "Mountain");
         addCard(Zone.HAND, playerA, "Huntmaster of the Fells");
-        addCard(Zone.BATTLEFIELD, playerB, "Ornithopter");
 
         castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Huntmaster of the Fells");
         setStopAt(3, PhaseStep.DRAW);
@@ -27,7 +48,6 @@ public class HuntmasterOfTheFellsTest extends CardTestPlayerBase {
         assertPermanentCount(playerA, "Wolf", 1);
         assertPermanentCount(playerA, "Huntmaster of the Fells", 0);
         assertPermanentCount(playerA, "Ravager of the Fells", 1);
-        assertPermanentCount(playerB, "Ornithopter", 0);
     }
 
     /**
@@ -38,7 +58,6 @@ public class HuntmasterOfTheFellsTest extends CardTestPlayerBase {
         addCard(Zone.BATTLEFIELD, playerA, "Forest", 3);
         addCard(Zone.BATTLEFIELD, playerA, "Mountain");
         addCard(Zone.HAND, playerA, "Huntmaster of the Fells");
-        addCard(Zone.BATTLEFIELD, playerB, "Ornithopter");
 
         addCard(Zone.BATTLEFIELD, playerB, "Mountain", 2);
         addCard(Zone.HAND, playerB, "Lightning Bolt", 2);
@@ -54,6 +73,5 @@ public class HuntmasterOfTheFellsTest extends CardTestPlayerBase {
         assertPermanentCount(playerA, "Wolf", 2);
         assertPermanentCount(playerA, "Ravager of the Fells", 0); // transformed back
         assertPermanentCount(playerA, "Huntmaster of the Fells", 1);
-        assertPermanentCount(playerB, "Ornithopter", 0);
     }
 }

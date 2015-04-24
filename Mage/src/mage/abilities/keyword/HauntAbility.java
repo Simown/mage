@@ -40,6 +40,7 @@ import mage.constants.Outcome;
 import mage.constants.Zone;
 import mage.game.Game;
 import mage.game.events.GameEvent;
+import mage.game.events.GameEvent.EventType;
 import mage.game.events.ZoneChangeEvent;
 import mage.game.permanent.Permanent;
 import mage.target.common.TargetCreaturePermanent;
@@ -108,7 +109,7 @@ public class HauntAbility extends TriggeredAbilityImpl {
                     if (zEvent.isDiesEvent()) {
                         Card card = game.getCard(getSourceId());
                         if (card != null) {
-                            String key = new StringBuilder("Haunting_").append(getSourceId().toString()).append("_").append(card.getZoneChangeCounter()).toString();
+                            String key = new StringBuilder("Haunting_").append(getSourceId().toString()).append("_").append(card.getZoneChangeCounter(game)).toString();
                             Object object = game.getState().getValue(key);
                             if (object != null && object instanceof FixedTarget) {
                                 FixedTarget target = (FixedTarget) object;
@@ -158,7 +159,7 @@ class HauntExileAbility extends ZoneChangeTriggeredAbility {
     }
 
     @Override
-    public boolean isInUseableZone(Game game, MageObject source, boolean checkLKI) {        
+    public boolean isInUseableZone(Game game, MageObject source, GameEvent event) {
         boolean fromOK = true;
         if (creatureHaunt) {
             // check it was previously on battlefield
@@ -205,11 +206,13 @@ class HauntEffect extends OneShotEffect {
             if (hauntedCreature != null) {
                 if (card.moveToExile(source.getSourceId(), "Haunting", source.getSourceId(), game)) {
                     // remember the haunted creature
-                    String key = new StringBuilder("Haunting_").append(source.getSourceId().toString()).append("_").append(card.getZoneChangeCounter()).toString();
+                    String key = new StringBuilder("Haunting_").append(source.getSourceId().toString()).append("_").append(card.getZoneChangeCounter(game)).toString();
                     game.getState().setValue(key, new FixedTarget(targetPointer.getFirst(game, source)));
                     card.addInfo("hauntinfo", new StringBuilder("Haunting ").append(hauntedCreature.getLogName()).toString(), game);
                     hauntedCreature.addInfo("hauntinfo", new StringBuilder("Haunted by ").append(card.getLogName()).toString(), game);
-                    game.informPlayers(new StringBuilder(card.getName()).append(" haunting ").append(hauntedCreature.getLogName()).toString());
+                    if (!game.isSimulation()) {
+                        game.informPlayers(new StringBuilder(card.getName()).append(" haunting ").append(hauntedCreature.getLogName()).toString());
+                    }
                 }
                 return true;
             }

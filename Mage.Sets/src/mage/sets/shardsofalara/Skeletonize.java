@@ -103,7 +103,7 @@ class SkeletonizeEffect extends OneShotEffect {
         DelayedTriggeredAbility delayedAbility = new SkeletonizeDelayedTriggeredAbility();
         delayedAbility.setSourceId(source.getSourceId());
         delayedAbility.setControllerId(source.getControllerId());
-        delayedAbility.setSourceObject(source.getSourceObject(game));
+        delayedAbility.setSourceObject(source.getSourceObject(game), game);
         game.addDelayedTriggeredAbility(delayedAbility);
         return true;
     }
@@ -131,7 +131,7 @@ class SkeletonizeDelayedTriggeredAbility extends DelayedTriggeredAbility {
             if (zce.isDiesEvent()) {
                 DamagedByWatcher watcher = (DamagedByWatcher) game.getState().getWatchers().get("DamagedByWatcher", this.getSourceId());
                 if (watcher != null) {
-                    return watcher.wasDamaged(zce.getTarget());
+                    return watcher.wasDamaged(zce.getTarget(), game);
                 }
             }
         }

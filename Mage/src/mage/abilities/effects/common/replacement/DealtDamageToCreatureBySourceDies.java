@@ -78,7 +78,7 @@ public class DealtDamageToCreatureBySourceDies extends ReplacementEffectImpl {
         Permanent permanent = ((ZoneChangeEvent)event).getTarget();
         Player controller = game.getPlayer(source.getControllerId());
         if (controller != null && permanent != null) {
-            return controller.moveCardToExileWithInfo(permanent, null, "", source.getSourceId(), game, Zone.BATTLEFIELD);
+            return controller.moveCardToExileWithInfo(permanent, null, "", source.getSourceId(), game, Zone.BATTLEFIELD, true);
         }
         return false;
     }
@@ -94,7 +94,7 @@ public class DealtDamageToCreatureBySourceDies extends ReplacementEffectImpl {
         if (zce.isDiesEvent()) {
             DamagedByWatcher watcher = (DamagedByWatcher) game.getState().getWatchers().get("DamagedByWatcher", source.getSourceId());
             if (watcher != null) {
-                return watcher.wasDamaged(zce.getTarget());
+                return watcher.wasDamaged(zce.getTarget(), game);
             }
         }
         return false;

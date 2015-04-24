@@ -99,7 +99,7 @@ public class MorphTest extends CardTestPlayerBase {
         castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Pine Walker");
         setChoice(playerA, "Yes"); // cast it face down as 2/2 creature
         
-        attack(3, playerA, "");
+        attack(3, playerA, "face down creature");
         
         activateAbility(3, PhaseStep.POSTCOMBAT_MAIN, playerA, "{4}{G}: Turn this face-down permanent face up.");
         setStopAt(3, PhaseStep.END_TURN);
@@ -133,8 +133,8 @@ public class MorphTest extends CardTestPlayerBase {
         castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Icefeather Aven");
         setChoice(playerA, "Yes"); // cast it face down as 2/2 creature
         
-        attack(3, playerA, "");
-        attack(3, playerA, "");
+        attack(3, playerA, "face down creature");
+        attack(3, playerA, "face down creature");
         activateAbility(3, PhaseStep.DECLARE_BLOCKERS, playerA, "{1}{G}{U}: Turn this face-down permanent face up.");
         setChoice(playerA, "No"); // Don't use return permanent to hand effect
         
@@ -476,6 +476,10 @@ public class MorphTest extends CardTestPlayerBase {
 
     @Test
     public void testDiesTriggeredDoesNotTriggerIfFaceDown() {
+        // Flying
+        // When Ashcloud Phoenix dies, return it to the battlefield face down.
+        // Morph (You may cast this card face down as a 2/2 creature for . Turn it face up any time for its morph cost.)
+        // When Ashcloud Phoenix is turned face up, it deals 2 damage to each player.
         addCard(Zone.HAND, playerA, "Ashcloud Phoenix", 1);
         addCard(Zone.BATTLEFIELD, playerA, "Forest", 3);
 
@@ -504,6 +508,81 @@ public class MorphTest extends CardTestPlayerBase {
                 break;
             }
         }
+
+    }    
+   /**
+     * Check that a DiesTriggeredAbility of a creature does not trigger
+     * if the creature dies face down in combat
+     */
+
+    @Test
+    public void testDiesTriggeredDoesNotTriggerInCombatIfFaceDown() {
+        // Flying
+        // When Ashcloud Phoenix dies, return it to the battlefield face down.
+        // Morph (You may cast this card face down as a 2/2 creature for . Turn it face up any time for its morph cost.)
+        // When Ashcloud Phoenix is turned face up, it deals 2 damage to each player.
+        addCard(Zone.HAND, playerA, "Ashcloud Phoenix", 1);
+        addCard(Zone.BATTLEFIELD, playerA, "Mountain", 3);
+
+        // First strike, forestwalk, vigilance 
+        // (This creature deals combat damage before creatures without first strike, it can't be blocked as long as defending player controls a Forest, and attacking doesn't cause this creature to tap.)
+        addCard(Zone.BATTLEFIELD, playerB, "Mirri, Cat Warrior");
+
+
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Ashcloud Phoenix");
+        setChoice(playerA, "Yes"); // cast it face down as 2/2 creature
+
+        attack(2, playerB, "Mirri, Cat Warrior");
+        block(2, playerA, "face down creature", "Mirri, Cat Warrior"); 
+
+        setStopAt(2, PhaseStep.POSTCOMBAT_MAIN);
+        execute();
+
+        assertGraveyardCount(playerA, "Ashcloud Phoenix", 1);
+
+
+        for (Card card: playerA.getGraveyard().getCards(currentGame)) {
+            if (card.getName().equals("Ashcloud Phoenix")) {
+                Assert.assertEquals("Ashcloud Phoenix has to be face up in graveyard", false, card.isFaceDown(currentGame));
+                break;
+            }
+        }
+
+        assertLife(playerA, 20);
+        assertLife(playerB, 20);
+
+    }    
+    /**
+     * Supplant Form does not work correctly with morph creatures. If you bounce and copy
+     * a face-down morph, the created token should be a colorless 2/2, but the token created
+     * is instead the face-up of what the morph creature was.
+     */
+
+    @Test
+    public void testSupplantFormWithMorphedCreature() {
+        addCard(Zone.HAND, playerA, "Akroma, Angel of Fury", 1);
+        addCard(Zone.BATTLEFIELD, playerA, "Mountain", 3);
+
+        // Return target creature to its owner's hand. You put a token onto the battlefield that's a copy of that creature
+        addCard(Zone.HAND, playerB, "Supplant Form", 1);
+        addCard(Zone.BATTLEFIELD, playerB, "Island", 6);
+
+
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Akroma, Angel of Fury");
+        setChoice(playerA, "Yes"); // cast it face down as 2/2 creature
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerB, "Supplant Form", "face down creature");
+
+        setStopAt(1, PhaseStep.BEGIN_COMBAT);
+        execute();
+
+        assertLife(playerB, 20);
+
+        assertGraveyardCount(playerB, "Supplant Form", 1);
+        assertHandCount(playerA, "Akroma, Angel of Fury", 1);
+        
+        assertPermanentCount(playerB, "Akroma, Angel of Fury", 0);
+        assertPermanentCount(playerB, "a creature without name", 1);
+        assertPowerToughness(playerB, "a creature without name", 2, 2);
 
     }    
 }
