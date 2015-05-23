@@ -68,11 +68,10 @@ public class OgreSlumlord extends CardImpl {
         this.subtype.add("Ogre");
         this.subtype.add("Rogue");
 
-        this.color.setBlack(true);
+
         this.power = new MageInt(3);
         this.toughness = new MageInt(3);
 
-        this.color.setBlack(true);
 
         // Whenever another nontoken creature dies, you may put a 1/1 black Rat creature token onto the battlefield.
         this.addAbility(new DiesCreatureTriggeredAbility(new CreateTokenEffect(new RatToken()), true, filter));

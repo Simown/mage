@@ -69,7 +69,6 @@ public class CharmbreakerDevils extends CardImpl {
         this.expansionSetCode = "ISD";
         this.subtype.add("Devil");
 
-        this.color.setRed(true);
         this.power = new MageInt(4);
         this.toughness = new MageInt(4);
 
@@ -118,7 +117,7 @@ class CharmbreakerDevilsEffect extends OneShotEffect {
                 Random rnd = new Random();
                 Card card = cards[rnd.nextInt(cards.length)];
                 card.moveToZone(Zone.HAND, source.getSourceId(), game, true);
-                game.informPlayers(new StringBuilder("Charmbreaker Devils: ").append(card.getName()).append(" returned to the hand of ").append(player.getName()).toString());
+                game.informPlayers(new StringBuilder("Charmbreaker Devils: ").append(card.getName()).append(" returned to the hand of ").append(player.getLogName()).toString());
                 return true;
             }
         }

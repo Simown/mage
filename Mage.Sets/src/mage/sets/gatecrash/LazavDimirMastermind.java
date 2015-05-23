@@ -28,6 +28,7 @@
 package mage.sets.gatecrash;
 
 import java.util.UUID;
+
 import mage.MageInt;
 import mage.abilities.Ability;
 import mage.abilities.common.PutCardIntoGraveFromAnywhereAllTriggeredAbility;
@@ -46,6 +47,7 @@ import mage.constants.TargetController;
 import mage.filter.common.FilterCreatureCard;
 import mage.game.Game;
 import mage.game.permanent.Permanent;
+import mage.target.targetpointer.FixedTarget;
 
 /**
  *
@@ -59,8 +61,6 @@ public class LazavDimirMastermind extends CardImpl {
         this.supertype.add("Legendary");
         this.subtype.add("Shapeshifter");
 
-        this.color.setBlue(true);
-        this.color.setBlack(true);
         this.power = new MageInt(3);
         this.toughness = new MageInt(3);
 
@@ -107,7 +107,7 @@ class LazavDimirEffect extends ContinuousEffectImpl {
 
     @Override
     public boolean apply(Game game, Ability source) {
-        Card card = game.getCard(getTargetPointer().getFirst(game, source));
+        Card card = game.getCard(((FixedTarget)getTargetPointer()).getTarget());
         Permanent permanent = game.getPermanent(source.getSourceId());
         if (card == null || permanent == null) {
             discard();

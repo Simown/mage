@@ -46,12 +46,11 @@ public class LifeFromTheLoam extends CardImpl {
         super(ownerId, 172, "Life from the Loam", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{1}{G}");
         this.expansionSetCode = "RAV";
 
-        this.color.setGreen(true);
 
         // Return up to three target land cards from your graveyard to your hand.
         this.getSpellAbility().addEffect(new ReturnToHandTargetEffect());
         this.getSpellAbility().addTarget(new TargetCardInYourGraveyard(0, 3, new FilterLandCard("land cards from your graveyard")));
-        // Dredge 3
+        // Dredge 3 (If you would draw a card, instead you may put exactly three cards from the top of your library into your graveyard. If you do, return this card from your graveyard to your hand. Otherwise, draw a card.)
         this.addAbility(new DredgeAbility(3));
     }
 

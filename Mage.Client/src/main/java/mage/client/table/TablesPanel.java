@@ -44,6 +44,7 @@ import java.beans.PropertyVetoException;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -55,20 +56,24 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
 import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.JTable;
+import javax.swing.JToggleButton;
 import javax.swing.RowFilter;
 import javax.swing.SwingWorker;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumn;
 import mage.cards.decks.importer.DeckImporterUtil;
 import mage.client.MageFrame;
 import mage.client.chat.ChatPanel;
 import mage.client.components.MageComponents;
-import mage.client.deckeditor.table.TableModel;
 import mage.client.dialog.JoinTableDialog;
 import mage.client.dialog.NewTableDialog;
 import mage.client.dialog.NewTournamentDialog;
@@ -80,6 +85,7 @@ import mage.client.util.gui.GuiDisplayUtil;
 import mage.constants.MatchTimeLimit;
 import mage.constants.MultiplayerAttackOption;
 import mage.constants.RangeOfInfluence;
+import mage.constants.SkillLevel;
 import mage.game.match.MatchOptions;
 import mage.remote.MageRemoteException;
 import mage.remote.Session;
@@ -87,6 +93,7 @@ import mage.view.MatchView;
 import mage.view.RoomUsersView;
 import mage.view.TableView;
 import org.apache.log4j.Logger;
+import org.mage.card.arcane.Util;
 
 /**
  *
@@ -111,6 +118,8 @@ public class TablesPanel extends javax.swing.JPanel {
     private int currentMessage;
     private MageTableRowSorter activeTablesSorter;
     
+    JToggleButton[] filterButtons;
+    
     /** Creates new form TablesPanel */
     public TablesPanel() {
 
@@ -121,22 +130,12 @@ public class TablesPanel extends javax.swing.JPanel {
         initComponents();
         tableModel.setSession(session);
 
-        
-        filterStateBar.setBackground(new Color(250, 250, 250, 150));
-        filterStateBar.setOpaque(true); // false = transparent
-
-        filterTypeBar.setBackground(new Color(250, 250, 250, 150));
-        filterTypeBar.setOpaque(true); // false = transparent
-
-        filterFormatBar1.setBackground(new Color(250, 250, 250, 150));
-        filterFormatBar1.setOpaque(true); // false = transparent
-
-        filterFormatBar2.setBackground(new Color(250, 250, 250, 150));
-        filterFormatBar2.setOpaque(true); // false = transparent
-
         tableTables.createDefaultColumnsFromModel();
+        
         activeTablesSorter = new MageTableRowSorter(tableModel);
         tableTables.setRowSorter(activeTablesSorter);
+        
+        TableTableModel.setColumnWidthAndOrder(tableTables);
         
         tableCompleted.setRowSorter(new MageTableRowSorter(matchesModel));
 
@@ -144,14 +143,21 @@ public class TablesPanel extends javax.swing.JPanel {
         chatPanel.setBorder(null);
         chatPanel.setChatType(ChatPanel.ChatType.TABLES);
 
-        JComponent[] components = new JComponent[] {chatPanel, jSplitPane1, jScrollPane1, jScrollPane2, jPanel1, jPanel3};
+        filterButtons = new JToggleButton[] 
+            {btnStateWaiting, btnStateActive, btnStateFinished,
+             btnTypeMatch, btnTypeTourneyConstructed, btnTypeTourneyLimited,  
+             btnFormatBlock, btnFormatStandard, btnFormatModern, btnFormatLegacy, btnFormatVintage, btnFormatCommander, btnFormatTinyLeader, btnFormatLimited, btnFormatOther};
+        
+        JComponent[] components = new JComponent[] {chatPanel, jSplitPane1, jScrollPane1, jScrollPane2, topPanel, jPanel3};
         for (JComponent component : components) {
             component.setOpaque(false);
         }
 
         jScrollPane1.getViewport().setBackground(new Color(255,255,255,50));
         jScrollPane2.getViewport().setBackground(new Color(255,255,255,50));
-     
+        
+        restoreSettings();
+        
         Action openTableAction;
         openTableAction = new AbstractAction()
         {
@@ -165,10 +171,10 @@ public class TablesPanel extends javax.swing.JPanel {
                 String deckType = (String)tableModel.getValueAt(modelRow, TableTableModel.COLUMN_DECK_TYPE);
                 String status = (String)tableModel.getValueAt(modelRow, TableTableModel.COLUMN_STATUS);
                 boolean isTournament = (Boolean)tableModel.getValueAt(modelRow, TableTableModel.ACTION_COLUMN + 1);
-                String owner = (String)tableModel.getValueAt(modelRow, 1);
+                String owner = (String)tableModel.getValueAt(modelRow, TableTableModel.COLUMN_OWNER);
                 switch (action) {
                     case "Join":
-                        if (owner.equals(session.getUserName())) {
+                        if (owner.equals(session.getUserName()) || owner.startsWith(session.getUserName() + ",")) {
                             try {
                                 JDesktopPane desktopPane = (JDesktopPane) MageFrame.getUI().getComponent(MageComponents.DESKTOP_PANE);
                                 JInternalFrame[] windows = desktopPane.getAllFramesInLayer(javax.swing.JLayeredPane.DEFAULT_LAYER);
@@ -260,14 +266,16 @@ public class TablesPanel extends javax.swing.JPanel {
                 }
             }
         };
-                
-             
+                     
         // !!!! adds action buttons to the table panel (don't delete this)
-        new ButtonColumn(tableTables, openTableAction, TableTableModel.ACTION_COLUMN);
-        new ButtonColumn(tableCompleted, closedTableAction, MatchesTableModel.ACTION_COLUMN);
+        new ButtonColumn(tableTables, openTableAction, tableTables.convertColumnIndexToView(TableTableModel.ACTION_COLUMN));
+        new ButtonColumn(tableCompleted, closedTableAction, tableCompleted.convertColumnIndexToView(MatchesTableModel.ACTION_COLUMN));
         // !!!!
     }
-
+    
+    public void cleanUp() {
+        saveSettings();
+    }
 
     private void saveDividerLocations() {
         // save panel sizes and divider locations.
@@ -277,6 +285,48 @@ public class TablesPanel extends javax.swing.JPanel {
         PreferencesDialog.saveValue(PreferencesDialog.KEY_TABLES_DIVIDER_LOCATION_1, Integer.toString(this.jSplitPane1.getDividerLocation()));
         PreferencesDialog.saveValue(PreferencesDialog.KEY_TABLES_DIVIDER_LOCATION_2, Integer.toString(this.jSplitPane2.getDividerLocation()));
         PreferencesDialog.saveValue(PreferencesDialog.KEY_TABLES_DIVIDER_LOCATION_3, Integer.toString(chatPanel.getSplitDividerLocation()));
+    }
+    
+    private void restoreSettings() {
+        // filter settings
+        String formatSettings = PreferencesDialog.getCachedValue(PreferencesDialog.KEY_TABLES_FILTER_SETTINGS, "");
+        int i = 0;
+        for (JToggleButton component : filterButtons) {
+            if (formatSettings.length() > i) {
+                component.setSelected(formatSettings.substring(i,i+1).equals("x"));
+            } else {
+                component.setSelected(true);
+            }
+            i++;
+        }               
+        setTableFilter();
+    }
+        
+    private void saveSettings() {
+        // Filters
+        StringBuilder formatSettings = new StringBuilder();
+        for (JToggleButton component : filterButtons) {
+            formatSettings.append(component.isSelected() ? "x":"-");
+        }
+        PreferencesDialog.saveValue(PreferencesDialog.KEY_TABLES_FILTER_SETTINGS, formatSettings.toString());
+        
+        // Column width
+        StringBuilder columnWidthSettings = new StringBuilder();
+        StringBuilder columnOrderSettings = new StringBuilder();
+        boolean firstValue = true;
+        for (int i = 0; i < tableTables.getColumnModel().getColumnCount(); i++) {
+            TableColumn column = tableTables.getColumnModel().getColumn(tableTables.convertColumnIndexToView(i));
+            if (!firstValue) {
+                columnWidthSettings.append(",");
+                columnOrderSettings.append(",");
+            } else {
+                firstValue = false;
+            }
+            columnWidthSettings.append(column.getWidth());
+            columnOrderSettings.append(tableTables.convertColumnIndexToModel(i));
+        }
+        PreferencesDialog.saveValue(PreferencesDialog.KEY_TABLES_COLUMNS_WIDTH, columnWidthSettings.toString());
+        PreferencesDialog.saveValue(PreferencesDialog.KEY_TABLES_COLUMNS_ORDER, columnOrderSettings.toString());
     }
 
     private void restoreDividerLocations() {
@@ -290,7 +340,6 @@ public class TablesPanel extends javax.swing.JPanel {
                 if (location != null && jSplitPane1 != null) {
                     jSplitPane1.setDividerLocation(Integer.parseInt(location));
                 }
-                this.btnStateFinished.setSelected(PreferencesDialog.getCachedValue(PreferencesDialog.KEY_TABLES_SHOW_COMPLETED, "Yes").equals("Yes"));
                 if (this.btnStateFinished.isSelected()) {
                     this.jSplitPane2.setDividerLocation(-1);
                 }
@@ -313,7 +362,7 @@ public class TablesPanel extends javax.swing.JPanel {
 
         components.put("jScrollPane1", jScrollPane1);
         components.put("jScrollPane1ViewPort", jScrollPane1.getViewport());
-        components.put("jPanel1", jPanel1);
+        components.put("jPanel1", topPanel);
         components.put("tablesPanel", this);
 
         return components;
@@ -457,22 +506,106 @@ public class TablesPanel extends javax.swing.JPanel {
         return this.chatPanel;
     }
 
-    private void activeTablesFilter() {
+    private void setTableFilter() {
         // state
-        StringBuilder stateFilter = new StringBuilder();
+        List<RowFilter<Object, Object>> stateFilterList = new ArrayList<>();
         if (btnStateWaiting.isSelected()) {
-            stateFilter.append("Waiting");
+            stateFilterList.add(RowFilter.regexFilter("Waiting", TableTableModel.COLUMN_STATUS));
         }
         if (btnStateActive.isSelected()) {
-            if (stateFilter.length() > 0) {
-                stateFilter.append("|");
-            }            
-            stateFilter.append("Dueling|Constructing|Drafting|Sideboard");
+            stateFilterList.add(RowFilter.regexFilter("Dueling|Constructing|Drafting|Sideboard", TableTableModel.COLUMN_STATUS));
+        }
+
+        // type
+        List<RowFilter<Object, Object>> typeFilterList = new ArrayList<>();
+        if (btnTypeMatch.isSelected()) {
+            typeFilterList.add(RowFilter.regexFilter("Two|Commander|Free|Tiny", TableTableModel.COLUMN_GAME_TYPE));
+        }
+        if (btnTypeTourneyConstructed.isSelected()) {
+            typeFilterList.add(RowFilter.regexFilter("Constructed", TableTableModel.COLUMN_GAME_TYPE));
+        }
+        if (btnTypeTourneyLimited.isSelected()) {
+            typeFilterList.add(RowFilter.regexFilter("Booster|Sealed", TableTableModel.COLUMN_GAME_TYPE));
+        }
+
+        // format
+        List<RowFilter<Object, Object>> formatFilterList = new ArrayList<>();
+        if (btnFormatBlock.isSelected()) {
+            formatFilterList.add(RowFilter.regexFilter("Block", TableTableModel.COLUMN_DECK_TYPE));
+        }
+        if (btnFormatStandard.isSelected()) {
+            formatFilterList.add(RowFilter.regexFilter("Standard", TableTableModel.COLUMN_DECK_TYPE));
+        }
+        if (btnFormatModern.isSelected()) {
+            formatFilterList.add(RowFilter.regexFilter("Modern", TableTableModel.COLUMN_DECK_TYPE));
+        }
+        if (btnFormatLegacy.isSelected()) {
+            formatFilterList.add(RowFilter.regexFilter("Legacy", TableTableModel.COLUMN_DECK_TYPE));
+        }
+        if (btnFormatVintage.isSelected()) {
+            formatFilterList.add(RowFilter.regexFilter("Vintage", TableTableModel.COLUMN_DECK_TYPE));
         }        
-        RowFilter rf = RowFilter.regexFilter(stateFilter.toString(), 4);
-        activeTablesSorter.setRowFilter(rf);        
+        if (btnFormatCommander.isSelected()) {
+            formatFilterList.add(RowFilter.regexFilter("Commander", TableTableModel.COLUMN_DECK_TYPE));
+        }
+        if (btnFormatTinyLeader.isSelected()) {
+            formatFilterList.add(RowFilter.regexFilter("Tiny", TableTableModel.COLUMN_DECK_TYPE));
+        }
+        if (btnFormatLimited.isSelected()) {
+            formatFilterList.add(RowFilter.regexFilter("Limited", TableTableModel.COLUMN_DECK_TYPE));
+        }
+        if (btnFormatOther.isSelected()) {
+            formatFilterList.add(RowFilter.regexFilter("Pauper|Extended", TableTableModel.COLUMN_DECK_TYPE));
+        }
+
+        List<RowFilter<Object, Object>> skillFilterList = new ArrayList<>();
+        if (btnSkillBeginner.isSelected()) {
+            skillFilterList.add(RowFilter.regexFilter(SkillLevel.BEGINNER.toString(), TableTableModel.COLUMN_SKILL));
+        }
+        if (btnSkillCasual.isSelected()) {
+            skillFilterList.add(RowFilter.regexFilter(SkillLevel.CASUAL.toString(), TableTableModel.COLUMN_SKILL));
+        }
+        if (btnSkillSerious.isSelected()) {
+            skillFilterList.add(RowFilter.regexFilter(SkillLevel.SERIOUS.toString(), TableTableModel.COLUMN_SKILL));
+        }
+        
+        if (stateFilterList.isEmpty() || typeFilterList.isEmpty() || formatFilterList.isEmpty() || skillFilterList.isEmpty()) { // no selection
+            activeTablesSorter.setRowFilter(RowFilter.regexFilter("Nothing", TableTableModel.COLUMN_SKILL));
+        } else {
+            List<RowFilter<Object, Object>> filterList = new ArrayList<>();
+
+            if (stateFilterList.size() > 1) {
+                filterList.add(RowFilter.orFilter(stateFilterList));
+            } else if (stateFilterList.size() == 1) {
+                filterList.addAll(stateFilterList);
+            }
+            
+            if (typeFilterList.size() > 1) {
+                filterList.add(RowFilter.orFilter(typeFilterList));
+            } else if (typeFilterList.size() == 1) {
+                filterList.addAll(typeFilterList);
+            }
+
+            if (formatFilterList.size() > 1) {
+                filterList.add(RowFilter.orFilter(formatFilterList));
+            } else if (formatFilterList.size() == 1) {
+                filterList.addAll(formatFilterList);
+            }
+
+            if (skillFilterList.size() > 1) {
+                filterList.add(RowFilter.orFilter(skillFilterList));
+            } else if (skillFilterList.size() == 1) {
+                filterList.addAll(skillFilterList);
+            }
+            
+            if (filterList.size() == 1) {
+                activeTablesSorter.setRowFilter(filterList.get(0));
+            } else {
+                activeTablesSorter.setRowFilter(RowFilter.andFilter(filterList));
+            }
+        }
     }
-    
+       
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -482,27 +615,33 @@ public class TablesPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
+        topPanel = new javax.swing.JPanel();
         btnNewTable = new javax.swing.JButton();
         btnNewTournament = new javax.swing.JButton();
-        filterStateBar = new javax.swing.JToolBar();
+        filterBar1 = new javax.swing.JToolBar();
         btnStateWaiting = new javax.swing.JToggleButton();
         btnStateActive = new javax.swing.JToggleButton();
         btnStateFinished = new javax.swing.JToggleButton();
-        filterTypeBar = new javax.swing.JToolBar();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
         btnTypeMatch = new javax.swing.JToggleButton();
         btnTypeTourneyConstructed = new javax.swing.JToggleButton();
         btnTypeTourneyLimited = new javax.swing.JToggleButton();
-        filterFormatBar1 = new javax.swing.JToolBar();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
+        btnSkillBeginner = new javax.swing.JToggleButton();
+        btnSkillCasual = new javax.swing.JToggleButton();
+        btnSkillSerious = new javax.swing.JToggleButton();
+        filterBar2 = new javax.swing.JToolBar();
         btnFormatBlock = new javax.swing.JToggleButton();
         btnFormatStandard = new javax.swing.JToggleButton();
         btnFormatModern = new javax.swing.JToggleButton();
-        btnFormatCommander = new javax.swing.JToggleButton();
-        filterFormatBar2 = new javax.swing.JToolBar();
         btnFormatLegacy = new javax.swing.JToggleButton();
         btnFormatVintage = new javax.swing.JToggleButton();
-        btnFormatOther = new javax.swing.JToggleButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        btnFormatCommander = new javax.swing.JToggleButton();
         btnFormatTinyLeader = new javax.swing.JToggleButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        btnFormatLimited = new javax.swing.JToggleButton();
+        btnFormatOther = new javax.swing.JToggleButton();
         btnQuickStart = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -517,9 +656,12 @@ public class TablesPanel extends javax.swing.JPanel {
         jScrollPane2 = new javax.swing.JScrollPane();
         tableCompleted = new javax.swing.JTable();
 
+        topPanel.setBackground(java.awt.Color.white);
+        topPanel.setOpaque(false);
+
         btnNewTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/match_new.png"))); // NOI18N
         btnNewTable.setToolTipText("Creates a new match table.");
-        btnNewTable.setMargin(new java.awt.Insets(10, 10, 10, 10));
+        btnNewTable.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnNewTable.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnNewTableActionPerformed(evt);
@@ -528,22 +670,22 @@ public class TablesPanel extends javax.swing.JPanel {
 
         btnNewTournament.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/tourney_new.png"))); // NOI18N
         btnNewTournament.setToolTipText("Creates a new tourney table.");
-        btnNewTournament.setMargin(new java.awt.Insets(10, 10, 10, 10));
+        btnNewTournament.setMargin(new java.awt.Insets(2, 2, 2, 2));
         btnNewTournament.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnNewTournamentActionPerformed(evt);
             }
         });
 
-        filterStateBar.setFloatable(false);
-        filterStateBar.setForeground(new java.awt.Color(102, 102, 255));
-        filterStateBar.setFocusable(false);
+        filterBar1.setFloatable(false);
+        filterBar1.setForeground(new java.awt.Color(102, 102, 255));
+        filterBar1.setFocusable(false);
+        filterBar1.setOpaque(false);
 
-        btnStateWaiting.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/state_waiting_off.png"))); // NOI18N
+        btnStateWaiting.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/state_waiting.png"))); // NOI18N
         btnStateWaiting.setSelected(true);
-        btnStateWaiting.setToolTipText("Show tables waiting for players.");
+        btnStateWaiting.setToolTipText("Shows all tables waiting for players.");
         btnStateWaiting.setActionCommand("stateWait");
-        btnStateWaiting.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         btnStateWaiting.setFocusPainted(false);
         btnStateWaiting.setFocusable(false);
         btnStateWaiting.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -551,21 +693,19 @@ public class TablesPanel extends javax.swing.JPanel {
         btnStateWaiting.setMinimumSize(new java.awt.Dimension(27, 27));
         btnStateWaiting.setPreferredSize(new java.awt.Dimension(23, 23));
         btnStateWaiting.setRequestFocusEnabled(false);
-        btnStateWaiting.setRolloverEnabled(false);
-        btnStateWaiting.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/state_waiting.png"))); // NOI18N
+        btnStateWaiting.setVerifyInputWhenFocusTarget(false);
         btnStateWaiting.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         btnStateWaiting.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnStateWaitingActionPerformed(evt);
+                btnFilterActionPerformed(evt);
             }
         });
-        filterStateBar.add(btnStateWaiting);
+        filterBar1.add(btnStateWaiting);
 
         btnStateActive.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/state_active.png"))); // NOI18N
         btnStateActive.setSelected(true);
-        btnStateActive.setToolTipText("Show tables with active matches.");
+        btnStateActive.setToolTipText("Shows all tables with active matches.");
         btnStateActive.setActionCommand("stateActive");
-        btnStateActive.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         btnStateActive.setFocusPainted(false);
         btnStateActive.setFocusable(false);
         btnStateActive.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -573,21 +713,19 @@ public class TablesPanel extends javax.swing.JPanel {
         btnStateActive.setMinimumSize(new java.awt.Dimension(27, 27));
         btnStateActive.setPreferredSize(new java.awt.Dimension(23, 23));
         btnStateActive.setRequestFocusEnabled(false);
-        btnStateActive.setRolloverEnabled(false);
-        btnStateActive.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/state_active.png"))); // NOI18N
+        btnStateActive.setVerifyInputWhenFocusTarget(false);
         btnStateActive.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         btnStateActive.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnStateActiveActionPerformed(evt);
+                btnFilterActionPerformed(evt);
             }
         });
-        filterStateBar.add(btnStateActive);
+        filterBar1.add(btnStateActive);
 
         btnStateFinished.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/state_finished.png"))); // NOI18N
         btnStateFinished.setSelected(true);
         btnStateFinished.setToolTipText("<HTML>Toggles the visibility of the table of completed <br>matches and tournaments in the lower area.\n<br>Showing the last 50 finished matches.");
         btnStateFinished.setActionCommand("stateFinished");
-        btnStateFinished.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         btnStateFinished.setFocusPainted(false);
         btnStateFinished.setFocusable(false);
         btnStateFinished.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -595,96 +733,259 @@ public class TablesPanel extends javax.swing.JPanel {
         btnStateFinished.setMinimumSize(new java.awt.Dimension(27, 27));
         btnStateFinished.setPreferredSize(new java.awt.Dimension(23, 23));
         btnStateFinished.setRequestFocusEnabled(false);
-        btnStateFinished.setRolloverEnabled(false);
-        btnStateFinished.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/state_finished.png"))); // NOI18N
+        btnStateFinished.setVerifyInputWhenFocusTarget(false);
         btnStateFinished.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         btnStateFinished.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnStateFinishedActionPerformed(evt);
             }
         });
-        filterStateBar.add(btnStateFinished);
+        filterBar1.add(btnStateFinished);
+        filterBar1.add(jSeparator1);
 
-        filterTypeBar.setFloatable(false);
-        filterTypeBar.setFocusable(false);
-
-        btnTypeMatch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/type_match.png"))); // NOI18N
         btnTypeMatch.setSelected(true);
+        btnTypeMatch.setText("Matches");
+        btnTypeMatch.setToolTipText("Shows all non tournament tables.");
         btnTypeMatch.setActionCommand("typeMatch");
+        btnTypeMatch.setFocusPainted(false);
         btnTypeMatch.setFocusable(false);
         btnTypeMatch.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnTypeMatch.setRequestFocusEnabled(false);
+        btnTypeMatch.setVerifyInputWhenFocusTarget(false);
         btnTypeMatch.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        filterTypeBar.add(btnTypeMatch);
+        btnTypeMatch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar1.add(btnTypeMatch);
 
-        btnTypeTourneyConstructed.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/type_tourney_construced.png"))); // NOI18N
         btnTypeTourneyConstructed.setSelected(true);
+        btnTypeTourneyConstructed.setText("Constructed tourn.");
+        btnTypeTourneyConstructed.setToolTipText("Shows all constructed tournament tables.");
         btnTypeTourneyConstructed.setActionCommand("typeTourneyConstructed");
+        btnTypeTourneyConstructed.setFocusPainted(false);
         btnTypeTourneyConstructed.setFocusable(false);
-        btnTypeTourneyConstructed.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnTypeTourneyConstructed.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        filterTypeBar.add(btnTypeTourneyConstructed);
+        btnTypeTourneyConstructed.setRequestFocusEnabled(false);
+        btnTypeTourneyConstructed.setVerifyInputWhenFocusTarget(false);
+        btnTypeTourneyConstructed.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar1.add(btnTypeTourneyConstructed);
 
-        btnTypeTourneyLimited.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/type_tourney_limited.png"))); // NOI18N
         btnTypeTourneyLimited.setSelected(true);
+        btnTypeTourneyLimited.setText("Limited tourn.");
+        btnTypeTourneyLimited.setToolTipText("Shows all limited tournament tables.");
         btnTypeTourneyLimited.setActionCommand("typeTourneyLimited");
+        btnTypeTourneyLimited.setFocusPainted(false);
         btnTypeTourneyLimited.setFocusable(false);
-        btnTypeTourneyLimited.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnTypeTourneyLimited.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        filterTypeBar.add(btnTypeTourneyLimited);
+        btnTypeTourneyLimited.setMaximumSize(new java.awt.Dimension(72, 20));
+        btnTypeTourneyLimited.setRequestFocusEnabled(false);
+        btnTypeTourneyLimited.setVerifyInputWhenFocusTarget(false);
+        btnTypeTourneyLimited.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar1.add(btnTypeTourneyLimited);
+        filterBar1.add(jSeparator4);
 
-        filterFormatBar1.setFloatable(false);
-        filterFormatBar1.setFocusable(false);
+        btnSkillBeginner.setSelected(true);
+        btnSkillBeginner.setText("Beginner");
+        btnSkillBeginner.setToolTipText("Shows all tables with skill level beginner.");
+        btnSkillBeginner.setActionCommand("typeMatch");
+        btnSkillBeginner.setFocusPainted(false);
+        btnSkillBeginner.setFocusable(false);
+        btnSkillBeginner.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnSkillBeginner.setRequestFocusEnabled(false);
+        btnSkillBeginner.setVerifyInputWhenFocusTarget(false);
+        btnSkillBeginner.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnSkillBeginner.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar1.add(btnSkillBeginner);
 
-        btnFormatBlock.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/format_block.png"))); // NOI18N
+        btnSkillCasual.setSelected(true);
+        btnSkillCasual.setText("Casual");
+        btnSkillCasual.setToolTipText("Shows all tables with skill level casual.");
+        btnSkillCasual.setActionCommand("typeMatch");
+        btnSkillCasual.setFocusPainted(false);
+        btnSkillCasual.setFocusable(false);
+        btnSkillCasual.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnSkillCasual.setRequestFocusEnabled(false);
+        btnSkillCasual.setVerifyInputWhenFocusTarget(false);
+        btnSkillCasual.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnSkillCasual.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar1.add(btnSkillCasual);
+
+        btnSkillSerious.setSelected(true);
+        btnSkillSerious.setText("Serious");
+        btnSkillSerious.setToolTipText("Shows all tables with skill level serious.");
+        btnSkillSerious.setActionCommand("typeMatch");
+        btnSkillSerious.setFocusPainted(false);
+        btnSkillSerious.setFocusable(false);
+        btnSkillSerious.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnSkillSerious.setRequestFocusEnabled(false);
+        btnSkillSerious.setVerifyInputWhenFocusTarget(false);
+        btnSkillSerious.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnSkillSerious.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar1.add(btnSkillSerious);
+
+        filterBar2.setFloatable(false);
+        filterBar2.setFocusable(false);
+        filterBar2.setOpaque(false);
+
         btnFormatBlock.setSelected(true);
+        btnFormatBlock.setText("Block");
+        btnFormatBlock.setToolTipText("Block constructed formats.");
+        btnFormatBlock.setFocusPainted(false);
         btnFormatBlock.setFocusable(false);
         btnFormatBlock.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnFormatBlock.setRequestFocusEnabled(false);
+        btnFormatBlock.setVerifyInputWhenFocusTarget(false);
         btnFormatBlock.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        filterFormatBar1.add(btnFormatBlock);
+        btnFormatBlock.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar2.add(btnFormatBlock);
 
-        btnFormatStandard.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/format_standard.png"))); // NOI18N
         btnFormatStandard.setSelected(true);
+        btnFormatStandard.setText("Standard");
+        btnFormatStandard.setToolTipText("Standard format.");
+        btnFormatStandard.setFocusPainted(false);
         btnFormatStandard.setFocusable(false);
         btnFormatStandard.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnFormatStandard.setRequestFocusEnabled(false);
+        btnFormatStandard.setVerifyInputWhenFocusTarget(false);
         btnFormatStandard.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        filterFormatBar1.add(btnFormatStandard);
+        btnFormatStandard.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar2.add(btnFormatStandard);
 
-        btnFormatModern.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/format_modern.png"))); // NOI18N
         btnFormatModern.setSelected(true);
-        filterFormatBar1.add(btnFormatModern);
+        btnFormatModern.setText("Modern");
+        btnFormatModern.setToolTipText("Modern format.");
+        btnFormatModern.setFocusPainted(false);
+        btnFormatModern.setFocusable(false);
+        btnFormatModern.setRequestFocusEnabled(false);
+        btnFormatModern.setVerifyInputWhenFocusTarget(false);
+        btnFormatModern.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar2.add(btnFormatModern);
 
-        btnFormatCommander.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/format_commander.png"))); // NOI18N
-        btnFormatCommander.setSelected(true);
-        btnFormatCommander.setFocusable(false);
-        btnFormatCommander.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnFormatCommander.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        filterFormatBar1.add(btnFormatCommander);
-
-        filterFormatBar2.setFloatable(false);
-        filterFormatBar2.setToolTipText("All tables with active matches");
-        filterFormatBar2.setFocusable(false);
-
-        btnFormatLegacy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/format_legacy.png"))); // NOI18N
         btnFormatLegacy.setSelected(true);
+        btnFormatLegacy.setText("Legacy");
+        btnFormatLegacy.setToolTipText("Legacy format.");
+        btnFormatLegacy.setFocusPainted(false);
         btnFormatLegacy.setFocusable(false);
         btnFormatLegacy.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnFormatLegacy.setRequestFocusEnabled(false);
+        btnFormatLegacy.setVerifyInputWhenFocusTarget(false);
         btnFormatLegacy.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        filterFormatBar2.add(btnFormatLegacy);
+        btnFormatLegacy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar2.add(btnFormatLegacy);
 
-        btnFormatVintage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/format_vintage.png"))); // NOI18N
         btnFormatVintage.setSelected(true);
+        btnFormatVintage.setText("Vintage");
+        btnFormatVintage.setToolTipText("Vintage format.");
+        btnFormatVintage.setFocusPainted(false);
         btnFormatVintage.setFocusable(false);
         btnFormatVintage.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnFormatVintage.setRequestFocusEnabled(false);
+        btnFormatVintage.setVerifyInputWhenFocusTarget(false);
         btnFormatVintage.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        filterFormatBar2.add(btnFormatVintage);
+        btnFormatVintage.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar2.add(btnFormatVintage);
+        filterBar2.add(jSeparator3);
 
-        btnFormatOther.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/format_other.png"))); // NOI18N
-        btnFormatOther.setSelected(true);
-        filterFormatBar2.add(btnFormatOther);
+        btnFormatCommander.setSelected(true);
+        btnFormatCommander.setText("Commander");
+        btnFormatCommander.setToolTipText("Commander format.");
+        btnFormatCommander.setFocusPainted(false);
+        btnFormatCommander.setFocusable(false);
+        btnFormatCommander.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnFormatCommander.setRequestFocusEnabled(false);
+        btnFormatCommander.setVerifyInputWhenFocusTarget(false);
+        btnFormatCommander.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnFormatCommander.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar2.add(btnFormatCommander);
 
-        btnFormatTinyLeader.setIcon(new javax.swing.ImageIcon(getClass().getResource("/buttons/format_tiny_leader.png"))); // NOI18N
         btnFormatTinyLeader.setSelected(true);
-        filterFormatBar2.add(btnFormatTinyLeader);
+        btnFormatTinyLeader.setText("Tiny Leader");
+        btnFormatTinyLeader.setToolTipText("Tiny Leader format.");
+        btnFormatTinyLeader.setFocusPainted(false);
+        btnFormatTinyLeader.setFocusable(false);
+        btnFormatTinyLeader.setRequestFocusEnabled(false);
+        btnFormatTinyLeader.setVerifyInputWhenFocusTarget(false);
+        btnFormatTinyLeader.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar2.add(btnFormatTinyLeader);
+        filterBar2.add(jSeparator2);
+
+        btnFormatLimited.setSelected(true);
+        btnFormatLimited.setText("Limited");
+        btnFormatLimited.setToolTipText("Limited format.");
+        btnFormatLimited.setFocusPainted(false);
+        btnFormatLimited.setFocusable(false);
+        btnFormatLimited.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnFormatLimited.setRequestFocusEnabled(false);
+        btnFormatLimited.setVerifyInputWhenFocusTarget(false);
+        btnFormatLimited.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnFormatLimited.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar2.add(btnFormatLimited);
+
+        btnFormatOther.setSelected(true);
+        btnFormatOther.setText("Other");
+        btnFormatOther.setToolTipText("Other formats (Pauper, Extended, etc.)");
+        btnFormatOther.setFocusPainted(false);
+        btnFormatOther.setFocusable(false);
+        btnFormatOther.setRequestFocusEnabled(false);
+        btnFormatOther.setVerifyInputWhenFocusTarget(false);
+        btnFormatOther.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
+        filterBar2.add(btnFormatOther);
 
         btnQuickStart.setText("Quick Start");
         btnQuickStart.setFocusable(false);
@@ -696,46 +997,37 @@ public class TablesPanel extends javax.swing.JPanel {
             }
         });
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        javax.swing.GroupLayout topPanelLayout = new javax.swing.GroupLayout(topPanel);
+        topPanel.setLayout(topPanelLayout);
+        topPanelLayout.setHorizontalGroup(
+            topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(topPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(btnNewTable)
                 .addGap(6, 6, 6)
                 .addComponent(btnNewTournament)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(filterStateBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(filterTypeBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(filterFormatBar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(filterFormatBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(filterBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(filterBar2, javax.swing.GroupLayout.DEFAULT_SIZE, 468, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnQuickStart)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        topPanelLayout.setVerticalGroup(
+            topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(topPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(btnNewTable)
                         .addComponent(btnNewTournament))
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                            .addComponent(filterStateBar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(filterTypeBar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(filterFormatBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnQuickStart))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(filterFormatBar2, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(topPanelLayout.createSequentialGroup()
+                        .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(filterBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnQuickStart))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(filterBar2, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
 
@@ -767,7 +1059,7 @@ public class TablesPanel extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 701, Short.MAX_VALUE)
+                .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 705, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -811,11 +1103,11 @@ public class TablesPanel extends javax.swing.JPanel {
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 805, Short.MAX_VALUE)
+            .addComponent(jSplitPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 798, Short.MAX_VALUE)
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 494, Short.MAX_VALUE)
+            .addComponent(jSplitPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 526, Short.MAX_VALUE)
         );
 
         jSplitPane1.setLeftComponent(jPanel3);
@@ -824,7 +1116,7 @@ public class TablesPanel extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(topPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 908, Short.MAX_VALUE)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 908, Short.MAX_VALUE))
@@ -832,7 +1124,7 @@ public class TablesPanel extends javax.swing.JPanel {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(topPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(jSplitPane1)
                 .addGap(0, 0, 0)
@@ -890,13 +1182,9 @@ public class TablesPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void btnStateWaitingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStateWaitingActionPerformed
-        activeTablesFilter();
-    }//GEN-LAST:event_btnStateWaitingActionPerformed
-
-    private void btnStateActiveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStateActiveActionPerformed
-        activeTablesFilter();
-    }//GEN-LAST:event_btnStateActiveActionPerformed
+    private void btnFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFilterActionPerformed
+        setTableFilter();
+    }//GEN-LAST:event_btnFilterActionPerformed
 
     private void btnStateFinishedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStateFinishedActionPerformed
         if (this.btnStateFinished.isSelected()) {
@@ -905,7 +1193,6 @@ public class TablesPanel extends javax.swing.JPanel {
         else {
             this.jSplitPane2.setDividerLocation(this.jPanel3.getHeight());
         }
-        PreferencesDialog.saveValue(PreferencesDialog.KEY_TABLES_SHOW_COMPLETED, (btnStateFinished.isSelected()?"Yes":"No"));
         this.startTasks();
     }//GEN-LAST:event_btnStateFinishedActionPerformed
 
@@ -919,6 +1206,7 @@ public class TablesPanel extends javax.swing.JPanel {
     private javax.swing.JToggleButton btnFormatBlock;
     private javax.swing.JToggleButton btnFormatCommander;
     private javax.swing.JToggleButton btnFormatLegacy;
+    private javax.swing.JToggleButton btnFormatLimited;
     private javax.swing.JToggleButton btnFormatModern;
     private javax.swing.JToggleButton btnFormatOther;
     private javax.swing.JToggleButton btnFormatStandard;
@@ -927,6 +1215,9 @@ public class TablesPanel extends javax.swing.JPanel {
     private javax.swing.JButton btnNewTable;
     private javax.swing.JButton btnNewTournament;
     private javax.swing.JButton btnQuickStart;
+    private javax.swing.JToggleButton btnSkillBeginner;
+    private javax.swing.JToggleButton btnSkillCasual;
+    private javax.swing.JToggleButton btnSkillSerious;
     private javax.swing.JToggleButton btnStateActive;
     private javax.swing.JToggleButton btnStateFinished;
     private javax.swing.JToggleButton btnStateWaiting;
@@ -934,34 +1225,44 @@ public class TablesPanel extends javax.swing.JPanel {
     private javax.swing.JToggleButton btnTypeTourneyConstructed;
     private javax.swing.JToggleButton btnTypeTourneyLimited;
     private mage.client.chat.ChatPanel chatPanel;
-    private javax.swing.JToolBar filterFormatBar1;
-    private javax.swing.JToolBar filterFormatBar2;
-    private javax.swing.JToolBar filterStateBar;
-    private javax.swing.JToolBar filterTypeBar;
+    private javax.swing.JToolBar filterBar1;
+    private javax.swing.JToolBar filterBar2;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JTable tableCompleted;
     private javax.swing.JTable tableTables;
+    private javax.swing.JPanel topPanel;
     // End of variables declaration//GEN-END:variables
    
 }
 
 class TableTableModel extends AbstractTableModel {
+    ImageIcon tourneyIcon = new javax.swing.ImageIcon(getClass().getResource("/tables/tourney_icon.png"));
+    ImageIcon matchIcon = new javax.swing.ImageIcon(getClass().getResource("/tables/match_icon.png"));
+    
+    public static final int COLUMN_ICON = 0; 
+    public static final int COLUMN_DECK_TYPE = 1; // column the deck type is located (starting with 0) Start string is used to check for Limited
+    public static final int COLUMN_OWNER = 2;
+    public static final int COLUMN_GAME_TYPE = 3;
+    public static final int COLUMN_INFO = 4;
+    public static final int COLUMN_STATUS = 5;
+    public static final int COLUMN_SKILL = 7;
+    public static final int ACTION_COLUMN = 8; // column the action is located (starting with 0)
 
-    public static final int COLUMN_DECK_TYPE = 0; // column the deck type is located (starting with 0) Start string is used to check for Limited
-    public static final int COLUMN_INFO = 3;
-    public static final int COLUMN_STATUS = 4;
-    public static final int ACTION_COLUMN = 6; // column the action is located (starting with 0)
-
-    private final String[] columnNames = new String[]{"Deck Type", "Owner / Players", "Game Type", "Info", "Status", "Created / Started", "Action"};
+    private final String[] columnNames = new String[]{"M/T","Deck Type", "Owner / Players", "Game Type", "Info", "Status", "Created / Started", "Skill Level", "Action"};
+    private static final int[] defaultColumnsWidth = {35, 150, 120, 180, 80, 120, 80, 60, 60};
+        
     private TableView[] tables = new TableView[0];
     private static final DateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");;
 
@@ -972,6 +1273,31 @@ class TableTableModel extends AbstractTableModel {
         this.fireTableDataChanged();
     }
 
+    static public void setColumnWidthAndOrder(JTable table) {
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
+        // set the column width from saved value or defaults        
+        int[] widths = Util.getIntArrayFromString(PreferencesDialog.getCachedValue(PreferencesDialog.KEY_TABLES_COLUMNS_WIDTH, null));
+        int i = 0;
+        for (int width : defaultColumnsWidth) {
+            if (widths != null && widths.length > i) {
+                width = widths[i];
+            }            
+            TableColumn column = table.getColumnModel().getColumn(i++);
+            column.setWidth(width);
+            column.setPreferredWidth(width);
+        }
+
+        // set the column order
+        int[] order = Util.getIntArrayFromString(PreferencesDialog.getCachedValue(PreferencesDialog.KEY_TABLES_COLUMNS_ORDER, null));
+        if (order != null && order.length == table.getColumnCount()) {
+            for (int j = 0; j < table.getColumnCount(); j++) {
+                table.moveColumn(table.convertColumnIndexToView(order[j]), j);
+            }
+        }
+        
+    }
+    
     @Override
     public int getRowCount() {
         return tables.length;
@@ -990,18 +1316,22 @@ class TableTableModel extends AbstractTableModel {
     public Object getValueAt(int arg0, int arg1) {
         switch (arg1) {
             case 0:
-                return tables[arg0].getDeckType();
+                return tables[arg0].isTournament() ? tourneyIcon:matchIcon;
             case 1:
-                return tables[arg0].getControllerName();
+                return tables[arg0].getDeckType();
             case 2:
-                return tables[arg0].getGameType();
+                return tables[arg0].getControllerName();
             case 3:
-                return tables[arg0].getAdditionalInfo();
+                return tables[arg0].getGameType();
             case 4:
-                return tables[arg0].getTableStateText();
+                return tables[arg0].getAdditionalInfo();
             case 5:
-                return timeFormatter.format(tables[arg0].getCreateTime());
+                return tables[arg0].getTableStateText();
             case 6:
+                return timeFormatter.format(tables[arg0].getCreateTime());
+            case 7:
+                return tables[arg0].getSkillLevel();
+            case 8:
                 switch (tables[arg0].getTableState()) {
 
                     case WAITING:
@@ -1028,14 +1358,14 @@ class TableTableModel extends AbstractTableModel {
                     default:
                         return "";
                 }
-            case 7:
+            case 9:
                 return tables[arg0].isTournament();
-            case 8:
+            case 10:
                 if (!tables[arg0].getGames().isEmpty()) {
                     return tables[arg0].getGames().get(0);
                 }
                 return null;
-            case 9:
+            case 11:
                 return tables[arg0].getTableId();
         }
         return "";
@@ -1054,7 +1384,14 @@ class TableTableModel extends AbstractTableModel {
 
     @Override
     public Class getColumnClass(int columnIndex){
-        return String.class;
+        switch (columnIndex) {
+            case COLUMN_ICON:
+                return Icon.class;
+            case COLUMN_SKILL:
+                return SkillLevel.class;
+            default:
+                return String.class;
+        }
     }
 
     @Override

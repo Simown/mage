@@ -47,6 +47,9 @@ import mage.game.permanent.Permanent;
 /**
  *
  * @author BetaSteward_at_googlemail.com
+ * 
+ * This class uses ConcurrentHashMap to avoid ConcurrentModificationExceptions.
+ * See ticket https://github.com/magefree/mage/issues/966 and https://github.com/magefree/mage/issues/473
  */
 public class TriggeredAbilities extends ConcurrentHashMap<String, TriggeredAbility> {
 
@@ -105,17 +108,6 @@ public class TriggeredAbilities extends ConcurrentHashMap<String, TriggeredAbili
             }
         }
     }
-
-//    private MageObject getMageObject(GameEvent event, Game game, TriggeredAbility ability) {
-//        MageObject object = game.getPermanent(ability.getSourceId());
-//        if (object == null) {
-//            object = game.getLastKnownInformation(ability.getSourceId(), event.getZone());
-//            if (object == null) {
-//                object = game.getObject(ability.getSourceId());
-//            }
-//        }
-//        return object;
-//    }
 
     /**
      * Adds a by sourceId gained triggered ability

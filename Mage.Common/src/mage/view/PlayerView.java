@@ -90,16 +90,17 @@ public class PlayerView implements Serializable {
         this.hasPriority = player.getId().equals(state.getPriorityPlayerId());
         this.priorityTimeLeft = player.getPriorityTimeLeft();
         this.timerActive = (this.hasPriority && player.isGameUnderControl()) ||
-                (player.getPlayersUnderYourControl().contains(state.getPriorityPlayerId()));
+                (player.getPlayersUnderYourControl().contains(state.getPriorityPlayerId())) ||
+                player.getId().equals(game.getState().getChoosingPlayerId());
 
         this.hasLeft = player.hasLeft();
         for (Card card: player.getGraveyard().getCards(game)) {
-            graveyard.put(card.getId(), new CardView(card));
+            graveyard.put(card.getId(), new CardView(card, game, card.getId(), false));
         }
         for (ExileZone exileZone : game.getExile().getExileZones()) {
             for (Card card : exileZone.getCards(game)) {
                 if (player.getId().equals(card.getOwnerId())) {
-                    exile.put(card.getId(), new CardView(card));
+                    exile.put(card.getId(), new CardView(card, game, card.getId(), false)); // unnown if it's allowed to look under a face down card
                 }                
             }
         }

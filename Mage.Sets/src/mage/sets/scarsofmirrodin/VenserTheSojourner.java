@@ -80,8 +80,8 @@ public class VenserTheSojourner extends CardImpl {
         super(ownerId, 135, "Venser, the Sojourner", Rarity.MYTHIC, new CardType[]{CardType.PLANESWALKER}, "{3}{W}{U}");
         this.expansionSetCode = "SOM";
         this.subtype.add("Venser");
-        this.color.setWhite(true);
-        this.color.setBlue(true);
+
+
 
         this.addAbility(new EntersBattlefieldAbility(new AddCountersSourceEffect(CounterType.LOYALTY.createInstance(3)), false));
 
@@ -131,7 +131,7 @@ class VenserTheSojournerEffect extends OneShotEffect {
             if (getTargetPointer().getFirst(game, source) != null) {
                 Permanent permanent = game.getPermanent(getTargetPointer().getFirst(game, source));
                 if (permanent != null) {
-                    if (controller.moveCardToExileWithInfo(permanent, source.getSourceId(), sourceObject.getLogName(), source.getSourceId(), game, Zone.BATTLEFIELD, true)) {
+                    if (controller.moveCardToExileWithInfo(permanent, source.getSourceId(), sourceObject.getName(), source.getSourceId(), game, Zone.BATTLEFIELD, true)) {
                         //create delayed triggered ability
                         AtTheBeginOfNextEndStepDelayedTriggeredAbility delayedAbility = new AtTheBeginOfNextEndStepDelayedTriggeredAbility(new ReturnFromExileEffect(source.getSourceId(), Zone.BATTLEFIELD));
                         delayedAbility.setSourceId(source.getSourceId());

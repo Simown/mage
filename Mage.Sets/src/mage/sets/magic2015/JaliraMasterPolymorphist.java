@@ -72,7 +72,6 @@ public class JaliraMasterPolymorphist extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Wizard");
 
-        this.color.setBlue(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -133,7 +132,7 @@ class JaliraMasterPolymorphistEffect extends OneShotEffect {
             } while (library.size() > 0 && card != null && !filter.match(card, game));
             // reveal cards
             if (!cards.isEmpty()) {
-                controller.revealCards(sourceObject.getLogName(), cards, game);
+                controller.revealCards(sourceObject.getName(), cards, game);
             }
             // put nonlegendary creature card to battlefield
             controller.putOntoBattlefieldWithInfo(card, game, Zone.LIBRARY, source.getSourceId());

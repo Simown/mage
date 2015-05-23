@@ -34,6 +34,7 @@ import mage.abilities.Ability;
 import mage.abilities.common.EntersBattlefieldTriggeredAbility;
 import mage.abilities.common.SimpleActivatedAbility;
 import mage.abilities.costs.mana.GenericManaCost;
+import mage.abilities.costs.mana.ManaCost;
 import mage.abilities.costs.mana.ManaCosts;
 import mage.abilities.costs.mana.ManaCostsImpl;
 import mage.abilities.effects.OneShotEffect;
@@ -76,8 +77,6 @@ public class RiseOfTheHobgoblins extends CardImpl {
         super(ownerId, 145, "Rise of the Hobgoblins", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{R/W}{R/W}");
         this.expansionSetCode = "EVE";
 
-        this.color.setRed(true);
-        this.color.setWhite(true);
 
         // When Rise of the Hobgoblins enters the battlefield, you may pay {X}. If you do, put X 1/1 red and white Goblin Soldier creature tokens onto the battlefield.
         this.addAbility(new EntersBattlefieldTriggeredAbility(new RiseOfTheHobgoblinsEffect()));
@@ -116,7 +115,7 @@ class RiseOfTheHobgoblinsEffect extends OneShotEffect {
     @Override
     public boolean apply(Game game, Ability source) {
         Player you = game.getPlayer(source.getControllerId());
-        ManaCosts cost = new ManaCostsImpl("{X}");
+        ManaCosts<ManaCost> cost = new ManaCostsImpl<>("{X}");
         if (you != null && you.chooseUse(Outcome.Neutral, "Do you want to to pay {X}?", game)) {
             int costX = you.announceXMana(0, Integer.MAX_VALUE, "Announce the value for {X}", game, source);
             cost.add(new GenericManaCost(costX));

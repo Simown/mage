@@ -54,7 +54,6 @@ public class DebtorsPulpit extends CardImpl {
         this.expansionSetCode = "GTC";
 
         this.subtype.add("Aura");
-        this.color.setWhite(true);
 
         // Enchant land
         TargetPermanent auraTarget = new TargetLandPermanent();

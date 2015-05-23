@@ -28,6 +28,7 @@
 
 package mage.abilities.effects.common;
 
+import mage.MageObject;
 import mage.constants.Outcome;
 import mage.abilities.Ability;
 import mage.abilities.effects.OneShotEffect;
@@ -61,14 +62,20 @@ public class AttachEffect extends OneShotEffect {
 
     @Override
     public boolean apply(Game game, Ability source) {
-        Permanent permanent = game.getPermanent(getTargetPointer().getFirst(game, source));
-        if (permanent != null) {
-            return permanent.addAttachment(source.getSourceId(), game);
-        }
-        else {
-            Player player = game.getPlayer(getTargetPointer().getFirst(game, source));
-            if (player != null) {
-                return player.addAttachment(source.getSourceId(), game);
+        Permanent sourcePermanent = game.getPermanent(source.getSourceId());
+        if (sourcePermanent != null) {
+            int zcc = game.getState().getZoneChangeCounter(sourcePermanent.getId());
+            if (zcc == source.getSourceObjectZoneChangeCounter() || zcc == source.getSourceObjectZoneChangeCounter() + 1) {
+                Permanent permanent = game.getPermanent(getTargetPointer().getFirst(game, source));
+                if (permanent != null) {
+                    return permanent.addAttachment(source.getSourceId(), game);
+                }
+                else {
+                    Player player = game.getPlayer(getTargetPointer().getFirst(game, source));
+                    if (player != null) {
+                        return player.addAttachment(source.getSourceId(), game);
+                    }
+                }
             }
         }
         return false;

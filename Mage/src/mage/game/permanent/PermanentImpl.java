@@ -76,11 +76,15 @@ import mage.game.events.GameEvent.EventType;
 import mage.game.stack.Spell;
 import mage.game.stack.StackObject;
 import mage.players.Player;
+import mage.util.GameLog;
+import mage.util.ThreadLocalStringBuilder;
 
 /**
  * @author BetaSteward_at_googlemail.com
  */
 public abstract class PermanentImpl extends CardImpl implements Permanent {
+
+    private static final transient ThreadLocalStringBuilder threadLocalBuilder = new ThreadLocalStringBuilder(300);
 
     protected boolean tapped;
     protected boolean flipped;
@@ -179,8 +183,8 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(this.name);
-        sb.append("-").append(this.expansionSetCode);
+        StringBuilder sb = threadLocalBuilder.get();
+        sb.append(this.name).append("-").append(this.expansionSetCode);
         if (copy) {
             sb.append(" [Copy]");
         }
@@ -206,10 +210,10 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
         this.maxBlockedBy = 0;
         this.copy = false;
     }
-
+    
     @Override
     public String getValue() {
-        StringBuilder sb = new StringBuilder(1024);
+        StringBuilder sb = threadLocalBuilder.get();
         sb.append(controllerId).append(name).append(tapped).append(damage);
         sb.append(subtype).append(supertype).append(power.getValue()).append(toughness.getValue());
         sb.append(abilities.getValue());
@@ -513,8 +517,9 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
         if (!phasedIn) {
             if (!replaceEvent(EventType.PHASE_IN, game)) {
                 this.phasedIn = true;
-                if (!game.isSimulation())
+                if (!game.isSimulation()) {
                     game.informPlayers(getLogName() + " phased in");
+                }
                 fireEvent(EventType.PHASED_IN, game);
                 return true;
             }
@@ -992,7 +997,7 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
             moveToZone(Zone.GRAVEYARD, sourceId, game, false);
             Player player = game.getPlayer(getControllerId());
             if (player != null && !game.isSimulation()) {
-                game.informPlayers(new StringBuilder(player.getName()).append(" sacrificed ").append(this.getLogName()).toString());
+                game.informPlayers(new StringBuilder(player.getLogName()).append(" sacrificed ").append(this.getLogName()).toString());
             }
             game.fireEvent(GameEvent.getEvent(EventType.SACRIFICED_PERMANENT, objectId, sourceId, controllerId));
             return true;
@@ -1276,12 +1281,12 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
     public String getLogName() {
         if (name.isEmpty()) {
             if (faceDown) {
-                return "face down creature";
+                return GameLog.getNeutralColoredText("face down creature");
             } else {
-                return "a creature without name";
+                return GameLog.getNeutralColoredText("a creature without name");
             }
         }
-        return name;
+        return GameLog.getColoredObjectName(this);
     }
 
     @Override
@@ -1342,4 +1347,4 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
         fightTarget.damage(getPower().getValue(), getId(), game, false, true);
         return true;
     }
-}
+    }

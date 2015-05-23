@@ -52,14 +52,13 @@ public class DeepAnalysis extends CardImpl {
         super(ownerId, 36, "Deep Analysis", Rarity.COMMON, new CardType[]{CardType.SORCERY}, "{3}{U}");
         this.expansionSetCode = "TOR";
 
-        this.color.setBlue(true);
 
         // Target player draws two cards.
         this.getSpellAbility().addEffect(new DrawCardTargetEffect(2));
         this.getSpellAbility().addTarget(new TargetPlayer());
 
         // Flashback-{1}{U}, Pay 3 life.
-        CostsImpl costs = new CostsImpl();
+        Costs<Cost> costs = new CostsImpl<>();
         costs.add(new ManaCostsImpl("{1}{U}"));
         costs.add(new PayLifeCost(3));
         this.addAbility(new FlashbackAbility(costs, TimingRule.SORCERY));

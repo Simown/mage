@@ -75,7 +75,6 @@ public class DescentIntoMadness extends CardImpl {
         super(ownerId, 97, "Descent into Madness", Rarity.MYTHIC, new CardType[]{CardType.ENCHANTMENT}, "{3}{B}{B}");
         this.expansionSetCode = "AVR";
 
-        this.color.setBlack(true);
 
         // At the beginning of your upkeep, put a despair counter on Descent into Madness, then each player exiles X permanents he or she controls and/or cards from his or her hand, where X is the number of despair counters on Descent into Madness.
         this.addAbility(new BeginningOfUpkeepTriggeredAbility(new DescentIntoMadnessEffect(), TargetController.YOU, false));
@@ -180,7 +179,7 @@ class DescentIntoMadnessEffect extends OneShotEffect {
                             Permanent chosen = game.getPermanent(targetId);
                             if (chosen != null) {
                                 amount--;
-                                game.informPlayers(player.getName() + " selects " + chosen.getLogName() + " from battlefield");
+                                game.informPlayers(player.getLogName() + " selects " + chosen.getLogName() + " from battlefield");
                                 selectedObjects.add(targetId);
                             }
                         }
@@ -213,7 +212,7 @@ class DescentIntoMadnessEffect extends OneShotEffect {
             }
         }
         if (cardsFromHand > 0) {
-            game.informPlayers(player.getName() + " selects " + cardsFromHand + (cardsFromHand == 1?" card":" cards") + " from his or her hand");
+            game.informPlayers(player.getLogName() + " selects " + cardsFromHand + (cardsFromHand == 1?" card":" cards") + " from his or her hand");
         }
     }
 }

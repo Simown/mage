@@ -61,7 +61,7 @@ public class JaceTheMindSculptor extends CardImpl {
         super(ownerId, 31, "Jace, the Mind Sculptor", Rarity.MYTHIC, new CardType[]{CardType.PLANESWALKER}, "{2}{U}{U}");
         this.expansionSetCode = "WWK";
         this.subtype.add("Jace");
-        this.color.setBlue(true);
+
         this.addAbility(new EntersBattlefieldAbility(new AddCountersSourceEffect(CounterType.LOYALTY.createInstance(3)), false));
 
         // +2: Look at the top card of target player's library. You may put that card on the bottom of that player's library.
@@ -125,7 +125,7 @@ class JaceTheMindSculptorEffect1 extends OneShotEffect {
                 if (controller.chooseUse(outcome, "Do you wish to put card on the bottom of player's library?", game)) {
                         controller.moveCardToLibraryWithInfo(card, source.getSourceId(), game, Zone.LIBRARY, false, false);
                 } else {
-                    game.informPlayers(controller.getName() + " puts the card back on top of the library.");
+                    game.informPlayers(controller.getLogName() + " puts the card back on top of the library.");
                 }
                 return true;
             }

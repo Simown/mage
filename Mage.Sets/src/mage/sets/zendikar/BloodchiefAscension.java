@@ -33,7 +33,6 @@ import mage.constants.CardType;
 import mage.constants.Rarity;
 import mage.constants.TargetController;
 import mage.constants.Zone;
-import mage.abilities.TriggeredAbilityImpl;
 import mage.abilities.common.BeginningOfEndStepTriggeredAbility;
 import mage.abilities.common.PutCardIntoGraveFromAnywhereAllTriggeredAbility;
 import mage.abilities.condition.Condition;
@@ -43,15 +42,10 @@ import mage.abilities.decorator.ConditionalTriggeredAbility;
 import mage.abilities.effects.common.GainLifeEffect;
 import mage.abilities.effects.common.LoseLifeTargetEffect;
 import mage.abilities.effects.common.counter.AddCountersSourceEffect;
-import mage.cards.Card;
 import mage.cards.CardImpl;
 import mage.constants.SetTargetPointer;
 import mage.counters.CounterType;
 import mage.filter.FilterCard;
-import mage.game.Game;
-import mage.game.events.GameEvent;
-import mage.game.events.ZoneChangeEvent;
-import mage.target.targetpointer.FixedTarget;
 
 /**
  *
@@ -63,7 +57,6 @@ public class BloodchiefAscension extends CardImpl {
         super(ownerId, 82, "Bloodchief Ascension", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{B}");
         this.expansionSetCode = "ZEN";
 
-        this.color.setBlack(true);
 
         // At the beginning of each end step, if an opponent lost 2 or more life this turn, you may put a quest counter on Bloodchief Ascension. (Damage causes loss of life.)
         this.addAbility(new BeginningOfEndStepTriggeredAbility(Zone.BATTLEFIELD,

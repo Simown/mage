@@ -74,7 +74,6 @@ public class PalisadeGiant extends CardImpl {
         this.subtype.add("Giant");
         this.subtype.add("Soldier");
 
-        this.color.setWhite(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(7);
 
@@ -150,7 +149,7 @@ class PalisadeGiantReplacementEffect extends ReplacementEffectImpl {
             else {
                 Player targetPlayer = game.getPlayer(event.getTargetId());
                 if (targetPlayer != null) {
-                    message.append(targetPlayer.getName());
+                    message.append(targetPlayer.getLogName());
                 }
                 else {
                     message.append("unknown");

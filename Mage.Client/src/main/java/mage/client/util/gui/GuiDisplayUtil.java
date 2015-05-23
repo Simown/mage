@@ -12,10 +12,9 @@ import org.mage.card.arcane.UI;
 
 import javax.swing.*;
 import java.awt.*;
-import java.net.URL;
 import java.util.ArrayList;
+import mage.client.dialog.MageDialog;
 import mage.constants.Rarity;
-import org.mage.plugins.card.utils.impl.ImageManagerImpl;
 
 public class GuiDisplayUtil {
     private static final Font cardNameFont = new Font("Calibri", Font.BOLD, 15);
@@ -27,7 +26,7 @@ public class GuiDisplayUtil {
         public int basicTextLength;
         public ArrayList<String> lines;
     }
-
+   
     public static JXPanel getDescription(CardView card, int width, int height) {
         JXPanel descriptionPanel = new JXPanel();
 
@@ -194,6 +193,9 @@ public class GuiDisplayUtil {
         buffer.append("<table cellspacing=0 cellpadding=0 border=0 width='100%'>");
         buffer.append("<tr><td valign='top'><b>");
         buffer.append(card.getDisplayName());
+        if (card.isGameObject()) {
+            buffer.append(" [").append(card.getId().toString().substring(0,3)).append("]");
+        }
         buffer.append("</b></td><td align='right' valign='top' style='width:");
         buffer.append(symbolCount * 11 + 1);
         buffer.append("px'>");

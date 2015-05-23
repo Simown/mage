@@ -57,7 +57,7 @@ public class GenesisWave extends CardImpl {
     public GenesisWave(UUID ownerId) {
         super(ownerId, 122, "Genesis Wave", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{X}{G}{G}{G}");
         this.expansionSetCode = "SOM";
-        this.color.setGreen(true);
+
         
         // Reveal the top X cards of your library. You may put any number of permanent cards with converted mana
         // cost X or less from among them onto the battlefield. Then put all cards revealed this way that weren't
@@ -102,7 +102,7 @@ class GenesisWaveEffect extends OneShotEffect {
             cards.add(card);
         }
         if (cards.size() > 0) {
-            controller.revealCards(sourceObject.getLogName(), cards, game);
+            controller.revealCards(sourceObject.getName(), cards, game);
             FilterCard filter = new FilterCard("cards with converted mana cost " + xValue + " or less to put onto the battlefield");
             filter.add(new ConvertedManaCostPredicate(ComparisonType.LessThan, xValue + 1));
             filter.add(
@@ -123,11 +123,7 @@ class GenesisWaveEffect extends OneShotEffect {
                     controller.putOntoBattlefieldWithInfo(card, game, Zone.LIBRARY, source.getSourceId());
                 }
             }
-            while (cards.size() > 0) {
-                Card card = cards.get(cards.iterator().next(), game);
-                cards.remove(card);
-                controller.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
-            }
+            controller.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
         }
         return true;
     }

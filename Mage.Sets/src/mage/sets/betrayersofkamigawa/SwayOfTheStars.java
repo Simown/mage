@@ -34,6 +34,7 @@ import mage.constants.Rarity;
 import mage.constants.Zone;
 import mage.abilities.Ability;
 import mage.abilities.effects.OneShotEffect;
+import mage.cards.Card;
 import mage.cards.CardImpl;
 import mage.game.Game;
 import mage.game.permanent.Permanent;
@@ -48,7 +49,7 @@ public class SwayOfTheStars extends CardImpl {
     public SwayOfTheStars(UUID ownerId) {
         super(ownerId, 54, "Sway of the Stars", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{8}{U}{U}");
         this.expansionSetCode = "BOK";
-        this.color.setBlue(true);
+
 
         // Each player shuffles his or her hand, graveyard, and permanents he or she owns into his or her library, then draws seven cards. Each player's life total becomes 7.
         this.getSpellAbility().addEffect(new SwayOfTheStarsEffect());
@@ -88,11 +89,13 @@ class SwayOfTheStarsEffect extends OneShotEffect {
         for (UUID playerId: sourcePlayer.getInRange()) {
             Player player = game.getPlayer(playerId);
             if (player != null) {
-                player.getLibrary().addAll(player.getHand().getCards(game), game);
-                player.getLibrary().addAll(player.getGraveyard().getCards(game), game);
+                for (Card card: player.getHand().getCards(game)) {
+                    card.moveToZone(Zone.LIBRARY, source.getSourceId(), game, true);
+                }                    
+                for (Card card: player.getGraveyard().getCards(game)) {
+                    card.moveToZone(Zone.LIBRARY, source.getSourceId(), game, true);
+                }                   
                 player.shuffleLibrary(game);
-                player.getHand().clear();
-                player.getGraveyard().clear();
                 player.drawCards(7, game);
                 player.setLife(7, game);
             }

@@ -59,7 +59,6 @@ public class Quickling extends CardImpl {
         this.subtype.add("Faerie");
         this.subtype.add("Rogue");
 
-        this.color.setBlue(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -105,10 +104,9 @@ class QuicklingEffect extends OneShotEffect {
             boolean targetChosen = false;
             TargetPermanent target = new TargetPermanent(1, 1, filter, false);
 
-            if (target.canChoose(controller.getId(), game)) {
-                controller.choose(Outcome.ReturnToHand, target, source.getSourceId(), game);
+            if (target.canChoose(controller.getId(), game) && controller.chooseUse(outcome, "Return another creature you control to its owner's hand?", game)) {
+                controller.chooseTarget(Outcome.ReturnToHand, target, source, game);
                 Permanent permanent = game.getPermanent(target.getFirstTarget());
-
                 if ( permanent != null ) {
                     targetChosen = true;
                     controller.moveCardToHandWithInfo(permanent, source.getSourceId(), game, Zone.BATTLEFIELD);

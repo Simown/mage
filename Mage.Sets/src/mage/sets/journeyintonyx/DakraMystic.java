@@ -56,7 +56,6 @@ public class DakraMystic extends CardImpl {
         this.subtype.add("Merfolk");
         this.subtype.add("Wizard");
 
-        this.color.setBlue(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(1);
 
@@ -101,14 +100,14 @@ class DakraMysticEffect extends OneShotEffect {
             for(UUID playerId: controller.getInRange()) {
                 Player player = game.getPlayer(playerId);
                 if (player != null && player.getLibrary().size() > 0) {
-                    player.revealCards(player.getName(), new CardsImpl(player.getLibrary().getFromTop(game)), game);
+                    player.revealCards(player.getLogName(), new CardsImpl(player.getLibrary().getFromTop(game)), game);
                 }
             }
             if (controller.chooseUse(outcome, "Put revealed cards into graveyard?", game)) {
                 for(UUID playerId: controller.getInRange()) {
-                    Player player = game.getPlayer(playerId);
+                    Player player = game.getPlayer(playerId);                    
                     if (player != null && player.getLibrary().size() > 0) {
-                        controller.moveCardToGraveyardWithInfo(player.getLibrary().getFromTop(game), source.getSourceId(), game, Zone.LIBRARY);
+                        player.moveCards(player.getLibrary().getFromTop(game), Zone.LIBRARY, Zone.GRAVEYARD, source, game);
                     }
                 }                
             } else {

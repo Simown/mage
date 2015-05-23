@@ -62,8 +62,6 @@ public class WheelOfSunAndMoon extends CardImpl {
         this.expansionSetCode = "SHM";
         this.subtype.add("Aura");
 
-        this.color.setGreen(true);
-        this.color.setWhite(true);
 
         // Enchant player
         TargetPlayer auraTarget = new TargetPlayer();
@@ -133,7 +131,7 @@ class WheelOfSunAndMoonEffect extends ReplacementEffectImpl {
             if (card != null) {
                 ZoneChangeEvent zEvent = (ZoneChangeEvent) event;
                 Cards cards = new CardsImpl(card);
-                controller.revealCards(sourceObject.getLogName(), cards, game);
+                controller.revealCards(sourceObject.getName(), cards, game);
                 controller.moveCardToLibraryWithInfo(card, source.getSourceId(), game, zEvent.getFromZone(), false, true);
                 return true;
             }

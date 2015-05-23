@@ -29,8 +29,10 @@ package mage.sets.magic2010;
 
 import java.util.Set;
 import java.util.UUID;
+
 import mage.abilities.Ability;
 import mage.abilities.TriggeredAbilityImpl;
+import mage.abilities.effects.Effect;
 import mage.abilities.effects.OneShotEffect;
 import mage.cards.CardImpl;
 import mage.constants.CardType;
@@ -52,8 +54,6 @@ public class HiveMind extends CardImpl {
     public HiveMind(UUID ownerId) {
         super(ownerId, 54, "Hive Mind", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{5}{U}");
         this.expansionSetCode = "M10";
-
-        this.color.setBlue(true);
 
         // Whenever a player casts an instant or sorcery spell, each other player copies that spell. Each of those players may choose new targets for his or her copy.
         this.addAbility(new HiveMindTriggeredAbility());
@@ -85,14 +85,21 @@ class HiveMindTriggeredAbility extends TriggeredAbilityImpl {
     }
 
     @Override
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == GameEvent.EventType.SPELL_CAST;
+    }
+
+    @Override
     public boolean checkTrigger(GameEvent event, Game game) {
-        if (event.getType() == GameEvent.EventType.SPELL_CAST) {
-            Spell spell = game.getStack().getSpell(event.getTargetId());
-            if (spell != null && (spell.getCardType().contains(CardType.INSTANT)
-                    || spell.getCardType().contains(CardType.SORCERY))) {
-                this.getEffects().get(0).setTargetPointer(new FixedTarget(spell.getId()));
-                return true;
+        Spell spell = game.getStack().getSpell(event.getTargetId());
+        if (spell != null && (spell.getCardType().contains(CardType.INSTANT)
+                || spell.getCardType().contains(CardType.SORCERY))) {
+            for (Effect effect : getEffects()) {
+                if (effect instanceof HiveMindEffect) {
+                    ((HiveMindEffect) effect).setTargetPointer(new FixedTarget(spell.getId()));
+                }
             }
+            return true;
         }
         return false;
     }
@@ -121,7 +128,11 @@ class HiveMindEffect extends OneShotEffect {
 
     @Override
     public boolean apply(Game game, Ability source) {
-        Spell spell = game.getStack().getSpell(targetPointer.getFirst(game, source));
+        Spell spell;
+        spell = game.getStack().getSpell(((FixedTarget) getTargetPointer()).getTarget());
+        if (spell == null) { // if spell e.g. was countered 
+            spell = (Spell) game.getLastKnownInformation(((FixedTarget) getTargetPointer()).getTarget(), Zone.STACK);
+        }
         Player player = game.getPlayer(source.getControllerId());
         if (spell != null && player != null) {
             Set<UUID> players = player.getInRange();

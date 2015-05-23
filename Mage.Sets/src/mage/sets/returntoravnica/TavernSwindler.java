@@ -55,7 +55,6 @@ public class TavernSwindler extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Rogue");
 
-        this.color.setBlack(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -91,7 +90,7 @@ class TavernSwindlerEffect extends OneShotEffect {
         Player controller = game.getPlayer(source.getControllerId());
         if (controller != null) {
             if (controller.flipCoin(game)) {
-                game.informPlayers(controller.getName() + " got " + controller.gainLife(6, game)+ " live");
+                game.informPlayers(controller.getLogName() + " got " + controller.gainLife(6, game)+ " live");
             }
         }
         return false;

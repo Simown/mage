@@ -58,7 +58,6 @@ public class PaleWayfarer extends CardImpl {
         this.subtype.add("Spirit");
         this.subtype.add("Giant");
 
-        this.color.setWhite(true);
         this.power = new MageInt(4);
         this.toughness = new MageInt(4);
 
@@ -99,7 +98,7 @@ class PaleWayfarerEffect extends OneShotEffect {
             if (player != null) {
                 ChoiceColor colorChoice = new ChoiceColor();
                 if (player.choose(Outcome.Neutral, colorChoice, game)) {
-                    game.informPlayers(targetCreature.getName() + ": " + player.getName() + " has chosen " + colorChoice.getChoice());
+                    game.informPlayers(targetCreature.getName() + ": " + player.getLogName() + " has chosen " + colorChoice.getChoice());
                     game.getState().setValue(targetCreature.getId() + "_color", colorChoice.getColor());
                 }
             }

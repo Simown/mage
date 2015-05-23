@@ -58,7 +58,6 @@ public class CausticWasps extends CardImpl {
         this.expansionSetCode = "MMQ";
         this.subtype.add("Insect");
 
-        this.color.setGreen(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(1);
 
@@ -99,7 +98,7 @@ class CausticWaspsTriggeredAbility extends TriggeredAbilityImpl {
                 && ((DamagedPlayerEvent) event).isCombatDamage()) {
             Player player = game.getPlayer(event.getTargetId());
             if (player != null) {
-                FilterPermanent filter = new FilterPermanent("an artifact controlled by " + player.getName());
+                FilterPermanent filter = new FilterPermanent("an artifact controlled by " + player.getLogName());
                 filter.add(Predicates.or(
                     new CardTypePredicate(CardType.ARTIFACT)));
                 filter.add(new ControllerIdPredicate(event.getTargetId()));

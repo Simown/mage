@@ -58,7 +58,6 @@ public class SepulchralPrimordial extends CardImpl {
         this.expansionSetCode = "GTC";
         this.subtype.add("Avatar");
 
-        this.color.setBlack(true);
         this.power = new MageInt(5);
         this.toughness = new MageInt(4);
 
@@ -77,7 +76,7 @@ public class SepulchralPrimordial extends CardImpl {
             for(UUID opponentId : game.getOpponents(ability.getControllerId())) {
                 Player opponent = game.getPlayer(opponentId);
                 if (opponent != null) {
-                    FilterCard filter = new FilterCreatureCard(new StringBuilder("creature card from ").append(opponent.getName()).append("'s graveyard").toString());
+                    FilterCard filter = new FilterCreatureCard("creature card from " + opponent.getLogName() + "'s graveyard");
                     filter.add(new OwnerIdPredicate(opponentId));
                     TargetCardInOpponentsGraveyard target = new TargetCardInOpponentsGraveyard(0,1, filter);
                     ability.addTarget(target);
@@ -114,15 +113,18 @@ class SepulchralPrimordialEffect extends OneShotEffect {
 
     @Override
     public boolean apply(Game game, Ability source) {
-        Player player = game.getPlayer(source.getControllerId());
-        for (Target target: source.getTargets()) {
-            if (target instanceof TargetCardInOpponentsGraveyard) {
-                Card targetCard = game.getCard(target.getFirstTarget());
-                if (player != null && targetCard != null) {
-                    targetCard.putOntoBattlefield(game, Zone.GRAVEYARD, source.getSourceId(), source.getControllerId());
+        Player controller = game.getPlayer(source.getControllerId());
+        if (controller != null) {        
+            for (Target target: source.getTargets()) {
+                if (target instanceof TargetCardInOpponentsGraveyard) {
+                    Card targetCard = game.getCard(target.getFirstTarget());
+                    if (targetCard != null) {
+                        targetCard.putOntoBattlefield(game, Zone.GRAVEYARD, source.getSourceId(), source.getControllerId());
+                    }
                 }
             }
+            return true;
         }
-        return true;
+        return false;
     }
 }

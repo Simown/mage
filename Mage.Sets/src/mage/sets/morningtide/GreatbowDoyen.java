@@ -64,7 +64,6 @@ public class GreatbowDoyen extends CardImpl {
         this.subtype.add("Elf");
         this.subtype.add("Archer");
 
-        this.color.setGreen(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(4);
 
@@ -154,7 +153,7 @@ class GreatbowDoyenEffect extends OneShotEffect {
                 Player player = game.getPlayer(controllerId);
                 if (player != null) {
                     player.damage(damageAmount, sourceOfDamage, game, false, true);
-                    game.informPlayers(new StringBuilder(permanent.getName()).append(" deals ").append(damageAmount).append(" damage to ").append(player.getName()).toString());
+                    game.informPlayers(new StringBuilder(permanent.getName()).append(" deals ").append(damageAmount).append(" damage to ").append(player.getLogName()).toString());
                     return true;
                 }
             }

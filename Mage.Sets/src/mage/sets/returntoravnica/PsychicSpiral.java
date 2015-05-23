@@ -50,7 +50,6 @@ public class PsychicSpiral extends CardImpl {
         super(ownerId, 47, "Psychic Spiral", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{4}{U}");
         this.expansionSetCode = "RTR";
 
-        this.color.setBlue(true);
 
         // Shuffle all cards from your graveyard into your library. Target player puts that many cards from the top of his or her library into his or her graveyard.
         this.getSpellAbility().addTarget(new TargetPlayer());
@@ -83,21 +82,15 @@ class PsychicSpiralEffect extends OneShotEffect {
         Player player = game.getPlayer(source.getControllerId());
         if (player != null) {
             int cardsInGraveyard = player.getGraveyard().size();
-            player.getLibrary().addAll(player.getGraveyard().getCards(game), game);
-            player.getGraveyard().clear();
+            for (Card card: player.getGraveyard().getCards(game)) {
+                card.moveToZone(Zone.LIBRARY, source.getSourceId(), game, true);
+            }                           
             player.shuffleLibrary(game);
 
             if (cardsInGraveyard > 0) {
                 Player targetPlayer = game.getPlayer(source.getFirstTarget());
                 if (targetPlayer != null) {
-                    for (int i = 0; i<cardsInGraveyard ; i++) {
-                        if (targetPlayer.getLibrary().size() > 0) {
-                            Card card = targetPlayer.getLibrary().removeFromTop(game);
-                            if (card != null) {
-                                card.moveToZone(Zone.GRAVEYARD, source.getSourceId(), game, false);
-                            }
-                        }
-                    }
+                    targetPlayer.moveCards(targetPlayer.getLibrary().getTopCards(game, cardsInGraveyard), Zone.LIBRARY, Zone.GRAVEYARD, source, game);
                 }
             }
             return true;

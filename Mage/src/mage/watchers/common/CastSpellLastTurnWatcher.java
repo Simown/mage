@@ -38,7 +38,6 @@ import mage.MageObjectReference;
 import mage.constants.WatcherScope;
 import mage.game.Game;
 import mage.game.events.GameEvent;
-import mage.game.stack.Spell;
 import mage.watchers.Watcher;
 
 /**
@@ -115,11 +114,11 @@ public class CastSpellLastTurnWatcher extends Watcher {
        }
     }
 
-    public int getSpellOrder(Spell spell, Game game) {
+    public int getSpellOrder(MageObjectReference spell, Game game) {
        int index = 0;
        for (MageObjectReference mor : spellsCastThisTurnInOrder) {
            index++;
-           if (mor.refersTo(spell, game)) {
+           if (mor.equals(spell)) {
                return index;
            }
        }

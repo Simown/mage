@@ -34,6 +34,7 @@ import mage.constants.Rarity;
 import mage.constants.WatcherScope;
 import mage.abilities.Ability;
 import mage.abilities.costs.AlternativeCostImpl;
+import mage.abilities.costs.Cost;
 import mage.abilities.costs.mana.ColoredManaCost;
 import mage.abilities.effects.common.ChooseNewTargetsTargetEffect;
 import mage.cards.CardImpl;
@@ -64,7 +65,6 @@ public class RicochetTrap extends CardImpl {
         this.expansionSetCode = "WWK";
         this.subtype.add("Trap");
 
-        this.color.setRed(true);
 
         // If an opponent cast a blue spell this turn, you may pay {R} rather than pay Ricochet Trap's mana cost.
         this.getSpellAbility().addAlternativeCost(new RicochetTrapAlternativeCost());
@@ -123,7 +123,7 @@ class RicochetTrapWatcher extends Watcher {
     }
 }
 
-class RicochetTrapAlternativeCost extends AlternativeCostImpl {
+class RicochetTrapAlternativeCost extends AlternativeCostImpl<Cost> {
 
     public RicochetTrapAlternativeCost() {
         super("You may pay {R} rather than pay Ricochet Trap's mana cost");

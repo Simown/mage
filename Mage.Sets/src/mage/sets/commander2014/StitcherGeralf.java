@@ -62,7 +62,6 @@ public class StitcherGeralf extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Wizard");
 
-        this.color.setBlue(true);
         this.power = new MageInt(3);
         this.toughness = new MageInt(4);
 
@@ -106,15 +105,10 @@ class StitcherGeralfEffect extends OneShotEffect {
             for (UUID playerId: controller.getInRange()) {
                 Player player = game.getPlayer(playerId);
                 if (player != null) {
-                    for (int i = 0; i < Math.min(3, player.getLibrary().size()); i++) {
-                        Card card = player.getLibrary().getFromTop(game);
-                        if (player.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY)) {
-                            // add card only if it goes to graveyard
-                            cards.add(card);
-                        }
-                    }
+                    cards.addAll(player.getLibrary().getTopCards(game, 3));
                 }
             }
+            controller.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
             TargetCard target = new TargetCard(0,2,Zone.GRAVEYARD, new FilterCreatureCard("creature cards to exile"));
             controller.chooseTarget(outcome, cards, target, source, game);
             int power = 0;

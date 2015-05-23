@@ -58,9 +58,6 @@ public class SultaiSoothsayer extends CardImpl {
         this.subtype.add("Naga");
         this.subtype.add("Shaman");
 
-        this.color.setBlue(true);
-        this.color.setGreen(true);
-        this.color.setBlack(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(5);
 
@@ -101,22 +98,17 @@ class SultaiSoothsayerEffect extends OneShotEffect {
         if (controller != null && sourceObject != null) {
             Cards cards = new CardsImpl();
             cards.addAll(controller.getLibrary().getTopCards(game, 4));
-
             if (cards.size() > 0) {
-                controller.lookAtCards(sourceObject.getLogName(), cards, game);
-
+                controller.lookAtCards(sourceObject.getName(), cards, game);
                 TargetCard target = new TargetCard(Zone.LIBRARY, new FilterCard("card to put in your hand"));
                 if (controller.choose(Outcome.Benefit, cards, target, game)) {
                     Card card = cards.get(target.getFirstTarget(), game);
                     if (card != null) {
-                        card.moveToZone(Zone.HAND, source.getSourceId(), game, false);
+                        controller.moveCards(card, Zone.LIBRARY, Zone.HAND, source, game);
                         cards.remove(card);
                     }
                 }
-
-                for (Card card : cards.getCards(game)) {
-                    controller.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
-                }
+                controller.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
             }
             return true;
         }

@@ -58,8 +58,6 @@ public class FiremindsForesight extends CardImpl {
         super(ownerId, 162, "Firemind's Foresight", Rarity.RARE, new CardType[]{CardType.INSTANT}, "{5}{U}{R}");
         this.expansionSetCode = "RTR";
 
-        this.color.setBlue(true);
-        this.color.setRed(true);
 
         // Search your library for an instant card with converted mana cost 3, reveal it,
         // and put it into your hand. Then repeat this process for instant cards with
@@ -119,7 +117,7 @@ class FiremindsForesightSearchEffect extends  OneShotEffect {
                         Card card = player.getLibrary().remove(cardId, game);
                         if (card != null){
                             card.moveToZone(Zone.HAND, source.getSourceId(), game, false);
-                            game.informPlayers(sourceCard.getName()+": " + player.getName() + " chose " + card.getName() );
+                            game.informPlayers(sourceCard.getName()+": " + player.getLogName() + " chose " + card.getName() );
                             cardsInLibrary.remove(card);
                             cardToReveal.add(card);
                             player.revealCards(sourceCard.getName(), cardToReveal, game);

@@ -60,7 +60,6 @@ public class BlindZealot extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Cleric");
 
-        this.color.setBlack(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -106,11 +105,11 @@ class BlindZealotTriggeredAbility extends TriggeredAbilityImpl {
                 StringBuilder sb = new StringBuilder();
                 sb.append("Do you wish to sacrifice ").append(sourcePermanent.getName());
                 sb.append(" to destroy target creature controlled by ");
-                sb.append(game.getPlayer(event.getTargetId()).getName()).append("?");
+                sb.append(game.getPlayer(event.getTargetId()).getLogName()).append("?");
                 if (player.chooseUse(Outcome.DestroyPermanent, sb.toString(), game)) {
                     FilterCreaturePermanent filter = new FilterCreaturePermanent();
                     filter.add(new ControllerIdPredicate(event.getTargetId()));
-                    filter.setMessage("creature controlled by " + game.getPlayer(event.getTargetId()).getName());
+                    filter.setMessage("creature controlled by " + game.getPlayer(event.getTargetId()).getLogName());
 
                     this.getTargets().clear();
                     this.addTarget(new TargetCreaturePermanent(filter));

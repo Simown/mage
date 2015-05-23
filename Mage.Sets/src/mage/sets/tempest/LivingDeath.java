@@ -53,7 +53,6 @@ public class LivingDeath extends CardImpl {
         super(ownerId, 36, "Living Death", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{B}{B}");
         this.expansionSetCode = "TMP";
 
-        this.color.setBlack(true);
 
         // Each player exiles all creature cards from his or her graveyard, then sacrifices all creatures he or she controls, then puts all cards he or she exiled this way onto the battlefield.
         this.getSpellAbility().addEffect(new LivingDeathEffect());
@@ -94,7 +93,7 @@ class LivingDeathEffect extends OneShotEffect {
                 Player player = game.getPlayer(playerId);
                 if (player != null) {
                     for (Card card :player.getGraveyard().getCards(new FilterCreatureCard(), game)) {
-                        controller.moveCardToExileWithInfo(card, source.getSourceId(), sourceObject.getLogName(), source.getSourceId(), game, Zone.GRAVEYARD, true);
+                        controller.moveCardToExileWithInfo(card, source.getSourceId(), sourceObject.getName(), source.getSourceId(), game, Zone.GRAVEYARD, true);
                     }
                 }
             }

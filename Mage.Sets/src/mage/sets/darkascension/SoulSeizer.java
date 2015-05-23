@@ -63,7 +63,6 @@ public class SoulSeizer extends CardImpl {
         this.canTransform = true;
         this.secondSideCard = new GhastlyHaunting(ownerId);
 
-        this.color.setBlue(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(3);
 
@@ -106,7 +105,7 @@ class SoulSeizerTriggeredAbility extends TriggeredAbilityImpl {
             if (damageEvent.isCombatDamage() && event.getSourceId().equals(this.getSourceId())) {
                 Player opponent = game.getPlayer(event.getPlayerId());
                 if (opponent != null) {
-                    FilterCreaturePermanent filter = new FilterCreaturePermanent("creature " + opponent.getName() + " controls");
+                    FilterCreaturePermanent filter = new FilterCreaturePermanent("creature " + opponent.getLogName() + " controls");
                     filter.add(new ControllerIdPredicate(opponent.getId()));
 
                     this.getTargets().clear();

@@ -39,7 +39,6 @@ import mage.abilities.effects.common.AttachEffect;
 import mage.abilities.effects.common.combat.CantBlockAttackActivateAttachedEffect;
 import mage.abilities.keyword.EnchantAbility;
 import mage.cards.CardImpl;
-import mage.constants.Duration;
 import mage.constants.Outcome;
 import mage.target.TargetPermanent;
 import mage.target.common.TargetCreaturePermanent;
@@ -54,7 +53,7 @@ public class Arrest extends CardImpl {
         super(ownerId, 2, "Arrest", Rarity.COMMON, new CardType[]{CardType.ENCHANTMENT}, "{2}{W}");
         this.expansionSetCode = "MRD";
         this.subtype.add("Aura");
-        this.color.setWhite(true);
+
 
         // Enchant creature
         TargetPermanent auraTarget = new TargetCreaturePermanent();

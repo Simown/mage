@@ -51,7 +51,6 @@ public class TeleminPerformance extends CardImpl {
         super(ownerId, 35, "Telemin Performance", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{U}{U}");
         this.expansionSetCode = "CON";
 
-        this.color.setBlue(true);
 
         // Target opponent reveals cards from the top of his or her library until he or she reveals a creature card. That player puts all noncreature cards revealed this way into his or her graveyard, then you put the creature card onto the battlefield under your control.
         this.getSpellAbility().addEffect(new TeleminPerformanceEffect());
@@ -100,12 +99,12 @@ class TeleminPerformanceEffect extends OneShotEffect {
                 }
                 if (!creatureFound) {
                     cards.add(card);
-                    card.moveToZone(Zone.GRAVEYARD, source.getSourceId(), game, false);
                 }
             }
         }
-        if (!cards.isEmpty()) {
+        if (!cards.isEmpty()) {            
             opponent.revealCards("Telemin Performance", cards, game);
+            opponent.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
         }
         if (creature != null) {
             return creature.putOntoBattlefield(game, Zone.LIBRARY, source.getSourceId(), source.getControllerId());

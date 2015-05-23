@@ -51,7 +51,6 @@ public class HeedTheMists extends CardImpl {
         this.expansionSetCode = "BOK";
         this.subtype.add("Arcane");
 
-        this.color.setBlue(true);
 
         // Put the top card of your library into your graveyard, then draw cards equal to that card's converted mana cost.
         this.getSpellAbility().addEffect(new HeedTheMistsEffect());
@@ -85,7 +84,7 @@ public class HeedTheMists extends CardImpl {
                 Card card = controller.getLibrary().removeFromTop(game);
                 if (card != null) {
                     int cmc = card.getManaCost().convertedManaCost();
-                    controller.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
+                    controller.moveCards(card, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
                     controller.drawCards(cmc, game);
                 }
             }

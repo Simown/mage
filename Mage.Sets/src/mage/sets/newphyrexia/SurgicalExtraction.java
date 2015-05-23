@@ -121,7 +121,7 @@ class SurgicalExtractionEffect extends OneShotEffect {
                 if (cardsCount > 0) {
                     filterNamedCard.setMessage("card named " + chosenCard.getName() + " in the graveyard of " + owner.getName());
                     TargetCardInGraveyard target = new TargetCardInGraveyard(0, cardsCount, filterNamedCard);
-                    if (controller.choose(Outcome.Exile, owner.getGraveyard(), target, game)) {
+                    if (controller.chooseTarget(Outcome.Exile, owner.getGraveyard(), target, source, game)) {
                         List<UUID> targets = target.getTargets();
                         for (UUID targetId : targets) {
                             Card targetCard = owner.getGraveyard().get(targetId, game);
@@ -135,7 +135,7 @@ class SurgicalExtractionEffect extends OneShotEffect {
                 // cards in Hand
                 filterNamedCard.setMessage("card named " + chosenCard.getName() + " in the hand of " + owner.getName());
                 TargetCardInHand targetCardInHand = new TargetCardInHand(0, Integer.MAX_VALUE, filterNamedCard);
-                if (controller.choose(Outcome.Exile, owner.getHand(), targetCardInHand, game)) {
+                if (controller.chooseTarget(Outcome.Exile, owner.getHand(), targetCardInHand, source, game)) {
                     List<UUID> targets = targetCardInHand.getTargets();
                     for (UUID targetId : targets) {
                         Card targetCard = owner.getHand().get(targetId, game);

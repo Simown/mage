@@ -53,7 +53,6 @@ public class SurrealMemoir extends CardImpl {
         super(ownerId, 167, "Surreal Memoir", Rarity.UNCOMMON, new CardType[]{CardType.SORCERY}, "{3}{R}");
         this.expansionSetCode = "ROE";
 
-        this.color.setRed(true);
 
         // Return an instant card at random from your graveyard to your hand.
         this.getSpellAbility().addEffect(new SurrealMemoirEffect());
@@ -97,7 +96,7 @@ class SurrealMemoirEffect extends OneShotEffect {
                 Random rnd = new Random();
                 Card card = cards[rnd.nextInt(cards.length)];
                 card.moveToZone(Zone.HAND, source.getSourceId(), game, true);
-                game.informPlayers(card.getName() + "returned to the hand of" + player.getName());
+                game.informPlayers(card.getName() + "returned to the hand of" + player.getLogName());
                 return true;
             }
         }

@@ -39,6 +39,7 @@ import mage.target.TargetSpell;
 import mage.watchers.common.CastSpellLastTurnWatcher;
 
 import java.util.UUID;
+import mage.MageObjectReference;
 
 /**
  *
@@ -56,7 +57,6 @@ public class SecondGuess extends CardImpl {
         super(ownerId, 74, "Second Guess", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{1}{U}");
         this.expansionSetCode = "AVR";
 
-        this.color.setBlue(true);
 
         // Counter target spell that's the second spell cast this turn.
         this.getSpellAbility().addEffect(new CounterTargetEffect());
@@ -79,7 +79,7 @@ class SecondSpellPredicate implements Predicate<Spell> {
     public boolean apply(Spell input, Game game) {
         CastSpellLastTurnWatcher watcher = (CastSpellLastTurnWatcher) game.getState().getWatchers().get("CastSpellLastTurnWatcher");
 
-        if (watcher.getSpellOrder(input, game) == 2) {
+        if (watcher.getSpellOrder(new MageObjectReference(input.getId(), game), game) == 2) {
             return true;
         }
 

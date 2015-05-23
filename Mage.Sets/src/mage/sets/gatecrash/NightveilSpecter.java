@@ -70,8 +70,6 @@ public class NightveilSpecter extends CardImpl {
       this.expansionSetCode = "GTC";
       this.subtype.add("Specter");
 
-      this.color.setBlue(true);
-      this.color.setBlack(true);
       this.power = new MageInt(2);
       this.toughness = new MageInt(3);
 
@@ -113,7 +111,7 @@ class NightveilSpecterExileEffect extends OneShotEffect {
           Card card = player.getLibrary().removeFromTop(game);
           MageObject sourceObject = game.getObject(source.getSourceId());
           if (card != null && sourceObject != null) {
-              player.moveCardToExileWithInfo(card, CardUtil.getCardExileZoneId(game, source), sourceObject.getLogName(), source.getSourceId(), game, Zone.LIBRARY, true);
+              player.moveCardToExileWithInfo(card, CardUtil.getCardExileZoneId(game, source), sourceObject.getName(), source.getSourceId(), game, Zone.LIBRARY, true);
               return true;
           }
       }

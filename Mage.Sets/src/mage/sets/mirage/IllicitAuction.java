@@ -51,7 +51,6 @@ public class IllicitAuction extends CardImpl {
         super(ownerId, 183, "Illicit Auction", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{R}{R}");
         this.expansionSetCode = "MIR";
 
-        this.color.setRed(true);
 
         // Each player may bid life for control of target creature. You start the bidding with a bid of 0. In turn order, each player may top the high bid. The bidding ends if the high bid stands. The high bidder loses life equal to the high bid and gains control of the creature.
         this.getSpellAbility().addEffect(new IllicitAuctionEffect());
@@ -95,24 +94,23 @@ class IllicitAuctionEffect extends GainControlTargetEffect {
             
             Player winner = game.getPlayer(game.getActivePlayerId());
             int highBid = 0;
-            game.informPlayers(new StringBuilder(winner.getName()).append(" has bet 0 lifes").toString());
+            game.informPlayers(winner.getLogName()+ " has bet 0 lifes");
             
             Player currentPlayer = playerList.getNextInRange(controller, game);
             while (currentPlayer != winner) {
-                String text = winner.getName() + " has bet " + highBid + " life" + (highBid > 1 ? "s" : "") + ". Top the bid?";
+                String text = winner.getLogName() + " has bet " + highBid + " life" + (highBid > 1 ? "s" : "") + ". Top the bid?";
                 if (currentPlayer.chooseUse(Outcome.Detriment, text, game)) {
                     int newBid = currentPlayer.getAmount(highBid + 1, Integer.MAX_VALUE, "Choose bid", game);
                     if (newBid > highBid) {
                         highBid = newBid;
                         winner = currentPlayer;
-                        game.informPlayers(new StringBuilder(currentPlayer.getName()).append(" bet ")
-                                .append(newBid).append(" life").append(newBid > 1 ? "s" : "").toString());
+                        game.informPlayers(currentPlayer.getLogName() + " bet " + newBid + " life" + (newBid > 1 ? "s" : ""));
                     }
                 }
                 currentPlayer = playerList.getNextInRange(controller, game);
             }
             
-            game.informPlayers(winner.getName() + " won the auction with a bid of " + highBid + " life" + (highBid > 1 ? "s" : ""));
+            game.informPlayers(winner.getLogName() + " won the auction with a bid of " + highBid + " life" + (highBid > 1 ? "s" : ""));
             winner.loseLife(highBid, game);
             super.controllingPlayerId = winner.getId();
         }        

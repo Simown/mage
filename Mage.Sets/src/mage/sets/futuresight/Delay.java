@@ -57,7 +57,6 @@ public class Delay extends CardImpl {
         super(ownerId, 35, "Delay", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{1}{U}");
         this.expansionSetCode = "FUT";
 
-        this.color.setBlue(true);
 
         // Counter target spell. If the spell is countered this way, exile it with three time counters on it instead of putting it into its owner's graveyard. If it doesn't have suspend, it gains suspend.
         this.getSpellAbility().addEffect(new DelayEffect());
@@ -101,12 +100,12 @@ class DelayEffect extends OneShotEffect {
             if (card != null && effect.apply(game, source) && Zone.EXILED.equals(game.getState().getZone(card.getId()))) {
                 boolean hasSuspend = card.getAbilities().containsClass(SuspendAbility.class);
                 UUID exileId = SuspendAbility.getSuspendExileId(controller.getId(), game);
-                if (controller.moveCardToExileWithInfo(card, exileId, "Suspended cards of " + controller.getName(), source.getSourceId(), game, Zone.HAND, true)) {
+                if (controller.moveCardToExileWithInfo(card, exileId, "Suspended cards of " + controller.getLogName(), source.getSourceId(), game, Zone.HAND, true)) {
                     card.addCounters(CounterType.TIME.createInstance(3), game);
                     if (!hasSuspend) {
                         game.addEffect(new GainSuspendEffect(new MageObjectReference(card, game)), source);
                     }
-                    game.informPlayers(controller.getName() + " suspends 3 - " + card.getName());
+                    game.informPlayers(controller.getLogName() + " suspends 3 - " + card.getName());
                 }                
             }
             return true;

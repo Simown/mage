@@ -57,8 +57,6 @@ public class CankerAbomination extends CardImpl {
         this.subtype.add("Treefolk");
         this.subtype.add("Horror");
 
-        this.color.setGreen(true);
-        this.color.setBlack(true);
         this.power = new MageInt(6);
         this.toughness = new MageInt(6);
 
@@ -104,7 +102,7 @@ class CankerAbominationEffect extends OneShotEffect {
         if (player != null && CankerAbomination != null) {
             Player chosenPlayer = game.getPlayer(source.getFirstTarget());
             if (chosenPlayer != null) {
-                game.informPlayers(CankerAbomination.getName() + ": " + player.getName() + " has chosen " + chosenPlayer.getName());
+                game.informPlayers(CankerAbomination.getName() + ": " + player.getLogName() + " has chosen " + chosenPlayer.getLogName());
                 int amount = game.getBattlefield().getAllActivePermanents(new FilterCreaturePermanent(), chosenPlayer.getId(), game).size();
                 CankerAbomination.addCounters(CounterType.M1M1.createInstance(amount), game);
                 return true;

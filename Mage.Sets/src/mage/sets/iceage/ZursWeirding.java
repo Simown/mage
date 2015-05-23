@@ -56,7 +56,6 @@ public class ZursWeirding extends CardImpl {
         super(ownerId, 112, "Zur's Weirding", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{3}{U}");
         this.expansionSetCode = "ICE";
 
-        this.color.setBlue(true);
 
         // Players play with their hands revealed.
         
@@ -115,10 +114,8 @@ class ZursWeirdingReplacementEffect extends ReplacementEffectImpl {
                             currentPlayer.getLife() >= 2 &&
                             currentPlayer.chooseUse(Outcome.Benefit, message, game)) {
                         currentPlayer.loseLife(2, game);
-                        player.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
-                        
+                        player.moveCards(card, Zone.LIBRARY, Zone.GRAVEYARD, source, game);                        
                         game.getState().getRevealed().reset();
-
                         return true;
                     }
                     
@@ -130,13 +127,14 @@ class ZursWeirdingReplacementEffect extends ReplacementEffectImpl {
         }
         return false;
     }
+    @Override
+    public boolean checksEventType(GameEvent event, Game game) {
+        return event.getType() == GameEvent.EventType.DRAW_CARD;
+    }       
 
     @Override
     public boolean applies(GameEvent event, Ability source, Game game) {
-        if (event.getType() == EventType.DRAW_CARD) {
-            return true;
-        }
-        return false;
+        return true;
     }
     
 }

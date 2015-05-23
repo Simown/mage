@@ -54,7 +54,6 @@ public class DyingWish extends CardImpl {
         this.expansionSetCode = "GTC";
 
         this.subtype.add("Aura");
-        this.color.setBlack(true);
 
         // Enchant creature you control
         TargetPermanent auraTarget = new TargetControlledCreaturePermanent();

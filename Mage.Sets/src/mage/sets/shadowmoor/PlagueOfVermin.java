@@ -52,7 +52,6 @@ public class PlagueOfVermin extends CardImpl {
         super(ownerId, 73, "Plague of Vermin", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{6}{B}");
         this.expansionSetCode = "SHM";
 
-        this.color.setBlack(true);
 
         // Starting with you, each player may pay any amount of life. Repeat this process until no one pays life. Each player puts a 1/1 black Rat creature token onto the battlefield for each 1 life he or she paid this way.
         this.getSpellAbility().addEffect(new PlagueOfVerminEffect());
@@ -118,7 +117,7 @@ class PlagueOfVerminEffect extends OneShotEffect {
                                 payLife.put(currentPlayer.getId(), currentLifePaid + totalPaidLife);
                             }
                         }
-                        game.informPlayers(new StringBuilder(sourceCard.getName()).append(": ").append(currentPlayer.getName()).append(" pays ").append(payLife.get(currentPlayer.getId())).append(" life").toString());
+                        game.informPlayers(new StringBuilder(sourceCard.getName()).append(": ").append(currentPlayer.getLogName()).append(" pays ").append(payLife.get(currentPlayer.getId())).append(" life").toString());
                         firstInactivePlayer = null;
                     }
                 }

@@ -56,7 +56,6 @@ public class Nyxathid extends CardImpl {
         this.expansionSetCode = "CON";
         this.subtype.add("Elemental");
 
-        this.color.setBlack(true);
         this.power = new MageInt(7);
         this.toughness = new MageInt(7);
 
@@ -105,7 +104,7 @@ class ChooseOpponent extends OneShotEffect {
             if (player.choose(this.outcome, target, source.getSourceId(), game)) {
                 Player chosenPlayer = game.getPlayer(target.getFirstTarget());
                 if (chosenPlayer != null) {
-                    game.informPlayers(permanent.getName() + ": " + player.getName() + " has chosen " + chosenPlayer.getName());
+                    game.informPlayers(permanent.getName() + ": " + player.getLogName() + " has chosen " + chosenPlayer.getLogName());
                     game.getState().setValue(permanent.getId() + "_player", target.getFirstTarget());
                     return true;
                 }

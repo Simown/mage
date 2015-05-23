@@ -53,7 +53,6 @@ public class StolenGoods extends CardImpl {
         super(ownerId, 78, "Stolen Goods", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{U}");
         this.expansionSetCode = "AVR";
 
-        this.color.setBlue(true);
 
         // Target opponent exiles cards from the top of his or her library until he or she exiles a nonland card. Until end of turn, you may cast that card without paying its mana cost.
         this.getSpellAbility().addEffect(new StolenGoodsEffect());
@@ -138,7 +137,7 @@ class StolenGoodsCastFromExileEffect extends AsThoughEffectImpl {
             Card card = game.getCard(sourceId);
             if (card != null && game.getState().getZone(sourceId) == Zone.EXILED) {
                 Player player = game.getPlayer(affectedControllerId);
-                player.setCastSourceIdWithoutMana(sourceId);
+                player.setCastSourceIdWithAlternateMana(sourceId, null);
                 return true;
             }
         }

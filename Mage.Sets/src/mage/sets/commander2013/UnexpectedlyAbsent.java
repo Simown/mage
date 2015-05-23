@@ -66,7 +66,6 @@ public class UnexpectedlyAbsent extends CardImpl {
         super(ownerId, 25, "Unexpectedly Absent", Rarity.RARE, new CardType[]{CardType.INSTANT}, "{X}{W}{W}");
         this.expansionSetCode = "C13";
 
-        this.color.setWhite(true);
 
         // Put target nonland permanent into its owner's library just beneath the top X cards of that library.
         this.getSpellAbility().addEffect(new UnexpectedlyAbsentEffect());
@@ -117,10 +116,10 @@ class UnexpectedlyAbsentEffect extends OneShotEffect {
                         cardIds.push(card.getId());
                     }
                     // return cards back to library
-                    game.informPlayers(new StringBuilder(controller.getName())
+                    game.informPlayers(new StringBuilder(controller.getLogName())
                             .append(" puts ").append(permanent.getName())
                             .append(" beneath the top ").append(xValue)
-                            .append(" cards of ").append(owner.getName()).append("'s library").toString());
+                            .append(" cards of ").append(owner.getLogName()).append("'s library").toString());
                     permanent.moveToZone(Zone.LIBRARY, source.getSourceId(), game, true);
                     while(!cardIds.isEmpty()) {
                         UUID cardId = cardIds.poll();

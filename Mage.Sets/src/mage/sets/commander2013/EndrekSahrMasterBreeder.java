@@ -48,6 +48,7 @@ import mage.game.Game;
 import mage.game.events.GameEvent;
 import mage.game.permanent.token.Token;
 import mage.game.stack.Spell;
+import mage.target.targetpointer.FixedTarget;
 
 /**
  *
@@ -67,7 +68,6 @@ public class EndrekSahrMasterBreeder extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Wizard");
 
-        this.color.setBlack(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -137,6 +137,9 @@ class EndrekSahrMasterBreederEffect extends OneShotEffect {
     @Override
     public boolean apply(Game game, Ability source) {
         Spell spell = game.getStack().getSpell(targetPointer.getFirst(game, source));
+        if (spell == null) {
+            spell = (Spell) game.getLastKnownInformation(((FixedTarget)getTargetPointer()).getTarget(), Zone.STACK);
+        }            
         if (spell != null) {
             int cmc = spell.getConvertedManaCost();
             if (cmc > 0) {

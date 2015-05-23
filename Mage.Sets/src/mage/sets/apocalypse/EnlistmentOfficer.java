@@ -58,7 +58,6 @@ public class EnlistmentOfficer extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Soldier");
 
-        this.color.setWhite(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(3);
 
@@ -108,7 +107,7 @@ class EnlistmentOfficerEffect extends OneShotEffect {
         }
         Cards cards = new CardsImpl();
         cards.addAll(controller.getLibrary().getTopCards(game, 4));
-        controller.revealCards(sourceObject.getLogName(), cards, game);
+        controller.revealCards(sourceObject.getName(), cards, game);
         for (Card card: cards.getCards(game)) {
             if (filter.match(card, game)) {
                 controller.moveCardToHandWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);

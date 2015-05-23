@@ -59,8 +59,8 @@ public class VizkopaConfessor extends CardImpl {
         this.expansionSetCode = "GTC";
         this.subtype.add("Human");
         this.subtype.add("Cleric");
-        this.color.setWhite(true);
-        this.color.setBlack(true);
+
+
         this.power = new MageInt(1);
         this.toughness = new MageInt(3);
 
@@ -108,7 +108,7 @@ class VizkopaConfessorEffect extends OneShotEffect {
             int payLife = controller.getAmount(0, controller.getLife(),"Pay how many life?", game);
             if (payLife > 0) {
                 controller.loseLife(payLife, game);
-                game.informPlayers(new StringBuilder(sourceCard.getName()).append(": ").append(controller.getName()).append(" pays ").append(payLife).append(" life").toString());
+                game.informPlayers(new StringBuilder(sourceCard.getName()).append(": ").append(controller.getLogName()).append(" pays ").append(payLife).append(" life").toString());
 
                 Cards cardsInHand = new CardsImpl();
                 cardsInHand.addAll(targetPlayer.getHand());

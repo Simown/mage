@@ -66,7 +66,6 @@ public class DiluvianPrimordial extends CardImpl {
         this.expansionSetCode = "GTC";
         this.subtype.add("Avatar");
 
-        this.color.setBlue(true);
         this.power = new MageInt(5);
         this.toughness = new MageInt(5);
 
@@ -84,7 +83,7 @@ public class DiluvianPrimordial extends CardImpl {
             for(UUID opponentId : game.getOpponents(ability.getControllerId())) {
                 Player opponent = game.getPlayer(opponentId);
                 if (opponent != null) {
-                    FilterCard filter = new FilterCard(new StringBuilder("instant or sorcery card from ").append(opponent.getName()).append("'s graveyard").toString());
+                    FilterCard filter = new FilterCard("instant or sorcery card from " + opponent.getLogName() + "'s graveyard");
                     filter.add(new OwnerIdPredicate(opponentId));
                     filter.add(Predicates.or(new CardTypePredicate(CardType.INSTANT),new CardTypePredicate(CardType.SORCERY)));
                     TargetCardInOpponentsGraveyard target = new TargetCardInOpponentsGraveyard(0,1, filter);
@@ -123,20 +122,25 @@ class DiluvianPrimordialEffect extends OneShotEffect {
     @Override
     public boolean apply(Game game, Ability source) {
         Player controller = game.getPlayer(source.getControllerId());
-        for (Target target: source.getTargets()) {
-            if (target instanceof TargetCardInOpponentsGraveyard) {
-                Card targetCard = game.getCard(target.getFirstTarget());
-                if (controller != null && targetCard != null) {
-                    if (controller.chooseUse(outcome, "Cast " + targetCard.getName() +"?", game)) {
-                        controller.cast(targetCard.getSpellAbility(), game, true);
-                        ContinuousEffect effect = new DiluvianPrimordialReplacementEffect();
-                        effect.setTargetPointer(new FixedTarget(targetCard.getId()));
-                        game.addEffect(effect, source);
+        if (controller != null) {
+            for (Target target: source.getTargets()) {
+                if (target instanceof TargetCardInOpponentsGraveyard) {
+                    Card targetCard = game.getCard(target.getFirstTarget());
+                    if (targetCard != null) {
+                        if (controller.chooseUse(outcome, "Cast " + targetCard.getLogName() +"?", game)) {
+                            // TODO: Handle the case if the cast is not possible, so the replacement effect shouldn't be active
+                            ContinuousEffect effect = new DiluvianPrimordialReplacementEffect();
+                            effect.setTargetPointer(new FixedTarget(targetCard.getId()));
+                            game.addEffect(effect, source);
+                            
+                            controller.cast(targetCard.getSpellAbility(), game, true);
+                        }
                     }
                 }
             }
+            return true;
         }
-        return true;
+        return false;
     }
 }
 
@@ -165,9 +169,9 @@ class DiluvianPrimordialReplacementEffect extends ReplacementEffectImpl {
     public boolean replaceEvent(GameEvent event, Ability source, Game game) {
         Player controller = game.getPlayer(source.getControllerId());
         if (controller != null) {
-            Card card = game.getCard(getTargetPointer().getFirst(game, source));
+            Card card = game.getCard(((FixedTarget)getTargetPointer()).getTarget());
             if (card != null) {
-                controller.moveCardToExileWithInfo(card, null, "", source.getSourceId(), game, Zone.STACK, true);
+                controller.moveCards(card, Zone.STACK, Zone.EXILED, source, game);
                 return true;
             }
         }
@@ -182,10 +186,7 @@ class DiluvianPrimordialReplacementEffect extends ReplacementEffectImpl {
     @Override
     public boolean applies(GameEvent event, Ability source, Game game) {
         ZoneChangeEvent zEvent = (ZoneChangeEvent) event;
-        if (zEvent.getToZone() == Zone.GRAVEYARD
-                && ((ZoneChangeEvent) event).getTargetId().equals(getTargetPointer().getFirst(game, source))) {
-            return true;
-        }
-        return false;
+        return zEvent.getToZone() == Zone.GRAVEYARD
+                && ((ZoneChangeEvent) event).getTargetId().equals(getTargetPointer().getFirst(game, source));
     }
 }

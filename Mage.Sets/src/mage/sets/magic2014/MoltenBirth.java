@@ -53,7 +53,6 @@ public class MoltenBirth extends CardImpl {
         super(ownerId, 147, "Molten Birth", Rarity.UNCOMMON, new CardType[]{CardType.SORCERY}, "{1}{R}{R}");
         this.expansionSetCode = "M14";
 
-        this.color.setRed(true);
 
         // Put two 1/1 red Elemental creature tokens onto the battlefield. Then flip a coin. If you win the flip, return Molten Birth to its owner's hand.
         this.getSpellAbility().addEffect(new MoltenBirthEffect());
@@ -88,14 +87,14 @@ class MoltenBirthEffect extends OneShotEffect {
 
     @Override
     public boolean apply(Game game, Ability source) {
-        Player you = game.getPlayer(source.getControllerId());
+        Player controller = game.getPlayer(source.getControllerId());
         Card molten = game.getCard(source.getSourceId());
-        if (you != null) {
+        if (controller != null) {
             ElementalToken token = new ElementalToken();
             token.putOntoBattlefield(2, game, source.getSourceId(), source.getControllerId());
-            if (you.flipCoin(game)) {
+            if (controller.flipCoin(game)) {
                 molten.moveToZone(Zone.HAND, source.getSourceId(), game, true);
-                game.informPlayers(new StringBuilder(you.getName()).append(" won the flip.  ").append(molten.getLogName()).append(" is returned to ").append(you.getName()).append(" hand.").toString());
+                game.informPlayers(controller.getLogName() + " won the flip.  " + molten.getLogName() +" is returned to "+ controller.getLogName() + "'s hand.");
             }
             return true;
         }

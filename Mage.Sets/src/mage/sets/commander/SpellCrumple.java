@@ -61,7 +61,6 @@ public class SpellCrumple extends CardImpl {
         super(ownerId, 63, "Spell Crumple", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{1}{U}{U}");
         this.expansionSetCode = "CMD";
 
-        this.color.setBlue(true);
 
         // Counter target spell. If that spell is countered this way, put it on the bottom of its owner's library instead of into that player's graveyard. Put Spell Crumple on the bottom of its owner's library.
         this.getSpellAbility().addTarget(new TargetSpell());
@@ -173,7 +172,7 @@ class SpellCrumpleReplacementEffect extends ReplacementEffectImpl {
             if (card.moveToZone(Zone.LIBRARY, source.getSourceId(), game, false, event.getAppliedEffects())) {            
                 Player controller = game.getPlayer(source.getControllerId());
                 if (controller != null) {
-                    game.informPlayers(controller.getName() + " has put " + card.getName() + " on the bottom of the library.");
+                    game.informPlayers(controller.getLogName() + " has put " + card.getName() + " on the bottom of the library.");
                 }
                 return true;
             }

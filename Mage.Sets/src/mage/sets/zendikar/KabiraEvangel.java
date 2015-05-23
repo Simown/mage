@@ -68,7 +68,6 @@ public class KabiraEvangel extends CardImpl {
         this.subtype.add("Cleric");
         this.subtype.add("Ally");
 
-        this.color.setWhite(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(3);
 
@@ -126,7 +125,7 @@ class KabiraEvangelChooseColorEffect extends OneShotEffect {
             if (choice.getColor() == null) {
                 return false;
             }
-            game.informPlayers(sourceObject.getName() + ": " + controller.getName() + " has chosen " + choice.getChoice());
+            game.informPlayers(sourceObject.getName() + ": " + controller.getLogName() + " has chosen " + choice.getChoice());
             FilterCard filterColor = new FilterCard();
             filterColor.add(new ColorPredicate(choice.getColor()));
             filterColor.setMessage(choice.getChoice());

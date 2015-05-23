@@ -60,7 +60,6 @@ public class RefractionTrap extends CardImpl {
         this.expansionSetCode = "WWK";
         this.subtype.add("Trap");
 
-        this.color.setWhite(true);
 
         // If an opponent cast a red instant or sorcery spell this turn, you may pay {W} rather than pay Refraction Trap's mana cost.
         this.getSpellAbility().addAlternativeCost(new RefractionTrapAlternativeCost());
@@ -208,7 +207,7 @@ class RefractionTrapPreventDamageEffect extends PreventionEffectImpl {
                 }
                 Player player = game.getPlayer(damageTarget);
                 if (player != null) {
-                    game.informPlayers("Dealing " + prevented + " to " + player.getName());
+                    game.informPlayers("Dealing " + prevented + " to " + player.getLogName());
                     player.damage(prevented, source.getSourceId(), game, true, false);
                 }
             }

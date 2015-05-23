@@ -28,13 +28,14 @@
 package mage.sets.riseoftheeldrazi;
 
 import java.util.UUID;
-import mage.constants.CardType;
-import mage.constants.Rarity;
+
 import mage.MageInt;
 import mage.abilities.common.OpponentSacrificesNonTokenPermanentTriggeredAbility;
 import mage.abilities.effects.common.ReturnToBattlefieldUnderYourControlTargetEffect;
 import mage.abilities.keyword.AnnihilatorAbility;
 import mage.cards.CardImpl;
+import mage.constants.CardType;
+import mage.constants.Rarity;
 import mage.filter.FilterPermanent;
 import mage.filter.predicate.Predicates;
 import mage.filter.predicate.permanent.TokenPredicate;
@@ -74,4 +75,5 @@ public class ItThatBetrays extends CardImpl {
     public ItThatBetrays copy() {
         return new ItThatBetrays(this);
     }
+    
 }

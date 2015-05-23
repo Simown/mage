@@ -53,7 +53,6 @@ public class RustmouthOgre extends CardImpl {
         this.expansionSetCode = "MRD";
         this.subtype.add("Ogre");
 
-        this.color.setRed(true);
         this.power = new MageInt(5);
         this.toughness = new MageInt(4);
 
@@ -93,7 +92,7 @@ class RustmouthOgreTriggeredAbility extends TriggeredAbilityImpl {
             if (damageEvent.isCombatDamage() && event.getSourceId().equals(this.getSourceId())) {
                 FilterArtifactPermanent filter = new FilterArtifactPermanent("artifact that player controls");
                 filter.add(new ControllerIdPredicate(event.getPlayerId()));
-                filter.setMessage("artifact controlled by " + game.getPlayer(event.getTargetId()).getName());
+                filter.setMessage("artifact controlled by " + game.getPlayer(event.getTargetId()).getLogName());
 
                 this.getTargets().clear();
                 this.addTarget(new TargetPermanent(filter));

@@ -67,7 +67,6 @@ public class MeletisCharlatan extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Wizard");
 
-        this.color.setBlue(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(3);
 
@@ -114,7 +113,7 @@ class MeletisCharlatanCopyTargetSpellEffect extends OneShotEffect {
             if (activateMessage.startsWith(" casts ")) {
                 activateMessage = activateMessage.substring(6);
             }
-            game.informPlayers(player.getName() + " copies " + activateMessage);;
+            game.informPlayers(player.getLogName() + " copies " + activateMessage);;
             return true;
         }
         return false;

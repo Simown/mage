@@ -41,12 +41,15 @@ import mage.game.permanent.Permanent;
 import mage.game.stack.Spell;
 import mage.game.stack.StackObject;
 import mage.players.Player;
+import mage.util.ThreadLocalStringBuilder;
 
 /**
  *
  * @author BetaSteward_at_googlemail.com
  */
 public class Turn implements Serializable {
+
+    private static final transient ThreadLocalStringBuilder threadLocalBuilder = new ThreadLocalStringBuilder(50);
 
     private Phase currentPhase;
     private UUID activePlayerId;
@@ -236,7 +239,7 @@ public class Turn implements Serializable {
         game.fireEvent(new GameEvent(GameEvent.EventType.PHASE_CHANGED, activePlayerId, extraPhaseTurnMod.getId(), activePlayerId));
         Player activePlayer = game.getPlayer(activePlayerId);
         if (activePlayer != null && !game.isSimulation()) {
-            game.informPlayers(new StringBuilder(activePlayer.getName()).append(" starts an additional ").append(phase.getType().toString()).append(" phase").toString());
+            game.informPlayers(activePlayer.getLogName() + " starts an additional " + phase.getType().toString() + " phase");
         }
         phase.play(game, activePlayerId);
 
@@ -311,4 +314,15 @@ public class Turn implements Serializable {
     public Turn copy() {
         return new Turn(this);
     }
+    
+    public String getValue(int turnNum) {
+        StringBuilder sb = threadLocalBuilder.get();
+        sb.append("[").append(turnNum)
+            .append(":").append(currentPhase.getType())
+            .append(":").append(currentPhase.getStep().getType())
+            .append("]");
+
+        return sb.toString();
+    }
+    
 }

@@ -28,6 +28,7 @@
 
 package mage.game.events;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.UUID;
 import mage.constants.Zone;
@@ -36,7 +37,7 @@ import mage.constants.Zone;
  *
  * @author BetaSteward_at_googlemail.com
  */
-public class GameEvent {
+public class GameEvent implements Serializable {
 
     protected EventType type;
     protected UUID targetId;
@@ -80,26 +81,49 @@ public class GameEvent {
 
         //player events
         /* ZONE_CHANGE
-            targetId    id of the zone chaning object
+            targetId    id of the zone changing object
             sourceId    sourceId of the ability with the object moving effect
             playerId    controller of the moved object
             amount      not used for this event
             flag        not used for this event
         */
         ZONE_CHANGE,
+        ZONE_CHANGE_GROUP,
+        EMPTY_DRAW,
         DRAW_CARD, DREW_CARD,
         MIRACLE_CARD_REVEALED,
         MADNESS_CARD_EXILED,
         DISCARDED_CARD,
         CYCLE_CARD, CYCLED_CARD,
         CLASH, CLASHED,
-        DAMAGE_PLAYER, DAMAGED_PLAYER,
+        DAMAGE_PLAYER, 
+        
+        /* DAMAGED_PLAYER
+            targetId    the id of the damged player
+            sourceId    sourceId of the ability which caused the damage
+            playerId    the id of the damged player
+            amount      amount of damage
+            flag        true = comabat damage - other damage = false
+        */
+        DAMAGED_PLAYER,
+        
         DAMAGE_CAUSES_LIFE_LOSS,
         PLAYER_LIFE_CHANGE,
         GAIN_LIFE, GAINED_LIFE,
         LOSE_LIFE, LOST_LIFE,
         PLAY_LAND, LAND_PLAYED,
-        CAST_SPELL, SPELL_CAST,
+        CAST_SPELL, 
+        
+        /* SPELL_CAST
+            targetId    id of the spell that's cast
+            sourceId    sourceId of the spell that's cast
+            playerId    player that casts the spell
+            amount      not used for this event
+            flag        not used for this event
+            zone        zone the spell is cast from
+        */
+        SPELL_CAST,
+        
         ACTIVATE_ABILITY, ACTIVATED_ABILITY,
         ADD_MANA, MANA_ADDED, 
         
@@ -108,7 +132,7 @@ public class GameEvent {
             sourceId    sourceId of the mana source
             playerId    controller of the ability the mana was paid for 
             amount      not used for this event
-            flag        indicates a special condition (e.g. TRUE if it's a colored mana from Cavern of Souls)
+            flag        indicates a special condition 
         */
         MANA_PAYED, 
 
@@ -125,7 +149,16 @@ public class GameEvent {
         COUNTER,
         COUNTERED,
         DECLARING_ATTACKERS, DECLARED_ATTACKERS,
-        DECLARE_ATTACKER, ATTACKER_DECLARED,
+        DECLARE_ATTACKER,
+        
+        /* ATTACKER_DECLARED
+            targetId    id of the defending player or planeswalker attacked
+            sourceId    id of the attacking creature
+            playerId    player defining the attacking creatures
+            amount      not used for this event
+            flag        not used for this event
+        */        
+        ATTACKER_DECLARED,
         
         /* DECLARING_BLOCKERS
             targetId    attackerId
@@ -311,9 +344,11 @@ public class GameEvent {
     }
 
     public void setAppliedEffects(ArrayList<UUID> appliedEffects) {
-        if (appliedEffects == null) {
-            appliedEffects = new ArrayList<>();
+        if (this.appliedEffects == null) {
+            this.appliedEffects = new ArrayList<>();
         }
-        this.appliedEffects = appliedEffects;
+        if (appliedEffects != null) {
+            this.appliedEffects.addAll(appliedEffects);
+        }
     }
 }

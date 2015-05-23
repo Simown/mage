@@ -59,7 +59,7 @@ public class GoblinGuide extends CardImpl {
     public GoblinGuide(UUID ownerId) {
         super(ownerId, 126, "Goblin Guide", Rarity.RARE, new CardType[]{CardType.CREATURE}, "{R}");
         this.expansionSetCode = "ZEN";
-        this.color.setRed(true);
+
         this.subtype.add("Goblin");
         this.subtype.add("Scout");
         this.power = new MageInt(2);
@@ -156,7 +156,7 @@ class GoblinGuideEffect extends OneShotEffect {
             Card card = defender.getLibrary().getFromTop(game);
             if (card != null) {
                 cards.add(card);
-                defender.revealCards(sourceObject.getLogName(), cards, game);
+                defender.revealCards(sourceObject.getName(), cards, game);
                 if (card.getCardType().contains(CardType.LAND)) {
                     defender.moveCardToHandWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
                 }

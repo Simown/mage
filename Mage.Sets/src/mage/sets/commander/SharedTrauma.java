@@ -52,7 +52,6 @@ public class SharedTrauma extends CardImpl {
         super(ownerId, 99, "Shared Trauma", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{B}");
         this.expansionSetCode = "CMD";
 
-        this.color.setBlack(true);
 
         // Join forces - Starting with you, each player may pay any amount of mana. Each player puts the top X cards of his or her library into his or her graveyard, where X is the total amount of mana paid this way.
         this.getSpellAbility().addEffect(new SharedTraumaEffect());
@@ -126,7 +125,7 @@ class SharedTraumaEffect extends OneShotEffect {
                 payed = true;
             }
         }
-        game.informPlayers(new StringBuilder(player.getName()).append(" pays {").append(xValue).append("}.").toString());
+        game.informPlayers(new StringBuilder(player.getLogName()).append(" pays {").append(xValue).append("}.").toString());
         return xValue;
     }
 }

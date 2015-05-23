@@ -58,7 +58,6 @@ public class TestamentOfFaith extends CardImpl {
         super(ownerId, 55, "Testament of Faith", Rarity.UNCOMMON, new CardType[]{CardType.ENCHANTMENT}, "{W}");
         this.expansionSetCode = "ODY";
 
-        this.color.setWhite(true);
 
         // {X}: Testament of Faith becomes an X/X Wall creature with defender in addition to its other types until end of turn.
         this.addAbility(new SimpleActivatedAbility(Zone.BATTLEFIELD, new TestamentOfFaithBecomesCreatureSourceEffect(new TestamentOfFaithToken(), "enchantment", Duration.EndOfTurn), new VariableManaCost()));
@@ -137,7 +136,7 @@ class TestamentOfFaithBecomesCreatureSourceEffect extends ContinuousEffectImpl i
                     if (sublayer == SubLayer.NA) {
                         if (token.getAbilities().size() > 0) {
                             for (Ability ability: token.getAbilities()) {
-                                permanent.addAbility(ability, game);
+                                permanent.addAbility(ability, source.getSourceId(), game, false);
                             }
                         }
                     }

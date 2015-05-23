@@ -102,7 +102,7 @@ public class TargetCreatureOrPlayerAmount extends TargetAmount {
                 return permanent.canBeTargetedBy(targetSource, source.getControllerId(), game) && filter.match(permanent, source.getSourceId(), source.getControllerId(), game);
             }
             if (player != null) {
-                return player.canBeTargetedBy(targetSource, game) && filter.match(player, game);
+                return player.canBeTargetedBy(targetSource, source.getControllerId(), game) && filter.match(player, game);
             }
         }
 
@@ -126,7 +126,7 @@ public class TargetCreatureOrPlayerAmount extends TargetAmount {
         MageObject targetSource = game.getObject(sourceId);
         for (UUID playerId: game.getPlayer(sourceControllerId).getInRange()) {
             Player player = game.getPlayer(playerId);
-            if (player != null && player.canBeTargetedBy(targetSource, game) && filter.match(player, game)) {
+            if (player != null && player.canBeTargetedBy(targetSource, sourceControllerId, game) && filter.match(player, game)) {
                 count++;
                 if (count >= this.minNumberOfTargets) {
                     return true;
@@ -173,7 +173,7 @@ public class TargetCreatureOrPlayerAmount extends TargetAmount {
         MageObject targetSource = game.getObject(sourceId);
         for (UUID playerId: game.getPlayer(sourceControllerId).getInRange()) {
             Player player = game.getPlayer(playerId);
-            if (player != null && player.canBeTargetedBy(targetSource, game) && filter.match(player, game)) {
+            if (player != null && player.canBeTargetedBy(targetSource, sourceControllerId, game) && filter.match(player, game)) {
                 possibleTargets.add(playerId);
             }
         }
@@ -212,7 +212,7 @@ public class TargetCreatureOrPlayerAmount extends TargetAmount {
             }
             else {
                 Player player = game.getPlayer(targetId);
-                sb.append(player.getName()).append("(").append(getTargetAmount(targetId)).append(") ");
+                sb.append(player.getLogName()).append("(").append(getTargetAmount(targetId)).append(") ");
             }
         }
         return sb.toString();

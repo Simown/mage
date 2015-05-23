@@ -63,7 +63,6 @@ public class ThrullParasite extends CardImpl {
        this.expansionSetCode = "GTC";
        this.subtype.add("Thrull");
 
-       this.color.setBlack(true);
        this.power = new MageInt(1);
        this.toughness = new MageInt(1);
 
@@ -149,7 +148,7 @@ class RemoveCounterTargetEffect extends OneShotEffect {
                             permanent.getCounters().removeCounter(counterName);
                         }
                         result |= true;
-                        game.informPlayers(new StringBuilder(controller.getName()).append(" removes a ").append(counterName).append(" counter from ").append(permanent.getName()).toString());
+                        game.informPlayers(new StringBuilder(controller.getLogName()).append(" removes a ").append(counterName).append(" counter from ").append(permanent.getName()).toString());
                     }
                 }
             }

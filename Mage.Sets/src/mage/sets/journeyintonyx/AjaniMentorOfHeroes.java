@@ -76,8 +76,6 @@ public class AjaniMentorOfHeroes extends CardImpl {
         this.expansionSetCode = "JOU";
         this.subtype.add("Ajani");
 
-        this.color.setGreen(true);
-        this.color.setWhite(true);
         
         this.addAbility(new EntersBattlefieldAbility(new AddCountersSourceEffect(CounterType.LOYALTY.createInstance(4)), false));
 
@@ -128,7 +126,7 @@ class AjaniMentorOfHeroesAddCountersEffect extends OneShotEffect {
                 Permanent permanent = game.getPermanent(target);
                 if (permanent != null) {
                     permanent.addCounters(CounterType.P1P1.createInstance(multiTarget.getTargetAmount(target)), game);
-                    game.informPlayers(new StringBuilder(controller.getName()).append(" puts ").append(multiTarget.getTargetAmount(target)).append(" ").append(CounterType.P1P1.getName().toLowerCase()).append(" counter on ").append(permanent.getName()).toString());
+                    game.informPlayers(new StringBuilder(controller.getLogName()).append(" puts ").append(multiTarget.getTargetAmount(target)).append(" ").append(CounterType.P1P1.getName().toLowerCase()).append(" counter on ").append(permanent.getName()).toString());
                 }
             }
             return true;

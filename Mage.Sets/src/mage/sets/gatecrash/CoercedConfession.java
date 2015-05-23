@@ -36,6 +36,8 @@ import mage.abilities.Ability;
 import mage.abilities.effects.OneShotEffect;
 import mage.cards.Card;
 import mage.cards.CardImpl;
+import mage.cards.Cards;
+import mage.cards.CardsImpl;
 import mage.constants.Zone;
 import mage.game.Game;
 import mage.players.Player;
@@ -51,8 +53,6 @@ public class CoercedConfession extends CardImpl {
         super(ownerId, 217, "Coerced Confession", Rarity.UNCOMMON, new CardType[]{CardType.SORCERY}, "{4}{U/B}");
         this.expansionSetCode = "GTC";
 
-        this.color.setBlue(true);
-        this.color.setBlack(true);
 
         // Target player puts the top four cards of his or her library into his or her graveyard. You draw a card for each creature card put into a graveyard this way.
         getSpellAbility().addEffect(new CoercedConfessionMillEffect());
@@ -90,16 +90,14 @@ class CoercedConfessionMillEffect extends OneShotEffect {
         Player player = game.getPlayer(targetPointer.getFirst(game, source));
         if (player != null) {
             int foundCreatures = 0;
-            int cardsCount = Math.min(4, player.getLibrary().size());
-            for (int i = 0; i < cardsCount; i++) {
-                Card card = player.getLibrary().removeFromTop(game);
-                if (card != null) {
-                    if (card.getCardType().contains(CardType.CREATURE)) {
-                        ++foundCreatures;
-                    }
-                    card.moveToZone(Zone.GRAVEYARD, source.getSourceId(), game, false);
+            Cards cards = new CardsImpl();
+            for(Card card: player.getLibrary().getTopCards(game, 4)) {
+                cards.add(card);
+                if (card.getCardType().contains(CardType.CREATURE)) {
+                    ++foundCreatures;
                 }
             }
+            player.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
             if (foundCreatures > 0) {
                 Player controller = game.getPlayer(source.getControllerId());
                 if (controller != null) {

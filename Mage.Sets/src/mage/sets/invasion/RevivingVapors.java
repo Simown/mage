@@ -99,7 +99,7 @@ class RevivingVaporsEffect extends OneShotEffect {
         }
 
         if (!cards.isEmpty()) {
-            controller.revealCards(sourceObject.getLogName(), cards, game);
+            controller.revealCards(sourceObject.getName(), cards, game);
             Card card = null;
             if (cards.size() == 1) {
                 card = cards.getRandom(game);
@@ -112,12 +112,9 @@ class RevivingVaporsEffect extends OneShotEffect {
             }
             if (card != null) {
                 cards.remove(card);
-                controller.moveCardToHandWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
+                controller.moveCards(card, Zone.LIBRARY, Zone.GRAVEYARD, source, game);                
             }
-
-            for (Card moveCard: cards.getCards(game)) {
-                controller.moveCardToGraveyardWithInfo(moveCard, source.getSourceId(), game, Zone.LIBRARY);
-            }
+            controller.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
         }
         return true;
     }

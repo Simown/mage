@@ -63,7 +63,6 @@ public class ThadaAdelAcquisitor extends CardImpl {
         this.subtype.add("Merfolk");
         this.subtype.add("Rogue");
 
-        this.color.setBlue(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -108,7 +107,7 @@ class ThadaAdelAcquisitorEffect extends OneShotEffect {
             if (target.getTargets().size() > 0) {
                 Card card = damagedPlayer.getLibrary().remove(target.getFirstTarget(), game);
                 if (card != null) {
-                    controller.moveCardToExileWithInfo(card, source.getSourceId(), sourceObject.getLogName(), source.getSourceId(), game, Zone.LIBRARY, true);
+                    controller.moveCardToExileWithInfo(card, source.getSourceId(), sourceObject.getName(), source.getSourceId(), game, Zone.LIBRARY, true);
                     ContinuousEffect effect = new ThadaAdelPlayFromExileEffect();
                     effect.setTargetPointer(new FixedTarget(card.getId()));
                     game.addEffect(effect, source);

@@ -35,6 +35,7 @@ import mage.constants.Zone;
 import mage.abilities.ActivatedAbility;
 import mage.abilities.common.LandfallAbility;
 import mage.abilities.common.SimpleActivatedAbility;
+import mage.abilities.costs.Cost;
 import mage.abilities.costs.Costs;
 import mage.abilities.costs.CostsImpl;
 import mage.abilities.costs.common.RemoveCountersSourceCost;
@@ -53,10 +54,10 @@ public class SunspringExpedition extends CardImpl {
     public SunspringExpedition(UUID ownerId) {
         super(ownerId, 37, "Sunspring Expedition", Rarity.COMMON, new CardType[]{CardType.ENCHANTMENT}, "{W}");
         this.expansionSetCode = "ZEN";
-        this.color.setWhite(true);
+
 
         this.addAbility(new LandfallAbility(new AddCountersSourceEffect(CounterType.QUEST.createInstance()), true));
-        Costs costs = new CostsImpl();
+        Costs<Cost> costs = new CostsImpl<>();
         costs.add(new RemoveCountersSourceCost(CounterType.QUEST.createInstance(3)));
         costs.add(new SacrificeSourceCost());
         ActivatedAbility ability = new SimpleActivatedAbility(Zone.BATTLEFIELD, new GainLifeEffect(8), costs);

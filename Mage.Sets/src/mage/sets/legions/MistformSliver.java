@@ -65,7 +65,6 @@ public class MistformSliver extends CardImpl {
         this.subtype.add("Illusion");
         this.subtype.add("Sliver");
 
-        this.color.setBlue(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(1);
 
@@ -108,7 +107,7 @@ public class MistformSliver extends CardImpl {
                         return false;
                     }
                 }
-                game.informPlayers(permanent.getName() + ": " + player.getName() + " has chosen " + typeChoice.getChoice());
+                game.informPlayers(permanent.getName() + ": " + player.getLogName() + " has chosen " + typeChoice.getChoice());
                 ContinuousEffect effect = new AddCardSubTypeTargetEffect(typeChoice.getChoice(), Duration.EndOfTurn);
                 effect.setTargetPointer(new FixedTarget(permanent.getId()));
                 game.addEffect(effect, source);

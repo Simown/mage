@@ -33,11 +33,11 @@ import java.util.UUID;
  *
  * @author LevelX2
  */
-public class VenerableMonk extends mage.sets.tenth.VenerableMonk {
+public class VenerableMonk extends mage.sets.tenthedition.VenerableMonk {
 
     public VenerableMonk(UUID ownerId) {
         super(ownerId);
-        this.cardNumber = 5;
+        this.cardNumber = 99; // TODO: FIX the number;
         this.expansionSetCode = "S00";
     }
 

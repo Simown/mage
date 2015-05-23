@@ -74,7 +74,6 @@ public class AngelicSkirmisher extends CardImpl {
         this.expansionSetCode = "GTC";
         this.subtype.add("Angel");
 
-        this.color.setWhite(true);
         this.power = new MageInt(4);
         this.toughness = new MageInt(4);
 
@@ -126,7 +125,7 @@ class AngelicSkirmisherEffect extends OneShotEffect {
                 game.addEffect(effect, source);
                 game.informPlayers(new StringBuilder(sourcePermanent.getName())
                         .append(": ")
-                        .append(controller.getName())
+                        .append(controller.getLogName())
                         .append(" has chosen ")
                         .append(abilityChoice.getChoice().toLowerCase()).toString());
                 return true;

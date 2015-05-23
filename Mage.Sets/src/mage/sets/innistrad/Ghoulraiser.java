@@ -55,7 +55,6 @@ public class Ghoulraiser extends CardImpl {
         this.expansionSetCode = "ISD";
         this.subtype.add("Zombie");
 
-        this.color.setBlack(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -100,7 +99,7 @@ class GhoulraiserEffect extends OneShotEffect {
                 Random rnd = new Random();
                 Card card = cards[rnd.nextInt(cards.length)];
                 card.moveToZone(Zone.HAND, source.getSourceId(), game, true);
-                game.informPlayers(card.getName() + "returned to the hand of" + player.getName());
+                game.informPlayers(card.getName() + "returned to the hand of" + player.getLogName());
                 return true;
             }
         }

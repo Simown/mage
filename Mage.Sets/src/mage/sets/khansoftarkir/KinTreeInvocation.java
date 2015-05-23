@@ -52,8 +52,6 @@ public class KinTreeInvocation extends CardImpl {
         super(ownerId, 183, "Kin-Tree Invocation", Rarity.UNCOMMON, new CardType[]{CardType.SORCERY}, "{B}{G}");
         this.expansionSetCode = "KTK";
 
-        this.color.setGreen(true);
-        this.color.setBlack(true);
 
         // Put an X/X black and green Spirit Warrior creature token onto the battlefield, where X is the greatest toughness among creatures you control.
         this.getSpellAbility().addEffect(new KinTreeInvocationCreateTokenEffect());
@@ -102,7 +100,7 @@ class KinTreeInvocationCreateTokenEffect extends OneShotEffect {
         objectColor.setBlack(true);
         objectColor.setGreen(true);
         Token token = new Token("Spirit Warrior", "X/X black and green Spirit Warrior creature token onto the battlefield, where X is the greatest toughness among creatures you control",
-                objectColor, list, value, value, new AbilitiesImpl());
+                objectColor, list, value, value, new AbilitiesImpl<>());
         token.getAbilities().newId(); // neccessary if token has ability like DevourAbility()
         token.putOntoBattlefield(1, game, source.getSourceId(), source.getControllerId());
         return true;

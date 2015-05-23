@@ -35,6 +35,7 @@ import mage.constants.WatcherScope;
 import mage.constants.Zone;
 import mage.abilities.Ability;
 import mage.abilities.costs.AlternativeCostImpl;
+import mage.abilities.costs.Cost;
 import mage.abilities.costs.mana.ColoredManaCost;
 import mage.abilities.effects.common.CreateTokenEffect;
 import mage.cards.CardImpl;
@@ -58,7 +59,6 @@ public class CobraTrap extends CardImpl {
         this.expansionSetCode = "ZEN";
         this.subtype.add("Trap");
 
-        this.color.setGreen(true);
 
         // If a noncreature permanent under your control was destroyed this turn by a spell or ability an opponent controlled, you may pay {G} rather than pay Cobra Trap's mana cost.
         this.getSpellAbility().addAlternativeCost(
@@ -113,7 +113,7 @@ class CobraTrapWatcher extends Watcher {
     }
 }
 
-class CobraTrapAlternativeCost extends AlternativeCostImpl {
+class CobraTrapAlternativeCost extends AlternativeCostImpl<Cost> {
 
     public CobraTrapAlternativeCost() {
         super("you may pay {G} rather than pay Cobra Trap's mana cost");

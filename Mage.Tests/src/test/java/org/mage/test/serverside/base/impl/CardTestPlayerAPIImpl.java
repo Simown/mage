@@ -321,7 +321,7 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         int foundToughness = 0;
         int found = 0;
         for (Permanent permanent : currentGame.getBattlefield().getAllPermanents()) {
-            if (permanent.getLogName().equals(cardName) && permanent.getControllerId().equals(player.getId())) {
+            if (permanent.getName().equals(cardName) && permanent.getControllerId().equals(player.getId())) {
                 count++;
                 if (scope.equals(Filter.ComparisonScope.All)) {
                     Assert.assertEquals("Power is not the same (" + power + " vs. " + permanent.getPower().getValue() + ")",
@@ -450,7 +450,7 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         int actualCount = 0;
         for (Permanent permanent : currentGame.getBattlefield().getAllPermanents()) {
             if (permanent.getControllerId().equals(player.getId())) {
-                if (permanent.getLogName().equals(cardName)) {
+                if (permanent.getName().equals(cardName)) {
                     actualCount++;
                 }
             }
@@ -561,7 +561,7 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
     public void assertTapped(String cardName, boolean tapped) throws AssertionError {
         Permanent found = null;
         for (Permanent permanent : currentGame.getBattlefield().getAllActivePermanents()) {
-            if (permanent.getLogName().equals(cardName)) {
+            if (permanent.getName().equals(cardName)) {
                 found = permanent;
             }
         }
@@ -580,7 +580,7 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
     public void assertAttacking(String cardName, boolean attacking) throws AssertionError {
         Permanent found = null;
         for (Permanent permanent : currentGame.getBattlefield().getAllActivePermanents()) {
-            if (permanent.getLogName().equals(cardName)) {
+            if (permanent.getName().equals(cardName)) {
                 found = permanent;
             }
         }
@@ -796,6 +796,15 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         player.addAction(turnNum, step, "activate:" + ability + "$target=" + targetName);
     }
 
+    /**
+     * 
+     * @param turnNum
+     * @param step
+     * @param player
+     * @param ability
+     * @param targetName if not target has to be defined use the constant NO_TARGET
+     * @param spellOnStack 
+     */
     public void activateAbility(int turnNum, PhaseStep step, TestPlayer player, String ability, String targetName, String spellOnStack) {
         StringBuilder sb = new StringBuilder("activate:").append(ability);
         if (targetName != null && !targetName.isEmpty()) {
@@ -852,7 +861,8 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
      *               e.g.    "creatureName1^creatureName2"
      *               you can qualify the target additional by setcode
      *               e.g. "creatureName-M15"
-     *               you can add [no copy] to prohibite targets that are copied
+     *               you can add [no copy] to the end of the target name to prohibite targets that are copied
+     *               you can add [only copy] to the end of the target name to allow only targets that are copies
      */
     public void addTarget(TestPlayer player, String target) {
         player.addTarget(target);

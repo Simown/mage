@@ -57,7 +57,6 @@ public class WarpWorld extends CardImpl {
         super(ownerId, 163, "Warp World", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{5}{R}{R}{R}");
         this.expansionSetCode = "M10";
 
-        this.color.setRed(true);
 
         // Each player shuffles all permanents he or she owns into his or her library, then reveals that many cards from the top of his or her library. Each player puts all artifact, creature, and land cards revealed this way onto the battlefield, then does the same for enchantment cards, then puts all cards revealed this way that weren't put onto the battlefield on the bottom of his or her library.
         this.getSpellAbility().addEffect(new WarpWorldEffect());
@@ -181,17 +180,12 @@ class WarpWorldEffect extends OneShotEffect {
             player = playerList.getNext(game);
         } while (!player.getId().equals(game.getActivePlayerId()));
 
-        // put the rest of the cards into the graveyard
+        // put the rest of the cards on buttom of the library
         playerList.setCurrent(game.getActivePlayerId());
         player = game.getPlayer(game.getActivePlayerId());
         do {
-            CardsImpl cards = cardsRevealed.get(player.getId());
-            for (Card card : cards.getCards(game)) {
-                if (card != null) {
-                    card.moveToZone(Zone.GRAVEYARD, source.getSourceId(), game, false);
-                }
-            }
-
+            CardsImpl cards = cardsRevealed.get(player.getId());            
+            player.putCardsOnBottomOfLibrary(cards, game, source, false);
             player = playerList.getNext(game);
         } while (!player.getId().equals(game.getActivePlayerId()));
 

@@ -28,10 +28,12 @@
 
 package mage;
 
+import java.io.Serializable;
 import java.util.UUID;
 import mage.cards.Card;
 import mage.game.Game;
 import mage.game.permanent.Permanent;
+import mage.game.stack.Spell;
 
 /**
  * A object reference that takes zone changes into account.
@@ -39,7 +41,7 @@ import mage.game.permanent.Permanent;
  * @author LevelX2
  */
 
-public class MageObjectReference implements Comparable<MageObjectReference> {
+public class MageObjectReference implements Comparable<MageObjectReference>, Serializable {
 
     private final UUID sourceId;
     private final int zoneChangeCounter;
@@ -61,7 +63,7 @@ public class MageObjectReference implements Comparable<MageObjectReference> {
         this.zoneChangeCounter = zoneChangeCounter;
     }
 
-    public MageObjectReference(UUID sourceId, Game game) {
+    public MageObjectReference(UUID sourceId, Game game) {        
         this.sourceId = sourceId;
         MageObject mageObject = game.getObject(sourceId);
         if (mageObject != null) {
@@ -110,6 +112,9 @@ public class MageObjectReference implements Comparable<MageObjectReference> {
 
     public boolean refersTo(MageObject mageObject, Game game) {
         if (mageObject != null) {
+            if (mageObject instanceof Spell) {
+                return ((Spell)mageObject).getSourceId().equals(sourceId) && this.zoneChangeCounter == mageObject.getZoneChangeCounter(game);
+            }
             return mageObject.getId().equals(sourceId) && this.zoneChangeCounter == mageObject.getZoneChangeCounter(game);
         }
         return false;

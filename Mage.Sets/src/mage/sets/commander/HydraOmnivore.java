@@ -51,7 +51,6 @@ public class HydraOmnivore extends CardImpl {
         this.expansionSetCode = "CMD";
         this.subtype.add("Hydra");
 
-        this.color.setGreen(true);
         this.power = new MageInt(8);
         this.toughness = new MageInt(8);
 
@@ -96,7 +95,7 @@ class HydraOmnivoreEffect extends OneShotEffect {
                     Player opponent = game.getPlayer(playerId);
                     if (opponent != null) {
                         int dealtDamage = opponent.damage(amount, source.getSourceId(), game, false, true);
-                        game.informPlayers(new StringBuilder(object.getName()).append(" deals ").append(dealtDamage).append(" damage to ").append(opponent.getName()).toString());
+                        game.informPlayers(object.getLogName() + " deals " + dealtDamage + " damage to " + opponent.getLogName());
                     }
                 }
             }

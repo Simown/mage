@@ -56,8 +56,6 @@ public class DeadbridgeChant extends CardImpl {
         super(ownerId, 63, "Deadbridge Chant", Rarity.MYTHIC, new CardType[]{CardType.ENCHANTMENT}, "{4}{B}{G}");
         this.expansionSetCode = "DGM";
 
-        this.color.setBlack(true);
-        this.color.setGreen(true);
 
         // When Deadbridge Chant enters the battlefield, put the top ten cards of your library into your graveyard.
         this.addAbility(new EntersBattlefieldTriggeredAbility(new PutTopCardOfLibraryIntoGraveControllerEffect(10)));
@@ -105,7 +103,7 @@ class DeadbridgeChantEffect extends OneShotEffect {
                     text = " put onto battlefield for ";
                 }
                 card.moveToZone(targetZone, source.getSourceId(), game, false);
-                game.informPlayers(new StringBuilder("Deadbridge Chant: ").append(card.getName()).append(text).append(player.getName()).toString());
+                game.informPlayers(new StringBuilder("Deadbridge Chant: ").append(card.getName()).append(text).append(player.getLogName()).toString());
                 return true;
             }
         }

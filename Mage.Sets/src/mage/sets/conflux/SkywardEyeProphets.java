@@ -56,9 +56,6 @@ public class SkywardEyeProphets extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Wizard");
 
-        this.color.setBlue(true);
-        this.color.setGreen(true);
-        this.color.setWhite(true);
         this.power = new MageInt(3);
         this.toughness = new MageInt(3);
 
@@ -107,7 +104,7 @@ public class SkywardEyeProphets extends CardImpl {
                     return false;
                 }
                 cards.add(card);
-                controller.revealCards(sourceObject.getLogName(), cards, game);
+                controller.revealCards(sourceObject.getName(), cards, game);
                 if (card.getCardType().contains(CardType.LAND)) {
                     return controller.putOntoBattlefieldWithInfo(card, game, Zone.LIBRARY, source.getSourceId());
                 } else {

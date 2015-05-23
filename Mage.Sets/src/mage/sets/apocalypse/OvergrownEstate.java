@@ -49,9 +49,9 @@ public class OvergrownEstate extends CardImpl {
     public OvergrownEstate(UUID ownerId) {
         super(ownerId, 113, "Overgrown Estate", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{B}{G}{W}");
         this.expansionSetCode = "APC";
-        this.color.setGreen(true);
-        this.color.setBlack(true);
-        this.color.setWhite(true);
+
+
+
 
         // Sacrifice a land: You gain 3 life.
         this.addAbility(new SimpleActivatedAbility(Zone.BATTLEFIELD, new GainLifeEffect(3), new SacrificeTargetCost(new TargetControlledPermanent(filter))));

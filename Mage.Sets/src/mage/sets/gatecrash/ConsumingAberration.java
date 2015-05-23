@@ -60,8 +60,6 @@ public class ConsumingAberration extends CardImpl {
         
         this.subtype.add("Horror");
 
-        this.color.setBlack(true);
-        this.color.setBlue(true);
         
         this.power = new MageInt(0);
         this.toughness = new MageInt(0);
@@ -118,11 +116,7 @@ class ConsumingAberrationEffect extends OneShotEffect {
                 }
             }
             player.revealCards("Consuming Aberrtion", cards, game);
-            for(Card card : cards.getCards(game)){
-                if(card != null){
-                    card.moveToZone(Zone.GRAVEYARD, source.getSourceId(), game, false);
-                }
-            }
+            player.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
         }
         return true;
     }

@@ -286,6 +286,78 @@ public class ZoneChangeReplacementTest extends CardTestPlayerBase {
         assertGraveyardCount(playerB, "Pillarfield Ox", 1);
 
     }
+  /**
+   * Test that a countered spell of a card that goes always to library back
+   * instead of into the graveyard.
+   */
 
+    @Test
+    public void testCounterAndMoveToLibrary() {
+        addCard(Zone.BATTLEFIELD, playerA, "Plains", 7);
+        // Legacy Weapon - Artifact {7}
+        // {W}{U}{B}{R}{G}: Exile target permanent.
+        // If Legacy Weapon would be put into a graveyard from anywhere, reveal Legacy Weapon and shuffle it into its owner's library instead.
+        addCard(Zone.HAND, playerA, "Legacy Weapon");
+        
+        addCard(Zone.BATTLEFIELD, playerB, "Island", 2);
+        // Counter target spell. At the beginning of your next main phase, add {X} to your mana pool, where X is that spell's converted mana cost.
+        addCard(Zone.HAND, playerB, "Mana Drain");
+        addCard(Zone.HAND, playerB, "Legacy Weapon");
+        
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "Legacy Weapon");
+        castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerB, "Mana Drain", "Legacy Weapon");
+
+        castSpell(2, PhaseStep.PRECOMBAT_MAIN, playerB, "Legacy Weapon");
+        setStopAt(2, PhaseStep.BEGIN_COMBAT);
+        execute();
+
+        assertLife(playerA, 20);
+        assertLife(playerB, 20);
+
+        assertHandCount(playerA, "Legacy Weapon", 0);
+        assertPermanentCount(playerA, "Legacy Weapon", 0);
+        assertGraveyardCount(playerA, "Legacy Weapon", 0);
+        
+        assertGraveyardCount(playerB, "Mana Drain", 1);
+        
+        assertPermanentCount(playerB, "Legacy Weapon", 1);
+        
+    }
+    
+ /**
+   * Test that a returned creature of Whip of Erebos
+   * got exiled if it is destroyed by a spell
+   */
+
+    @Test
+    public void testWhipOfErebos() {
+        addCard(Zone.BATTLEFIELD, playerA, "Swamp", 2);
+        // Destroy target nonartifact, nonblack creature. It can't be regenerated.
+        addCard(Zone.HAND, playerA, "Terror");        
+        
+        // {2}{B}{B}, {T}: Return target creature card from your graveyard to the battlefield. 
+        // It gains haste. Exile it at the beginning of the next end step.
+        // If it would leave the battlefield, exile it instead of putting it anywhere else.
+        // Activate this ability only any time you could cast a sorcery.
+        addCard(Zone.BATTLEFIELD, playerB, "Whip of Erebos");
+        addCard(Zone.BATTLEFIELD, playerB, "Swamp", 4);
+        addCard(Zone.GRAVEYARD, playerB, "Silvercoat Lion");
+        
+        activateAbility(2, PhaseStep.PRECOMBAT_MAIN, playerB, "{2}{B}{B},{T}: Return target creature", "Silvercoat Lion");
+        
+        castSpell(2, PhaseStep.BEGIN_COMBAT, playerA, "Terror", "Silvercoat Lion");
+        setStopAt(2, PhaseStep.END_COMBAT);
+        execute();
+
+        assertLife(playerA, 20);
+        assertLife(playerB, 20);
+
+        assertGraveyardCount(playerA, "Terror", 1);
+        assertExileCount("Silvercoat Lion", 1);
+        
+    }
+
+    
+    
 }
 

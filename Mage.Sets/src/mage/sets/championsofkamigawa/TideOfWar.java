@@ -55,7 +55,6 @@ public class TideOfWar extends CardImpl {
         super(ownerId, 194, "Tide of War", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{4}{R}{R}");
         this.expansionSetCode = "CHK";
 
-        this.color.setRed(true);
 
         // Whenever one or more creatures block, flip a coin. If you win the flip, each blocking creature is sacrificed by its controller. If you lose the flip, each blocked creature is sacrificed by its controller.
         this.addAbility(new BlocksTriggeredAbility(new TideOfWarEffect(), false));
@@ -148,7 +147,7 @@ class TideOfWarEffect extends OneShotEffect {
                     creature.sacrifice(source.getSourceId(), game);
                     Player player = game.getPlayer(creature.getControllerId());
                     if (player != null) {
-                        game.informPlayers(new StringBuilder(player.getName()).append(" sacrifices ").append(creature.getName()).toString());
+                        game.informPlayers(new StringBuilder(player.getLogName()).append(" sacrifices ").append(creature.getName()).toString());
                     }
                 }
             }

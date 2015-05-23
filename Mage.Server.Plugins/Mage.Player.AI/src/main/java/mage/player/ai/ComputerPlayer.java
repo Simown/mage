@@ -82,6 +82,7 @@ import mage.cards.repository.CardRepository;
 import mage.cards.repository.ExpansionInfo;
 import mage.cards.repository.ExpansionRepository;
 import mage.choices.Choice;
+import mage.choices.ChoiceColor;
 import mage.constants.CardType;
 import mage.constants.ColoredManaSymbol;
 import mage.constants.Outcome;
@@ -166,6 +167,7 @@ public class ComputerPlayer extends PlayerImpl implements Player {
     private transient List<PickedCard> pickedCards;
     private transient List<ColoredManaSymbol> chosenColors;
 
+    private transient ManaCost currentUnpaidMana;
     public ComputerPlayer(String name, RangeOfInfluence range) {
         super(name, range);
         human = false;
@@ -367,6 +369,14 @@ public class ComputerPlayer extends PlayerImpl implements Player {
             if (!target.isRequired(sourceId, game)) {
                 return false;
             }
+            if (target.canTarget(opponentId, null, game)) {
+                target.add(opponentId, game);
+                return true;
+            }            
+            if (target.canTarget(playerId, null, game)) {
+                target.add(playerId, game);
+                return true;
+            }
             throw new IllegalStateException("TargetPermanentOrPlayer wasn't handled. class:" + target.getClass().toString());
         }
         if (target instanceof TargetCardInGraveyard) {
@@ -432,24 +442,24 @@ public class ComputerPlayer extends PlayerImpl implements Player {
         UUID opponentId = game.getOpponents(playerId).iterator().next();
         if (target instanceof TargetPlayer) {
             if (outcome.isGood()) {
-                if (target.canTarget(playerId, source, game)) {
+                if (target.canTarget(playerId, playerId, source, game)) {
                     target.addTarget(playerId, source, game);
                     return true;
                 }
                 if (target.isRequired(source)) {
-                    if (target.canTarget(opponentId, source, game)) {
+                    if (target.canTarget(playerId, opponentId, source, game)) {
                         target.addTarget(opponentId, source, game);
                         return true;
                     }
                 }
             }
             else {
-                if (target.canTarget(opponentId, source, game)) {
+                if (target.canTarget(playerId, opponentId, source, game)) {
                     target.addTarget(opponentId, source, game);
                     return true;
                 }
                 if (target.isRequired(source)) {
-                    if (target.canTarget(playerId, source, game)) {
+                    if (target.canTarget(playerId, playerId, source, game)) {
                         target.addTarget(playerId, source, game);
                         return true;
                     }
@@ -1083,7 +1093,9 @@ public class ComputerPlayer extends PlayerImpl implements Player {
     @Override
     public boolean playMana(ManaCost unpaid, String promptText, Game game) {
         payManaMode = true;
+        currentUnpaidMana = unpaid;        
         boolean result = playManaHandling(unpaid, game);
+        currentUnpaidMana = null;        
         payManaMode = false;
         return result;
     }
@@ -1267,6 +1279,30 @@ public class ComputerPlayer extends PlayerImpl implements Player {
         if (choice.getMessage() != null && choice.getMessage().equals("Choose creature type")) {
             chooseCreatureType(outcome, choice, game);
         }
+        // choose the correct color to pay a spell
+        if(outcome.equals(Outcome.PutManaInPool) && choice instanceof ChoiceColor && currentUnpaidMana != null) {
+            if (currentUnpaidMana.containsColor(ColoredManaSymbol.W) && choice.getChoices().contains("White")) {
+                choice.setChoice("White");
+                return true;
+            }
+            if (currentUnpaidMana.containsColor(ColoredManaSymbol.R) && choice.getChoices().contains("Red")) {
+                choice.setChoice("Red");
+                return true;
+            }
+            if (currentUnpaidMana.containsColor(ColoredManaSymbol.G) && choice.getChoices().contains("Green")) {
+                choice.setChoice("Green");
+                return true;
+            }
+            if (currentUnpaidMana.containsColor(ColoredManaSymbol.U) && choice.getChoices().contains("Blue")) {
+                choice.setChoice("Blue");
+                return true;
+            }
+            if (currentUnpaidMana.containsColor(ColoredManaSymbol.B) && choice.getChoices().contains("Black")) {
+                choice.setChoice("Black");
+                return true;
+            }
+        }
+        // choose by random
         if (!choice.isChosen()) {
             int choiceIdx = (int) (Math.random()*choice.getChoices().size()+1);
             for (String next : choice.getChoices()) {
@@ -1341,10 +1377,7 @@ public class ComputerPlayer extends PlayerImpl implements Player {
     public boolean chooseTarget(Outcome outcome, Cards cards, TargetCard target, Ability source, Game game)  {
         log.debug("chooseTarget");
         if (cards == null || cards.isEmpty()) {
-            if (!target.isRequired(source)) {
-                return false;
-            }
-            return true;
+            return target.isRequired(source);
         }
 
         ArrayList<Card> cardChoices = new ArrayList<>(cards.getCards(target.getFilter(), game));
@@ -1549,7 +1582,7 @@ public class ComputerPlayer extends PlayerImpl implements Player {
         if (landSets.isEmpty()) {
             for (String setCode :deck.getExpansionSetCodes()) {
                 ExpansionInfo expansionInfo = ExpansionRepository.instance.getSetByCode(setCode);
-                ExpansionInfo [] blockSets = ExpansionRepository.instance.getSetsFromBlock(expansionInfo.getBlockName());
+                List<ExpansionInfo> blockSets = ExpansionRepository.instance.getSetsFromBlock(expansionInfo.getBlockName());
                 for (ExpansionInfo blockSet: blockSets) {
                     if (blockSet.hasBasicLands()) {
                         landSets.add(blockSet.getCode());
@@ -1804,7 +1837,7 @@ public class ComputerPlayer extends PlayerImpl implements Player {
             log.debug("[DEBUG] AI picked: " + bestCard.getName() + ", score=" + maxScore + ", deck colors=" + colors);
             draft.addPick(playerId, bestCard.getId(), null);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.debug("Exception during AI pick card for draft playerId= " +getId());
             draft.addPick(playerId, cards.get(0).getId(), null);
         }
     }

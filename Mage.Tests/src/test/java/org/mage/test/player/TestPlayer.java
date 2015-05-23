@@ -68,6 +68,7 @@ import mage.abilities.mana.ManaOptions;
 import mage.cards.Card;
 import mage.constants.Zone;
 import mage.target.TargetSource;
+import mage.target.TargetSpell;
 import mage.target.common.TargetCardInHand;
 import mage.target.common.TargetPermanentOrPlayer;
 
@@ -133,7 +134,7 @@ public class TestPlayer extends ComputerPlayer {
                     for (Ability ability: this.getPlayable(game, true)) {
                         if (ability.toString().startsWith(groups[0])) {
                             Ability newAbility = ability.copy();
-                            if (groups.length > 1) {
+                            if (groups.length > 1 && !groups[1].equals("target=NO_TARGET")) {
                                 if (!addTargets(newAbility, groups, game)) {
                                     // targets could not be set -> try next priority
                                     break;
@@ -211,7 +212,7 @@ public class TestPlayer extends ComputerPlayer {
                     if (group.startsWith("planeswalker=")) {
                         String planeswalkerName = group.substring(group.indexOf("planeswalker=") + 13);
                         for (Permanent permanent :game.getBattlefield().getAllActivePermanents(new FilterPlaneswalkerPermanent(), game)) {
-                            if (permanent.getLogName().equals(planeswalkerName)) {
+                            if (permanent.getName().equals(planeswalkerName)) {
                                 defenderId = permanent.getId();                                        
                             }
                         }
@@ -385,15 +386,22 @@ public class TestPlayer extends ComputerPlayer {
                     String[] targetList = targetDefinition.split("\\^");
                     boolean targetFound = false;
                     for (String targetName: targetList) {
-                        boolean allowCopy = true;
-                        if (targetName.endsWith("[no copy]")) {
-                            allowCopy = false;
-                            targetName = targetName.substring(0, targetName.length()-9);
+                        boolean originOnly = false;
+                        boolean copyOnly = false;
+                        if (targetName.endsWith("]")) {
+                            if (targetName.endsWith("[no copy]")) {
+                                originOnly = true;
+                                targetName = targetName.substring(0, targetName.length()-9);
+                            }
+                            if (targetName.endsWith("[only copy]")) {
+                                copyOnly = true;
+                                targetName = targetName.substring(0, targetName.length()-11);
+                            }
                         }
                         for (Permanent permanent : game.getBattlefield().getAllActivePermanents((FilterPermanent)target.getFilter(), game)) {
                             if (permanent.getName().equals(targetName) || (permanent.getName()+"-"+permanent.getExpansionSetCode()).equals(targetName)) {
                                 if (((TargetPermanent)target).canTarget(source == null ? this.getId(): source.getControllerId(), permanent.getId(), source, game) && !target.getTargets().contains(permanent.getId())) {
-                                    if (!permanent.isCopy() || allowCopy) {
+                                    if ((permanent.isCopy() &&  !originOnly) || (!permanent.isCopy() && !copyOnly )) {
                                         target.add(permanent.getId(), game);
                                         targetFound = true;
                                         break;
@@ -445,6 +453,26 @@ public class TestPlayer extends ComputerPlayer {
                 }
 
             }
+            if (target instanceof TargetSpell) {
+                for (String targetDefinition: targets) {
+                    String[] targetList = targetDefinition.split("\\^");
+                    boolean targetFound = false;
+                    for (String targetName: targetList) {
+                        for(StackObject stackObject: game.getStack()) {
+                            if (stackObject.getName().equals(targetName)) {
+                                target.add(stackObject.getId(), game);
+                                targetFound = true;
+                                break;                                
+                            }                            
+                        }
+                    }   
+                    if (targetFound) {
+                        targets.remove(targetDefinition);
+                        return true;
+                    }                    
+                }                
+            }
+            
 
         }
         return super.chooseTarget(outcome, target, source, game);
@@ -522,7 +550,7 @@ public class TestPlayer extends ComputerPlayer {
         return null;
     }
 
-    private boolean checkExecuteCondition(String[] groups, Game game) {
+    private boolean checkExecuteCondition(String[] groups, Game game) {        
         if (groups[2].startsWith("spellOnStack=")) {
             String spellOnStack = groups[2].substring(13);
             for (StackObject stackObject: game.getStack()) {
@@ -620,7 +648,7 @@ public class TestPlayer extends ComputerPlayer {
     
     private boolean handleNonPlayerTargetTarget(String target, Ability ability, Game game) {
         boolean result = true;
-        if (target.isEmpty()) {
+        if (target == null) {
             return true; // needed if spell has no target but waits until spell is on the stack
         }
         String[] targetList = target.split("\\^");
@@ -643,7 +671,8 @@ public class TestPlayer extends ComputerPlayer {
                 }
                 for (UUID id: ability.getTargets().get(0).possibleTargets(ability.getSourceId(), ability.getControllerId(), game)) {
                     MageObject object = game.getObject(id);
-                    if (object != null && object.getLogName().equals(targetName)) {
+                    if (object != null && 
+                            ((!targetName.isEmpty() && object.getName().startsWith(targetName)) || (targetName.isEmpty() && object.getName().isEmpty()))) {
                         if (index >= ability.getTargets().size()) {
                             index--;
                         }

@@ -48,6 +48,7 @@ import mage.constants.CardType;
 import mage.constants.Duration;
 import mage.constants.Outcome;
 import mage.constants.Rarity;
+import mage.constants.SetTargetPointer;
 import mage.constants.Zone;
 import mage.counters.CounterType;
 import mage.filter.FilterPermanent;
@@ -80,8 +81,6 @@ public class GarrukApexPredator extends CardImpl {
         this.expansionSetCode = "M15";
         this.subtype.add("Garruk");
 
-        this.color.setGreen(true);
-        this.color.setBlack(true);
 
         this.addAbility(new EntersBattlefieldAbility(new AddCountersSourceEffect(CounterType.LOYALTY.createInstance(5)), false));
 
@@ -171,7 +170,7 @@ class GarrukApexPredatorEmblem extends Emblem {
         setName("EMBLEM: Garruk, Apex Predator");
         Effect effect = new BoostTargetEffect(5,5,Duration.EndOfTurn);
         effect.setText("it gets +5/+5");
-        Ability ability = new AttackedByCreatureTriggeredAbility(Zone.COMMAND, effect, false, true);
+        Ability ability = new AttackedByCreatureTriggeredAbility(Zone.COMMAND, effect, false, SetTargetPointer.PERMANENT);
         effect = new GainAbilityTargetEffect(TrampleAbility.getInstance(), Duration.EndOfTurn,
                 "and gains trample until end of turn");
         ability.addEffect(effect);

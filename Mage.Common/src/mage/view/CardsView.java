@@ -64,6 +64,12 @@ public class CardsView extends LinkedHashMap<UUID, CardView> {
         }
     }
 
+    public CardsView(Game game, Collection<? extends Card> cards) {
+        for (Card card: cards) {
+            this.put(card.getId(), new CardView(card, game, null, false));
+        }
+    }
+
     public CardsView ( Collection<? extends Ability> abilities, Game game ) {
         for ( Ability ability : abilities ) {
             MageObject sourceObject = null;
@@ -114,7 +120,7 @@ public class CardsView extends LinkedHashMap<UUID, CardView> {
                     } else {
                         sourceCardView = new CardView(sourceObject);
                     }
-                    abilityView = new AbilityView(ability, sourceObject.getLogName(), sourceCardView);
+                    abilityView = new AbilityView(ability, sourceObject.getName(), sourceCardView);
                 }
                 if (ability.getTargets().size() > 0) {
                     abilityView.setTargets(ability.getTargets());
@@ -133,7 +139,7 @@ public class CardsView extends LinkedHashMap<UUID, CardView> {
                         for (UUID uuid : abilityTargets) {
                             MageObject mageObject = game.getObject(uuid);
                             if (mageObject != null) {
-                                names.add(mageObject.getLogName());
+                                names.add(mageObject.getName());
                             }
                         }
                         if (!names.isEmpty()) {
@@ -150,7 +156,7 @@ public class CardsView extends LinkedHashMap<UUID, CardView> {
         for (Ability ability: abilities) {
             Card sourceCard = state.getPermanent(ability.getSourceId());
             if (sourceCard != null) {
-                this.put(ability.getId(), new AbilityView(ability, sourceCard.getLogName(), new CardView(sourceCard)));
+                this.put(ability.getId(), new AbilityView(ability, sourceCard.getName(), new CardView(sourceCard)));
             }
         }
     }

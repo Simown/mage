@@ -65,7 +65,6 @@ public class OathOfDruids extends CardImpl {
         super(ownerId, 115, "Oath of Druids", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{1}{G}");
         this.expansionSetCode = "EXO";
 
-        this.color.setGreen(true);
 
         // At the beginning of each player's upkeep, that player chooses target player who controls more creatures than he or she does and is his or her opponent. The first player may reveal cards from the top of his or her library until he or she reveals a creature card. If he or she does, that player puts that card onto the battlefield and all other cards revealed this way into his or her graveyard.
         Ability ability = new BeginningOfUpkeepTriggeredAbility(new OathOfDruidsEffect(), TargetController.ANY, true);
@@ -162,12 +161,7 @@ class OathOfDruidsEffect extends OneShotEffect {
             player.putOntoBattlefieldWithInfo(creatureCard, game, Zone.LIBRARY, source.getSourceId());
         }
         // and all other cards revealed this way into his or her graveyard
-        for (UUID uuid : nonCreatureCards) {
-            Card card = game.getCard(uuid);
-            if (card != null) {
-                player.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
-            }
-        }
+        player.moveCards(nonCreatureCards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
         return true;
     }
 

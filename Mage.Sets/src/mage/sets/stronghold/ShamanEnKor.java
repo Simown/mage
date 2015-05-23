@@ -65,7 +65,6 @@ public class ShamanEnKor extends CardImpl {
         this.subtype.add("Cleric");
         this.subtype.add("Shaman");
 
-        this.color.setWhite(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(2);
 
@@ -197,7 +196,7 @@ class ShamanEnKorReplacementEffect extends ReplacementEffectImpl {
             else {
                 Player targetPlayer = game.getPlayer(event.getTargetId());
                 if (targetPlayer != null) {
-                    message.append(targetPlayer.getName());
+                    message.append(targetPlayer.getLogName());
                 }
                 else {
                     message.append("unknown");

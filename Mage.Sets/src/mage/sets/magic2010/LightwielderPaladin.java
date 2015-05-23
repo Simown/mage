@@ -60,7 +60,6 @@ public class LightwielderPaladin extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Knight");
 
-        this.color.setWhite(true);
         this.power = new MageInt(4);
         this.toughness = new MageInt(4);
 
@@ -99,7 +98,7 @@ class LightwielderPaladinTriggeredAbility extends TriggeredAbilityImpl {
                 && ((DamagedPlayerEvent) event).isCombatDamage()) {
             Player player = game.getPlayer(event.getTargetId());
             if (player != null) {
-                FilterPermanent filter = new FilterPermanent("black or red permanent controlled by " + player.getName());
+                FilterPermanent filter = new FilterPermanent("black or red permanent controlled by " + player.getLogName());
                 filter.add(Predicates.or(
                     new ColorPredicate(ObjectColor.BLACK),
                     new ColorPredicate(ObjectColor.RED)));

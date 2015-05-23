@@ -55,7 +55,7 @@ public class MoltenPsyche extends CardImpl {
     public MoltenPsyche(UUID ownerId) {
         super(ownerId, 98, "Molten Psyche", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{1}{R}{R}");
         this.expansionSetCode = "SOM";
-        this.color.setRed(true);
+
 
         // Each player shuffles the cards from his or her hand into his or her library, then draws that many cards.
         // Metalcraft - If you control three or more artifacts, Molten Psyche deals damage to each opponent equal to the number of cards that player has drawn this turn.
@@ -99,7 +99,7 @@ class MoltenPsycheEffect extends OneShotEffect {
                         card.moveToZone(Zone.LIBRARY, source.getSourceId(), game, true);
                     }
                 }
-                game.informPlayers(player.getName() + " shuffles the cards from his or her hand into his or her library");
+                game.informPlayers(player.getLogName() + " shuffles the cards from his or her hand into his or her library");
                 player.shuffleLibrary(game);
                 player.drawCards(count, game);
                 if (MetalcraftCondition.getInstance().apply(game, source) && !playerId.equals(source.getControllerId())) {

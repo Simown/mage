@@ -53,7 +53,6 @@ public class AllianceOfArms extends CardImpl {
         super(ownerId, 4, "Alliance of Arms", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{W}");
         this.expansionSetCode = "CMD";
 
-        this.color.setWhite(true);
 
         // Join forces - Starting with you, each player may pay any amount of mana. Each player puts X 1/1 white Soldier creature tokens onto the battlefield, where X is the total amount of mana paid this way.
         this.getSpellAbility().addEffect(new AllianceOfArmsEffect());
@@ -127,7 +126,7 @@ class AllianceOfArmsEffect extends OneShotEffect {
                 payed = true;
             }
         }
-        game.informPlayers(new StringBuilder(player.getName()).append(" pays {").append(xValue).append("}.").toString());
+        game.informPlayers(new StringBuilder(player.getLogName()).append(" pays {").append(xValue).append("}.").toString());
         return xValue;
     }
 }

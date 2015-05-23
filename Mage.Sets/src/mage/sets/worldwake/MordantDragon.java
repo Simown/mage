@@ -56,7 +56,6 @@ public class MordantDragon extends CardImpl {
         this.expansionSetCode = "WWK";
         this.subtype.add("Dragon");
 
-        this.color.setRed(true);
         this.power = new MageInt(5);
         this.toughness = new MageInt(5);
 
@@ -97,7 +96,7 @@ class MordantDragonEffect extends OneShotEffect {
         if (player != null) {
             int amount = (Integer) getValue("damage");
             if (amount > 0) {
-                FilterCreaturePermanent filter = new FilterCreaturePermanent("creature " + player.getName() + " controls");
+                FilterCreaturePermanent filter = new FilterCreaturePermanent("creature " + player.getLogName() + " controls");
                 filter.add(new ControllerIdPredicate(player.getId()));
                 TargetCreaturePermanent target = new TargetCreaturePermanent(filter);
                 if (target.canChoose(source.getControllerId(), game) && target.choose(Outcome.Damage, source.getControllerId(), source.getSourceId(), game)) {

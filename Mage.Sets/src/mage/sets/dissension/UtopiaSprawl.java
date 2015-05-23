@@ -71,7 +71,6 @@ public class UtopiaSprawl extends CardImpl {
         this.expansionSetCode = "DIS";
         this.subtype.add("Aura");
 
-        this.color.setGreen(true);
 
         // Enchant Forest
         TargetPermanent auraTarget = new TargetLandPermanent(filter);
@@ -113,7 +112,7 @@ class ChooseColorEffect extends OneShotEffect {
         if (player != null && permanent != null) {
             ChoiceColor colorChoice = new ChoiceColor();
             if (player.choose(Outcome.Neutral, colorChoice, game)) {
-                game.informPlayers(permanent.getName() + ": " + player.getName() + " has chosen " + colorChoice.getChoice());
+                game.informPlayers(permanent.getName() + ": " + player.getLogName() + " has chosen " + colorChoice.getChoice());
                 game.getState().setValue(permanent.getId() + "_color", colorChoice.getColor());
                 permanent.addInfo("chosen color", "<font color = 'blue'>Chosen color: " + colorChoice.getColor().getDescription() + "</font>", game);
             }

@@ -55,7 +55,7 @@ public class MassPolymorph extends CardImpl {
     public MassPolymorph(UUID ownerId) {
         super(ownerId, 64, "Mass Polymorph", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{5}{U}");
         this.expansionSetCode = "M11";
-        this.color.setBlue(true);
+
         this.getSpellAbility().addEffect(new MassPolymorphEffect());
     }
 
@@ -105,7 +105,9 @@ class MassPolymorphEffect extends OneShotEffect {
         for (Card creatureCard: creatureCards.getCards(game)) {
             creatureCard.putOntoBattlefield(game, Zone.LIBRARY, source.getSourceId(), source.getControllerId());
         }
-        player.getLibrary().addAll(nonCreatureCards.getCards(game), game);
+        for (Card card: nonCreatureCards.getCards(game)) {
+            player.moveCardToLibraryWithInfo(card, source.getSourceId(), game, Zone.GRAVEYARD, true, true);
+        }             
         player.shuffleLibrary(game);
         return true;
     }

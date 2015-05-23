@@ -55,7 +55,6 @@ public class Browbeat extends CardImpl {
         super(ownerId, 82, "Browbeat", Rarity.UNCOMMON, new CardType[]{CardType.SORCERY}, "{2}{R}");
         this.expansionSetCode = "JUD";
 
-        this.color.setRed(true);
 
         // Any player may have Browbeat deal 5 damage to him or her. If no one does, target player draws three cards.
         this.getSpellAbility().addEffect(new BrowbeatDrawEffect());
@@ -102,7 +101,7 @@ class BrowbeatDrawEffect extends OneShotEffect {
                 if(player != null && player.chooseUse(Outcome.Detriment, "Have " + spell.getName() + " deal 5 damage to you?", game)){
                     drawCards = false;
                     player.damage(5, source.getSourceId(), game, false, true);
-                    game.informPlayers(player.getName() + " has " + spell.getName() + " deal 5 to him or her");
+                    game.informPlayers(player.getLogName() + " has " + spell.getName() + " deal 5 to him or her");
                 }
             }
             if (drawCards) {

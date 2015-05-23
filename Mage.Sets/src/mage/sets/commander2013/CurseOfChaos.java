@@ -59,7 +59,6 @@ public class CurseOfChaos extends CardImpl {
         this.subtype.add("Aura");
         this.subtype.add("Curse");
 
-        this.color.setRed(true);
 
         // Enchant player
         TargetPlayer auraTarget = new TargetPlayer();
@@ -140,7 +139,7 @@ class CurseOfChaosEffect extends OneShotEffect {
         Player attacker = game.getPlayer(this.getTargetPointer().getFirst(game, source));
         if (attacker != null) {
             if (attacker.getHand().size() > 0 && attacker.chooseUse(outcome, "Discard a card and draw a card?", game)){
-                attacker.discard(1, source, game);
+                attacker.discard(1, false, source, game);
                 attacker.drawCards(1, game);
             }
             return true;

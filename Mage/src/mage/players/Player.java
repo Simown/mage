@@ -28,26 +28,45 @@
 
 package mage.players;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import mage.MageItem;
 import mage.MageObject;
-import mage.abilities.*;
+import mage.abilities.Abilities;
+import mage.abilities.Ability;
+import mage.abilities.ActivatedAbility;
+import mage.abilities.Mode;
+import mage.abilities.Modes;
+import mage.abilities.SpellAbility;
+import mage.abilities.TriggeredAbility;
 import mage.abilities.costs.AlternativeSourceCosts;
 import mage.abilities.costs.VariableCost;
 import mage.abilities.costs.mana.ManaCost;
+import mage.abilities.costs.mana.ManaCosts;
 import mage.cards.Card;
 import mage.cards.Cards;
 import mage.cards.decks.Deck;
 import mage.choices.Choice;
 import mage.constants.ManaType;
 import mage.constants.Outcome;
+import mage.constants.PlayerAction;
 import mage.constants.RangeOfInfluence;
 import mage.constants.Zone;
 import mage.counters.Counter;
 import mage.counters.Counters;
 import mage.game.Game;
+import mage.game.Graveyard;
 import mage.game.Table;
+import mage.game.combat.CombatGroup;
 import mage.game.draft.Draft;
 import mage.game.match.Match;
+import mage.game.match.MatchPlayer;
 import mage.game.permanent.Permanent;
 import mage.game.tournament.Tournament;
 import mage.players.net.UserData;
@@ -57,12 +76,6 @@ import mage.target.TargetCard;
 import mage.target.common.TargetCardInLibrary;
 import mage.util.Copyable;
 
-import java.io.Serializable;
-import java.util.*;
-import mage.constants.PlayerAction;
-import mage.game.combat.CombatGroup;
-import mage.game.match.MatchPlayer;
-
 /**
  *
  * @author BetaSteward_at_googlemail.com
@@ -71,10 +84,11 @@ public interface Player extends MageItem, Copyable<Player> {
 
     boolean isHuman();
     String getName();
+    String getLogName();
     RangeOfInfluence getRange();
     Library getLibrary();
     Cards getSideboard();
-    Cards getGraveyard();
+    Graveyard getGraveyard();
     Abilities<Ability> getAbilities();
     void addAbility(Ability ability);
     Counters getCounters();
@@ -250,7 +264,7 @@ public interface Player extends MageItem, Copyable<Player> {
     boolean playLand(Card card, Game game);
     boolean activateAbility(ActivatedAbility ability, Game game);
     boolean triggerAbility(TriggeredAbility ability, Game game);
-    boolean canBeTargetedBy(MageObject source, Game game);
+    boolean canBeTargetedBy(MageObject source, UUID sourceControllerId, Game game);
     boolean hasProtectionFrom(MageObject source, Game game);
     boolean flipCoin(Game game);
     boolean flipCoin(Game game, ArrayList<UUID> appliedEffects);
@@ -366,7 +380,8 @@ public interface Player extends MageItem, Copyable<Player> {
     List<Ability> getPlayableOptions(Ability ability, Game game);
 
     Set<UUID> getPlayableInHand(Game game);
-
+    LinkedHashMap<UUID, ActivatedAbility> getUseableActivatedAbilities(MageObject object, Zone zone, Game game);
+    
     void addCounters(Counter counter, Game game);
     List<UUID> getAttachments();
     boolean addAttachment(UUID permanentId, Game game);
@@ -424,6 +439,20 @@ public interface Player extends MageItem, Copyable<Player> {
     UUID getCommanderId();
 
     /**
+     * Moves cards from one zone to another 
+     * 
+     * @param cards
+     * @param fromZone
+     * @param toZone
+     * @param source
+     * @param game
+     * @return 
+     */
+    boolean moveCards(Cards cards, Zone fromZone, Zone toZone, Ability source, Game game);
+    boolean moveCards(List<Card> cards, Zone fromZone, Zone toZone, Ability source, Game game);
+    boolean moveCards(Card card, Zone fromZone, Zone toZone, Ability source, Game game);
+    
+    /**
      * Uses card.moveToZone and posts a inform message about moving the card
      * into the game log
      * 
@@ -473,10 +502,8 @@ public interface Player extends MageItem, Copyable<Player> {
 
     
     /**
-     * Moves 1 to n cards to the graveyard. The owner of the cards may determine the order,
-     * if more than one card is moved to graveyard.
-     * Uses card.moveToZone and posts a inform message about moving the card to graveyard
-     * into the game log
+     * Internal used to move cards
+     * Use commonly player.moveCards()
      *
      * @param cards
      * @param source
@@ -484,7 +511,6 @@ public interface Player extends MageItem, Copyable<Player> {
      * @param fromZone if null, this info isn't postet
      * @return
      */
-    boolean moveCardsToGraveyardWithInfo(Cards cards, Ability source, Game game, Zone fromZone);
     boolean moveCardsToGraveyardWithInfo(List<Card> cards, Ability source, Game game, Zone fromZone);
 
     /**
@@ -557,9 +583,11 @@ public interface Player extends MageItem, Copyable<Player> {
      * be cast without mana.
      *
      * @param sourceId the source that can be cast without mana
+     * @param manaCosts alternate ManaCost, null if it can be cast without mana cost
      */
-    void setCastSourceIdWithoutMana(UUID sourceId);
-    UUID getCastSourceIdWithoutMana();
+    void setCastSourceIdWithAlternateMana(UUID sourceId, ManaCosts manaCosts);
+    UUID getCastSourceIdWithAlternateMana();
+    ManaCosts getCastSourceIdManaCosts();
 
     // permission handling to show hand cards
     void addPermissionToShowHandCards(UUID watcherUserId);

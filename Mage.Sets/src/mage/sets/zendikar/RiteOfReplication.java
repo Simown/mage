@@ -54,7 +54,6 @@ public class RiteOfReplication extends CardImpl {
         super(ownerId, 61, "Rite of Replication", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{2}{U}{U}");
         this.expansionSetCode = "ZEN";
 
-        this.color.setBlue(true);
 
         // Kicker {5}
         this.addAbility(new KickerAbility("{5}"));
@@ -78,7 +77,7 @@ public class RiteOfReplication extends CardImpl {
 
 class RiteOfReplicationEffect extends OneShotEffect {
 
-    private int amount;
+    private final int amount;
 
     public RiteOfReplicationEffect(int amount) {
         super(Outcome.PutCreatureInPlay);

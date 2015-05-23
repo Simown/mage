@@ -72,8 +72,6 @@ public class DimirCharm extends CardImpl {
         super(ownerId, 154, "Dimir Charm", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{U}{B}");
         this.expansionSetCode = "GTC";
 
-        this.color.setBlack(true);
-        this.color.setBlue(true);
 
         //Choose one - Counter target sorcery spell
         this.getSpellAbility().addEffect(new CounterTargetEffect());
@@ -125,19 +123,14 @@ class DimirCharmEffect extends OneShotEffect {
                 }
             }
             if(cards.size() > 0){
-                TargetCard target = new TargetCard(Zone.PICK, new FilterCard("Card to put back on top of library"));
+                TargetCard target = new TargetCard(Zone.LIBRARY, new FilterCard("Card to put back on top of library"));
                 if(controller.chooseTarget(Outcome.Benefit, cards, target, source, game)){
                     Card card = cards.get(target.getFirstTarget(), game);
                     if(card != null){
                         card.moveToZone(Zone.LIBRARY, source.getSourceId(), game, true);
                         cards.remove(card);
                     }
-                    
-                    for(Card card2 : cards.getCards(game)){
-                        if(card2 != null){
-                            card2.moveToZone(Zone.GRAVEYARD, source.getSourceId(), game, true);
-                        }
-                    }
+                    controller.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
                 }
             }
         }

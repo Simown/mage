@@ -28,11 +28,16 @@
 package mage.sets.magic2013;
 
 import java.util.UUID;
+
+import mage.MageObject;
 import mage.abilities.Ability;
 import mage.abilities.common.SimpleStaticAbility;
+import mage.abilities.condition.CompoundCondition;
+import mage.abilities.condition.Condition;
 import mage.abilities.condition.common.SourceIsSpellCondition;
 import mage.abilities.costs.AlternativeCostSourceAbility;
 import mage.abilities.effects.ContinuousEffectImpl;
+import mage.cards.Card;
 import mage.cards.CardImpl;
 import mage.constants.CardType;
 import mage.constants.Duration;
@@ -43,6 +48,7 @@ import mage.constants.SubLayer;
 import mage.constants.Zone;
 import mage.filter.common.FilterNonlandCard;
 import mage.game.Game;
+import mage.game.stack.Spell;
 import mage.players.Player;
 
 /**
@@ -55,7 +61,6 @@ public class Omniscience extends CardImpl {
         super(ownerId, 63, "Omniscience", Rarity.MYTHIC, new CardType[]{CardType.ENCHANTMENT}, "{7}{U}{U}{U}");
         this.expansionSetCode = "M13";
 
-        this.color.setBlue(true);
 
         // You may cast nonland cards from your hand without paying their mana costs.
         this.addAbility(new SimpleStaticAbility(Zone.BATTLEFIELD, new OmniscienceCastingEffect()));
@@ -72,9 +77,6 @@ public class Omniscience extends CardImpl {
 }
 
 class OmniscienceCastingEffect extends ContinuousEffectImpl {
-
-    static AlternativeCostSourceAbility alternativeCastingCostAbility = new AlternativeCostSourceAbility(
-            null, SourceIsSpellCondition.getInstance(), null, new FilterNonlandCard(), true);
 
     public OmniscienceCastingEffect() {
         super(Duration.WhileOnBattlefield, Outcome.Detriment);
@@ -94,7 +96,8 @@ class OmniscienceCastingEffect extends ContinuousEffectImpl {
     public boolean apply(Layer layer, SubLayer sublayer, Ability source, Game game) {
         Player controller = game.getPlayer(source.getControllerId());
         if (controller != null) {
-            controller.getAlternativeSourceCosts().add(alternativeCastingCostAbility);
+            controller.getAlternativeSourceCosts().add(new AlternativeCostSourceAbility(
+                    null, new CompoundCondition(SourceIsSpellCondition.getInstance(), new IsBeingCastFromHandCondition()), null, new FilterNonlandCard(), true));
             return true;
         }
         return false;
@@ -109,4 +112,23 @@ class OmniscienceCastingEffect extends ContinuousEffectImpl {
     public boolean hasLayer(Layer layer) {
         return layer == Layer.RulesEffects;
     }
+}
+
+class IsBeingCastFromHandCondition implements Condition {
+
+	@Override
+	public boolean apply(Game game, Ability source) {
+        MageObject object = game.getObject(source.getSourceId());
+		if(object instanceof Spell) {
+	        Spell spell = (Spell) object;
+	        return spell != null && spell.getFromZone() == Zone.HAND;
+		}
+		if(object instanceof Card) {
+			Card card = (Card)object;
+			return game.getPlayer(card.getOwnerId()).getHand().get(card.getId(), game) != null;
+		}
+		
+		return false;
+	}
+
 }

@@ -55,7 +55,6 @@ public class ThoughtGorger extends CardImpl {
         this.expansionSetCode = "ROE";
         this.subtype.add("Horror");
 
-        this.color.setBlack(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -104,7 +103,7 @@ class ThoughtGorgerEffectEnters extends OneShotEffect {
         if (player != null && player.getHand().size() > 0 && thoughtGorger != null ) {
             int cardsInHand = player.getHand().size();
             thoughtGorger.addCounters(CounterType.P1P1.createInstance(cardsInHand), game);
-            player.discard(cardsInHand, source, game);
+            player.discard(cardsInHand, false, source, game);
             return true;
         }
         return false;

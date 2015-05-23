@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import mage.MageObject;
 import mage.Mana;
 import mage.abilities.Ability;
 import mage.abilities.costs.VariableCost;
@@ -119,7 +118,8 @@ public class ManaCostsImpl<T extends ManaCost> extends ArrayList<T> implements M
         }
 
         Player player = game.getPlayer(controllerId);
-        assignPayment(game, ability, player.getManaPool());        
+        assignPayment(game, ability, player.getManaPool());
+        game.getState().getSpecialActions().removeManaActions();
         while (!isPaid()) {
             ManaCost unpaid = this.getUnpaid();
             String promptText = ManaUtil.addSpecialManaPayAbilities(ability, game, unpaid);
@@ -139,12 +139,12 @@ public class ManaCostsImpl<T extends ManaCost> extends ArrayList<T> implements M
      * @param ability
      * @param game
      * @param sourceId
-     * @param controllerId
+     * @param payingPlayerId
      * @return true if the cost was paid
      */
-    public boolean payOrRollback(Ability ability, Game game, UUID sourceId, UUID controllerId) {
+    public boolean payOrRollback(Ability ability, Game game, UUID sourceId, UUID payingPlayerId) {
         int bookmark = game.bookmarkState();
-        if (pay(ability, game, sourceId, controllerId, false)) {
+        if (pay(ability, game, sourceId, payingPlayerId, false)) {
             game.removeBookmark(bookmark);
             return true;
         }

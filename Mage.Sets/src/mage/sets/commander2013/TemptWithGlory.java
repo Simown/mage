@@ -51,7 +51,6 @@ public class TemptWithGlory extends CardImpl {
         super(ownerId, 24, "Tempt with Glory", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{5}{W}");
         this.expansionSetCode = "C13";
 
-        this.color.setWhite(true);
 
         // Tempting offer - Put a +1/+1 counter on each creature you control. Each opponent may put a +1/+1 counter on each creature he or she controls. For each opponent who does, put a +1/+1 counter on each creature you control.
         this.getSpellAbility().addEffect(new TemptWithGloryEffect());
@@ -95,10 +94,10 @@ class TemptWithGloryEffect extends OneShotEffect {
             for (UUID playerId : game.getOpponents(controller.getId())) {
                 Player opponent = game.getPlayer(playerId);
                 if (opponent != null) {
-                    if (opponent.chooseUse(outcome, new StringBuilder("Put a +1/+1 counter on each creature you control?").toString(), game)) {
+                    if (opponent.chooseUse(outcome, "Put a +1/+1 counter on each creature you control?", game)) {
                         opponentsAddedCounters++;
                         addCounterToEachCreature(playerId, counter, game);
-                        game.informPlayers(new StringBuilder(opponent.getName()).append(" added a +1/+1 counter on each of its creatures").toString());
+                        game.informPlayers(opponent.getLogName() + " added a +1/+1 counter on each of its creatures");
                     }
                 }
             }

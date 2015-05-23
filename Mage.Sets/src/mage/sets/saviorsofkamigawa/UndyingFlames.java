@@ -54,7 +54,6 @@ public class UndyingFlames extends CardImpl {
         super(ownerId, 119, "Undying Flames", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{4}{R}{R}");
         this.expansionSetCode = "SOK";
 
-        this.color.setRed(true);
 
         // Exile cards from the top of your library until you exile a nonland card. Undying Flames deals damage to target creature or player equal to that card's converted mana cost.
         this.getSpellAbility().addEffect(new UndyingFlamesEffect());
@@ -109,7 +108,7 @@ class UndyingFlamesEffect extends OneShotEffect {
                         Player player = game.getPlayer(this.getTargetPointer().getFirst(game, source));
                         if (player != null) {
                             player.damage(card.getManaCost().convertedManaCost(), source.getSourceId(), game, false, true);
-                            game.informPlayers(new StringBuilder(sourceCard.getName()).append(" deals ").append(damage).append(" damage to ").append(player.getName()).toString());
+                            game.informPlayers(new StringBuilder(sourceCard.getName()).append(" deals ").append(damage).append(" damage to ").append(player.getLogName()).toString());
                             applied = true;
                             break;
                         }

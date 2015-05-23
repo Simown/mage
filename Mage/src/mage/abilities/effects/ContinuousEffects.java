@@ -1084,7 +1084,7 @@ public class ContinuousEffects implements Serializable {
                 for (Ability ability :entry.getValue()) {
                     MageObject object = game.getObject(ability.getSourceId());
                     if (object != null) {
-                        texts.put(ability.getId().toString() + "_" + entry.getKey().getId().toString(), ability.getRule(object.getLogName()));
+                        texts.put(ability.getId().toString() + "_" + entry.getKey().getId().toString(), object.getName() +": " + ability.getRule(object.getName()));
                     } else {
                         texts.put(ability.getId().toString() + "_" + entry.getKey().getId().toString(), entry.getKey().getText(null));
                     }
@@ -1099,9 +1099,40 @@ public class ContinuousEffects implements Serializable {
     public boolean existRequirementEffects() {
         return !requirementEffects.isEmpty();
     }
+    
+    public UUID getControllerOfSourceId(UUID sourceId) {
+        UUID controllerFound = null;
+        for (PreventionEffect effect: preventionEffects) {
+            HashSet<Ability> abilities = preventionEffects.getAbility(effect.getId());
+            for (Ability ability : abilities) {
+                if (ability.getSourceId().equals(sourceId)) {
+                    if (controllerFound == null || controllerFound == ability.getControllerId()) {
+                        controllerFound = ability.getControllerId();
+                    } else {
+                        // not unique controller - No solution yet
+                        return null;
+                    }
+                }
+            }
+        }
+        for (ReplacementEffect effect: replacementEffects) {
+            HashSet<Ability> abilities = replacementEffects.getAbility(effect.getId());
+            for (Ability ability : abilities) {
+                if (ability.getSourceId().equals(sourceId)) {
+                    if (controllerFound == null || controllerFound == ability.getControllerId()) {
+                        controllerFound = ability.getControllerId();
+                    } else {
+                        // not unique controller - No solution yet
+                        return null;
+                    }
+                }
+            }
+        }
+        return controllerFound;
+    }
 }
 
-class ContinuousEffectSorter implements Comparator<ContinuousEffect> {
+class ContinuousEffectSorter implements Comparator<ContinuousEffect>, Serializable {
     @Override
     public int compare(ContinuousEffect one, ContinuousEffect two) {
         return Long.compare(one.getOrder(), two.getOrder());

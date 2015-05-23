@@ -55,9 +55,7 @@ public class MurderInvestigation extends CardImpl {
     public MurderInvestigation(UUID ownerId) {
         super(ownerId, 21, "Murder Investigation", Rarity.UNCOMMON, new CardType[]{CardType.ENCHANTMENT}, "{1}{W}");
         this.expansionSetCode = "GTC";
-
         this.subtype.add("Aura");
-        this.color.setWhite(true);
 
         // Enchant creature you control
         TargetPermanent auraTarget = new TargetControlledCreaturePermanent();

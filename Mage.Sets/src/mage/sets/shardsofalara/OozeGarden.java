@@ -64,7 +64,6 @@ public class OozeGarden extends CardImpl {
         super(ownerId, 143, "Ooze Garden", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{1}{G}");
         this.expansionSetCode = "ALA";
 
-        this.color.setGreen(true);
 
         // {1}{G}, Sacrifice a non-Ooze creature: Put an X/X green Ooze creature token onto the battlefield, where X is the sacrificed creature's power. Activate this ability only any time you could cast a sorcery.
         Ability ability = new SimpleActivatedAbility(Zone.BATTLEFIELD, new OozeGardenCreateTokenEffect(), new ManaCostsImpl("{1}{G}"));
@@ -108,7 +107,7 @@ class OozeGardenCreateTokenEffect extends OneShotEffect {
         }
         ArrayList<String> list = new ArrayList<>();
         list.add("Ooze");
-        Token token = new Token("Ooze", "X/X green Ooze creature token onto the battlefield, where X is the sacrificed creature's power", ObjectColor.GREEN, list, value, value, new AbilitiesImpl()) {
+        Token token = new Token("Ooze", "X/X green Ooze creature token onto the battlefield, where X is the sacrificed creature's power", ObjectColor.GREEN, list, value, value, new AbilitiesImpl<>()) {
            
       
         };

@@ -57,7 +57,6 @@ public class CurseOfWizardry extends CardImpl {
         super(ownerId, 104, "Curse of Wizardry", Rarity.UNCOMMON, new CardType[]{CardType.ENCHANTMENT}, "{2}{B}{B}");
         this.expansionSetCode = "ROE";
 
-        this.color.setBlack(true);
 
         // As Curse of Wizardry enters the battlefield, choose a color.
         this.addAbility(new AsEntersBattlefieldAbility(new CurseOfWizardryChooseColorEffect()));
@@ -95,7 +94,7 @@ class CurseOfWizardryChooseColorEffect extends OneShotEffect {
         if (player != null && curseOfWizardry != null) {
             ChoiceColor colorChoice = new ChoiceColor();
             if (player.choose(Outcome.Detriment, colorChoice, game)) {
-                game.informPlayers(curseOfWizardry.getName() + ": " + player.getName() + " has chosen " + colorChoice.getChoice());
+                game.informPlayers(curseOfWizardry.getName() + ": " + player.getLogName() + " has chosen " + colorChoice.getChoice());
                 game.getState().setValue(curseOfWizardry.getId() + "_color", colorChoice.getColor());
                 curseOfWizardry.addInfo("chosen color", "<font color = 'blue'>Chosen color: " + colorChoice.getColor().getDescription() + "</font>", game);
             }

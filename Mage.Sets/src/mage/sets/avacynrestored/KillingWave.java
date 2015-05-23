@@ -54,7 +54,6 @@ public class KillingWave extends CardImpl {
         super(ownerId, 111, "Killing Wave", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{X}{B}");
         this.expansionSetCode = "AVR";
 
-        this.color.setBlack(true);
 
         // For each creature, its controller sacrifices it unless he or she pays X life.
         this.getSpellAbility().addEffect(new KillingWaveEffect());
@@ -108,10 +107,10 @@ class KillingWaveEffect extends OneShotEffect {
                 for (Permanent creature : creatures) {
                     String message = "Pay " + amount + " life? If you don't, " + creature.getName() + " will be sacrificed.";
                     if (playerLife - amount - lifePaid >= 0 && player != null && player.chooseUse(Outcome.Neutral, message, game)) {
-                        game.informPlayers(player.getName() + " pays " + amount + " life. He will not sacrifice " + creature.getName());
+                        game.informPlayers(player.getLogName() + " pays " + amount + " life. He will not sacrifice " + creature.getName());
                         lifePaid += amount;
                     } else {
-                        game.informPlayers(player.getName() + " will sacrifice " + creature.getName());
+                        game.informPlayers(player.getLogName() + " will sacrifice " + creature.getName());
                         sacrifices.add(creature);
                     }
                 }

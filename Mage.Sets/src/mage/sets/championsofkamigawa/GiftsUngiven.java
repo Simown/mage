@@ -56,7 +56,6 @@ public class GiftsUngiven extends CardImpl {
         super(ownerId, 62, "Gifts Ungiven", Rarity.RARE, new CardType[]{CardType.INSTANT}, "{3}{U}");
         this.expansionSetCode = "CHK";
 
-        this.color.setBlue(true);
 
         // Search your library for up to four cards with different names and reveal them. Target opponent chooses two of those cards. Put the chosen cards into your graveyard and the rest into your hand. Then shuffle your library.
         this.getSpellAbility().addEffect(new GiftsUngivenEffect());
@@ -120,19 +119,14 @@ class GiftsUngivenEffect extends OneShotEffect {
                     } else {
                         opponent = game.getPlayer(game.getOpponents(player.getId()).iterator().next());
                     }
-                    TargetCard targetDiscard = new TargetCard(2, Zone.PICK, new FilterCard("cards to put in graveyard"));
+                    TargetCard targetDiscard = new TargetCard(2, Zone.LIBRARY, new FilterCard("cards to put in graveyard"));
                     if (opponent != null && opponent.choose(Outcome.Discard, cards, targetDiscard, game)) {
                         cardsToKeep.removeAll(targetDiscard.getTargets());
                         cards.removeAll(cardsToKeep);
                     }
                 }
 
-                for (UUID cardId : cards) {
-                    Card card = game.getCard(cardId);
-                    if (card != null) {
-                        player.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
-                    }
-                }
+                player.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
                 for (UUID cardId : cardsToKeep) {
                     Card card = game.getCard(cardId);
                     if (card != null) {

@@ -39,7 +39,7 @@ import mage.game.Game;
  */
 public class AddContinuousEffectToGame extends OneShotEffect {
 
-    private ContinuousEffect effect;
+    private final ContinuousEffect effect;
 
     public AddContinuousEffectToGame(ContinuousEffect effect) {
         super(Outcome.Benefit);
@@ -59,7 +59,7 @@ public class AddContinuousEffectToGame extends OneShotEffect {
 
     @Override
     public boolean apply(Game game, Ability source) {
-        ContinuousEffect effectToAdd = (ContinuousEffect) effect.copy();
+        ContinuousEffect effectToAdd = effect.copy();
         game.addEffect(effectToAdd, source);
         return true;
     }

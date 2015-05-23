@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -20,11 +21,13 @@ import java.util.List;
 public enum ExpansionRepository {
 
     instance;
-
+    
+    private static final Logger logger = Logger.getLogger(ExpansionRepository.class);      
+    
     private static final String JDBC_URL = "jdbc:h2:file:./db/cards.h2;AUTO_SERVER=TRUE";
     private static final String VERSION_ENTITY_NAME = "expansion";
-    private static final long EXPANSION_DB_VERSION = 3;
-    private static final long EXPANSION_CONTENT_VERSION = 4;
+    private static final long EXPANSION_DB_VERSION = 4;
+    private static final long EXPANSION_CONTENT_VERSION = 6;
 
     private Dao<ExpansionInfo, Object> expansionDao;
 
@@ -63,6 +66,8 @@ public enum ExpansionRepository {
                 setCodes.add(expansion.getCode());
             }
         } catch (SQLException ex) {
+            logger.error("Can't get the expansion set codes from database.", ex);
+            return setCodes;
         }
         return setCodes;
     }
@@ -92,13 +97,12 @@ public enum ExpansionRepository {
         return sets;
     }
     
-    public ExpansionInfo[] getSetsFromBlock(String blockName) {
-        ExpansionInfo[]  sets = new ExpansionInfo[0];
+    public List<ExpansionInfo> getSetsFromBlock(String blockName) {
+        List<ExpansionInfo>  sets = new LinkedList<>();
         try {
             QueryBuilder<ExpansionInfo, Object> qb = expansionDao.queryBuilder();
             qb.where().eq("blockName", new SelectArg(blockName));
-            List<ExpansionInfo> expansions = expansionDao.query(qb.prepare());
-            sets = expansions.toArray(new ExpansionInfo[0]);
+            return expansionDao.query(qb.prepare());
         } catch (SQLException ex) {
         }
         return sets;
@@ -117,15 +121,46 @@ public enum ExpansionRepository {
         }
         return set;        
     }
+    
+    public ExpansionInfo getSetByName(String setName) {
+        ExpansionInfo set = null;
+        try {
+            QueryBuilder<ExpansionInfo, Object> qb = expansionDao.queryBuilder();
+            qb.where().eq("name", new SelectArg(setName));
+            List<ExpansionInfo> expansions = expansionDao.query(qb.prepare());
+            if (expansions.size() > 0) {
+                set = expansions.get(0);
+            }
+        } catch (SQLException ex) {
+        }
+        return set;        
+    }
 
     public List<ExpansionInfo> getAll() {
         try {
-            return expansionDao.queryForAll();
+            QueryBuilder<ExpansionInfo, Object> qb = expansionDao.queryBuilder();
+            qb.orderBy("releaseDate", true);
+            return expansionDao.query(qb.prepare());
         } catch (SQLException ex) {
         }
         return new ArrayList<>();
     }
-
+    
+    public List<String> getAllSetNames() {
+        try {
+            QueryBuilder<ExpansionInfo, Object> qb = expansionDao.queryBuilder();
+            qb.orderBy("releaseDate", true);
+            List<ExpansionInfo> expansions = expansionDao.query(qb.prepare());
+            List<String> setNames = new LinkedList<>();
+            for (ExpansionInfo expansionInfo : expansions) {
+            	setNames.add(expansionInfo.getName());
+			}
+            return setNames;
+        } catch (SQLException ex) {
+        }
+        return new ArrayList<>();
+    }
+    
     public long getContentVersionFromDB() {
         try {
             ConnectionSource connectionSource = new JdbcConnectionSource(JDBC_URL);

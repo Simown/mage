@@ -56,7 +56,6 @@ public class MinamosMeddling extends CardImpl {
         super(ownerId, 42, "Minamo's Meddling", Rarity.COMMON, new CardType[]{CardType.INSTANT}, "{2}{U}{U}");
         this.expansionSetCode = "BOK";
 
-        this.color.setBlue(true);
 
         // Counter target spell. That spell's controller reveals his or her hand, then discards each card with the same name as a card spliced onto that spell.
         this.getSpellAbility().addTarget(new TargetSpell(new FilterSpell()));
@@ -99,7 +98,7 @@ class MinamosMeddlingCounterTargetEffect extends OneShotEffect {
                     game.getStack().counter(targetId, source.getSourceId(), game);
                     Player spellController = game.getPlayer(spell.getControllerId());
                     if (spellController != null) {
-                        spellController.revealCards(sourceObject.getLogName(), spellController.getHand(), game);
+                        spellController.revealCards(sourceObject.getName(), spellController.getHand(), game);
                         Cards cardsToDiscard = new CardsImpl();
                         for (SpellAbility spellAbility : spell.getSpellAbilities()) {
                             if (spellAbility.getSpellAbilityType().equals(SpellAbilityType.SPLICE)) {

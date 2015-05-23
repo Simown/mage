@@ -49,7 +49,6 @@ public class Narcomoeba extends CardImpl {
         this.expansionSetCode = "FUT";
         this.subtype.add("Illusion");
 
-        this.color.setBlue(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(1);
 
@@ -73,7 +72,6 @@ public class Narcomoeba extends CardImpl {
 class NarcomoebaAbility extends ZoneChangeTriggeredAbility {
     public NarcomoebaAbility() {
         super(Zone.LIBRARY, Zone.GRAVEYARD, new ReturnSourceFromGraveyardToBattlefieldEffect(), "",  true);
-        this.zone = Zone.ALL;
     }
 
     public NarcomoebaAbility(final NarcomoebaAbility ability) {

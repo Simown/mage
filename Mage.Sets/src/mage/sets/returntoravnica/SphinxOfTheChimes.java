@@ -63,7 +63,6 @@ public class SphinxOfTheChimes extends CardImpl {
         this.expansionSetCode = "RTR";
         this.subtype.add("Bird");
 
-        this.color.setBlue(true);
         this.power = new MageInt(5);
         this.toughness = new MageInt(6);
 
@@ -115,8 +114,8 @@ class TargetTwoNonLandCardsWithSameNameInHand extends TargetCardInHand {
 
     @Override
     public Set<UUID> possibleTargets(UUID sourceControllerId, Game game) {
-        Set<UUID> newPossibleTargets = new HashSet<UUID>();
-        Set<UUID> possibleTargets = new HashSet<UUID>();
+        Set<UUID> newPossibleTargets = new HashSet<>();
+        Set<UUID> possibleTargets = new HashSet<>();
         Player player = game.getPlayer(sourceControllerId);
         for (Card card : player.getHand().getCards(filter, game)) {
             possibleTargets.add(card.getId());

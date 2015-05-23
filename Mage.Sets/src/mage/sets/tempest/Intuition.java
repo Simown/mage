@@ -57,7 +57,6 @@ public class Intuition extends CardImpl {
         super(ownerId, 70, "Intuition", Rarity.RARE, new CardType[]{CardType.INSTANT}, "{2}{U}");
         this.expansionSetCode = "TMP";
 
-        this.color.setBlue(true);
 
         // Search your library for three cards and reveal them. Target opponent chooses one. Put that card into your hand and the rest into your graveyard. Then shuffle your library.
         this.getSpellAbility().addEffect(new IntuitionEffect());
@@ -95,43 +94,42 @@ class IntuitionEffect extends SearchEffect {
 
     @Override
     public boolean apply(Game game, Ability source) {
-        Player player = game.getPlayer(source.getControllerId());
+        Player controller = game.getPlayer(source.getControllerId());
         Player opponent = game.getPlayer(source.getFirstTarget());
-        if (player == null || opponent == null)
+        if (controller == null || opponent == null)
             return false;
         
-        if (player.getLibrary().size() >= 3 && player.searchLibrary(target, game)) {
+        if (controller.getLibrary().size() >= 3 && controller.searchLibrary(target, game)) {
             
             if (target.getTargets().size() == 3) {
                 Cards cards = new CardsImpl();
                 for (UUID cardId: (List<UUID>)target.getTargets()) {
-                    Card card = player.getLibrary().getCard(cardId, game);
+                    Card card = controller.getLibrary().getCard(cardId, game);
                     if (card != null) {
                         cards.add(card);
                     }
                 }
-                player.revealCards("Reveal", cards, game);
+                controller.revealCards("Reveal", cards, game);
                 
                 TargetCard targetCard = new TargetCard(Zone.PICK, new FilterCard());
                 
-                while(!opponent.choose(Outcome.Neutral, cards, targetCard, game));
+                while(!opponent.choose(Outcome.Neutral, cards, targetCard, game)) {
+                    if (!opponent.isInGame()) {
+                        return false;
+                    }
+                }
                 Card card = cards.get(targetCard.getFirstTarget(), game);
                 if (card != null) {
                     cards.remove(card);
-                    card.moveToZone(Zone.HAND, source.getSourceId(), game, false);
+                    controller.moveCards(card, Zone.LIBRARY, Zone.HAND, source, game);
                 }
-                
-                for(UUID uuid : cards){
-                    card = cards.get(uuid, game);
-                    card.moveToZone(Zone.GRAVEYARD, source.getSourceId(), game, false);
-                }
-                
+                controller.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);                
             }
-            player.shuffleLibrary(game);
+            controller.shuffleLibrary(game);
             return true;
         }
         
-        player.shuffleLibrary(game);
+        controller.shuffleLibrary(game);
         return false;
     }
 

@@ -58,7 +58,6 @@ public class AkromasBlessing extends CardImpl {
         super(ownerId, 1, "Akroma's Blessing", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{2}{W}");
         this.expansionSetCode = "ONS";
 
-        this.color.setWhite(true);
 
         // Choose a color. Creatures you control gain protection from the chosen color until end of turn.
         this.getSpellAbility().addEffect(new AkromasBlessingChooseColorEffect());
@@ -107,7 +106,7 @@ class AkromasBlessingChooseColorEffect extends OneShotEffect {
             if (choice.getColor() == null) {
                 return false;
             }
-            game.informPlayers(sourceObject.getName() + ": " + controller.getName() + " has chosen " + choice.getChoice());
+            game.informPlayers(sourceObject.getName() + ": " + controller.getLogName() + " has chosen " + choice.getChoice());
             FilterCard filterColor = new FilterCard();
             filterColor.add(new ColorPredicate(choice.getColor()));
             filterColor.setMessage(choice.getChoice());

@@ -63,6 +63,7 @@ import mage.game.permanent.PermanentCard;
 import mage.players.Player;
 import mage.target.Target;
 import mage.target.TargetAmount;
+import mage.util.GameLog;
 
 /**
  *
@@ -168,8 +169,7 @@ public class Spell implements StackObject, Card {
                 return "a card face down";
             }
         }
-        return getSpellAbility().toString();
-
+        return GameLog.replaceNameByColoredName(card, getSpellAbility().toString());
     }
 
     @Override
@@ -201,13 +201,14 @@ public class Spell implements StackObject, Card {
                                 result |= spellAbility.resolve(game);
                             }
                         }
-//                        game.getState().handleSimultaneousEvent(game);
-//                        game.resetShortLivingLKI();
                         index++;
                     }
                 }
                 if (game.getState().getZone(card.getMainCard().getId()) == Zone.STACK) {
-                    card.moveToZone(Zone.GRAVEYARD, ability.getSourceId(), game, false);
+                    Player player = game.getPlayer(getControllerId());
+                    if (player != null) {
+                        player.moveCards(card, Zone.STACK, Zone.GRAVEYARD, ability, game);
+                    }
                 }
                 return result;
             }
@@ -240,7 +241,6 @@ public class Spell implements StackObject, Card {
                         card.getCardType().add(CardType.CREATURE);
                         card.getSubtype().remove("Aura");
                     }                
-                    game.getState().handleSimultaneousEvent(game);
                     return ability.resolve(game);
                 }
                 if (bestow) { 
@@ -513,7 +513,7 @@ public class Spell implements StackObject, Card {
         if (object == null) {
             Player targetPlayer = game.getPlayer(targetId);
             if (targetPlayer != null) {
-                name = targetPlayer.getName();
+                name = targetPlayer.getLogName();
             }
         } else {
             name = object.getName();
@@ -525,7 +525,15 @@ public class Spell implements StackObject, Card {
     public void counter(UUID sourceId, Game game) {
         this.countered = true;
         if (!isCopiedSpell()) {
-            card.moveToZone(Zone.GRAVEYARD, sourceId, game, false);
+            Player player = game.getPlayer(getControllerId());
+            if (player != null) {
+                Ability counteringAbility = null;
+                MageObject counteringObject = game.getObject(sourceId);
+                if (counteringObject instanceof StackObject) {
+                    counteringAbility = ((StackObject)counteringObject).getStackAbility();
+                }
+                player.moveCards(card, Zone.STACK, Zone.GRAVEYARD, counteringAbility, game);
+            }            
         }
     }
 
@@ -546,7 +554,7 @@ public class Spell implements StackObject, Card {
     
     @Override
     public String getLogName() {
-        return card.getName();
+        return GameLog.getColoredObjectName(card);
     }
 
     @Override

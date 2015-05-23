@@ -52,7 +52,6 @@ public class AssassinsStrike extends CardImpl {
         super(ownerId, 57, "Assassin's Strike", Rarity.UNCOMMON, new CardType[]{CardType.SORCERY}, "{4}{B}{B}");
         this.expansionSetCode = "RTR";
 
-        this.color.setBlack(true);
 
         // Destroy target creature. Its controller discards a card.
         this.getSpellAbility().addTarget(new TargetCreaturePermanent());
@@ -92,7 +91,7 @@ class AssassinsStrikeEffect extends OneShotEffect {
         if (permanent != null) {
             Player player = game.getPlayer(permanent.getControllerId());
             if (player != null) {
-                player.discard(1, source, game);
+                player.discard(1, false, source, game);
                 return true;
             }
         }

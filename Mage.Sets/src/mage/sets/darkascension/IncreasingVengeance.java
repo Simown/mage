@@ -64,7 +64,6 @@ public class IncreasingVengeance extends CardImpl {
         super(ownerId, 95, "Increasing Vengeance", Rarity.RARE, new CardType[]{CardType.INSTANT}, "{R}{R}");
         this.expansionSetCode = "DKA";
 
-        this.color.setRed(true);
 
         // Copy target instant or sorcery spell you control. If Increasing Vengeance was cast from a graveyard, copy that spell twice instead. You may choose new targets for the copies.
         this.getSpellAbility().addEffect(new IncreasingVengeanceEffect());
@@ -107,7 +106,7 @@ class IncreasingVengeanceEffect extends OneShotEffect {
                 copy.setCopiedSpell(true);
                 game.getStack().push(copy);
                 copy.chooseNewTargets(game, source.getControllerId());
-                game.informPlayers(new StringBuilder(controller.getName()).append(copy.getActivatedMessage(game)).toString());
+                game.informPlayers(new StringBuilder(controller.getLogName()).append(copy.getActivatedMessage(game)).toString());
                 Spell sourceSpell = (Spell) game.getStack().getStackObject(source.getSourceId());
                 if (sourceSpell != null) {
                     if (sourceSpell.getFromZone() == Zone.GRAVEYARD) {
@@ -116,7 +115,7 @@ class IncreasingVengeanceEffect extends OneShotEffect {
                         copy.setCopiedSpell(true);
                         game.getStack().push(copy);
                         copy.chooseNewTargets(game, source.getControllerId());
-                        game.informPlayers(new StringBuilder(controller.getName()).append(copy.getActivatedMessage(game)).toString());
+                        game.informPlayers(new StringBuilder(controller.getLogName()).append(copy.getActivatedMessage(game)).toString());
                     }
                 }
                 return true;

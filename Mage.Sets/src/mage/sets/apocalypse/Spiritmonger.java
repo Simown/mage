@@ -62,8 +62,6 @@ public class Spiritmonger extends CardImpl {
         this.expansionSetCode = "APC";
         this.subtype.add("Beast");
 
-        this.color.setGreen(true);
-        this.color.setBlack(true);
         this.power = new MageInt(6);
         this.toughness = new MageInt(6);
 
@@ -103,7 +101,7 @@ class SpiritmongerChangeColorEffect extends OneShotEffect {
         if (player != null && wildMongrel != null) {
             ChoiceColor colorChoice = new ChoiceColor();
             if (player.choose(Outcome.Neutral, colorChoice, game)) {
-                game.informPlayers(wildMongrel.getName() + ": " + player.getName() + " has chosen " + colorChoice.getChoice());
+                game.informPlayers(wildMongrel.getName() + ": " + player.getLogName() + " has chosen " + colorChoice.getChoice());
                 ContinuousEffect effect = new BecomesColorTargetEffect(colorChoice.getColor(), Duration.EndOfTurn, "is " + colorChoice.getChoice());
                 effect.setTargetPointer(new FixedTarget(source.getSourceId()));
                 game.addEffect(effect, source);

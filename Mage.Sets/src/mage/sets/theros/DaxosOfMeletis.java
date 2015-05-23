@@ -72,8 +72,6 @@ public class DaxosOfMeletis extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Soldier");
 
-        this.color.setBlue(true);
-        this.color.setWhite(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -121,7 +119,7 @@ class DaxosOfMeletisEffect extends OneShotEffect {
                 Card card = damagedPlayer.getLibrary().getFromTop(game);
                 if (card != null) {
                     // move card to exile
-                    controller.moveCardToExileWithInfo(card, exileId,  sourceObject.getLogName(), source.getSourceId(), game, Zone.LIBRARY, true);
+                    controller.moveCardToExileWithInfo(card, exileId,  sourceObject.getName(), source.getSourceId(), game, Zone.LIBRARY, true);
                     // player gains life
                     int cmc = card.getManaCost().convertedManaCost();
                     if (cmc > 0) {

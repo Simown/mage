@@ -67,7 +67,6 @@ public class BrainMaggot extends CardImpl {
         this.expansionSetCode = "JOU";
         this.subtype.add("Insect");
 
-        this.color.setBlack(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(1);
 
@@ -111,7 +110,7 @@ class BrainMaggotExileEffect extends OneShotEffect {
         Permanent sourcePermanent = game.getPermanentOrLKIBattlefield(source.getSourceId());
         if (controller != null && opponent != null && sourcePermanent != null) {
             if (!opponent.getHand().isEmpty()) {
-                opponent.revealCards(sourcePermanent.getLogName(), opponent.getHand(), game);
+                opponent.revealCards(sourcePermanent.getName(), opponent.getHand(), game);
 
                 FilterCard filter = new FilterNonlandCard("nonland card to exile");
                 TargetCard target = new TargetCard(Zone.HAND, filter);

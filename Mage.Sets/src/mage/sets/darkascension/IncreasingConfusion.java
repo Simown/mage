@@ -51,7 +51,6 @@ public class IncreasingConfusion extends CardImpl {
         super(ownerId, 41, "Increasing Confusion", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{X}{U}");
         this.expansionSetCode = "DKA";
 
-        this.color.setBlue(true);
 
         // Target player puts the top X cards of his or her library into his or her graveyard. If Increasing Confusion was cast from a graveyard, that player puts twice that many cards into his or her graveyard instead.
         this.getSpellAbility().addEffect(new IncreasingConfusionEffect());
@@ -75,7 +74,7 @@ class IncreasingConfusionEffect extends OneShotEffect {
 
     public IncreasingConfusionEffect() {
         super(Outcome.Detriment);
-        staticText = "Target player puts the top X cards of his or her library into his or her graveyard. If Increasing Confusion was cast from a graveyard, that player puts twice that many cards into his or her graveyard instead";
+        staticText = "Target player puts the top X cards of his or her library into his or her graveyard. If {this} was cast from a graveyard, that player puts twice that many cards into his or her graveyard instead";
     }
 
     public IncreasingConfusionEffect(final IncreasingConfusionEffect effect) {
@@ -92,15 +91,7 @@ class IncreasingConfusionEffect extends OneShotEffect {
                 if (spell.getFromZone() == Zone.GRAVEYARD) {
                     amount *= 2;
                 }
-                Card card;
-                for (int i = 0; i < amount; i++) {
-                    card = player.getLibrary().removeFromTop(game);
-                    if (card != null) {
-                        card.moveToZone(Zone.GRAVEYARD, source.getSourceId(), game, false);
-                    } else {
-                        break;
-                    }
-                }
+                player.moveCards(player.getLibrary().getTopCards(game, amount), Zone.LIBRARY, Zone.GRAVEYARD, source, game);
                 return true;
             }
         }

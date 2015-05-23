@@ -65,8 +65,6 @@ public class JhoiraOfTheGhitu extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Wizard");
 
-        this.color.setRed(true);
-        this.color.setBlue(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -125,7 +123,7 @@ class JhoiraOfTheGhituSuspendEffect extends OneShotEffect {
                 if (!hasSuspend) {
                     game.addEffect(new GainSuspendEffect(new MageObjectReference(card, game)), source);
                 }
-                game.informPlayers(controller.getName() + " suspends 4 - " + card.getName());
+                game.informPlayers(controller.getLogName() + " suspends 4 - " + card.getName());
                 return true;
             }
         }

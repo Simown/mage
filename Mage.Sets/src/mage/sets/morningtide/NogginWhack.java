@@ -59,7 +59,6 @@ public class NogginWhack extends CardImpl {
         this.expansionSetCode = "MOR";
         this.subtype.add("Rogue");
 
-        this.color.setBlack(true);
 
         // Prowl {1}{B}
         this.addAbility(new ProwlAbility(this, "{1}{B}"));
@@ -128,8 +127,7 @@ class NogginWhackEffect extends OneShotEffect {
                 for (UUID cardId : (List<UUID>) targetInHand.getTargets()) {
                     Card card = game.getCard(cardId);
                     if (card != null) {
-                        card.moveToZone(Zone.GRAVEYARD, source.getSourceId(), game, true);
-                        game.informPlayers(new StringBuilder(sourceCard.getName()).append(": Discarded card ").append(card.getName()).toString());
+                        controller.discard(card, source, game);
                     }
                 }
             }

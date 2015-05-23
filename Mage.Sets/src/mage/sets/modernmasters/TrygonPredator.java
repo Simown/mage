@@ -58,8 +58,6 @@ public class TrygonPredator extends CardImpl {
         this.expansionSetCode = "MMA";
         this.subtype.add("Beast");
 
-        this.color.setBlue(true);
-        this.color.setGreen(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(3);
 
@@ -100,7 +98,7 @@ class TrygonPredatorTriggeredAbility extends TriggeredAbilityImpl {
                 && ((DamagedPlayerEvent) event).isCombatDamage()) {
             Player player = game.getPlayer(event.getTargetId());
             if (player != null) {
-                FilterPermanent filter = new FilterPermanent("an artifact or enchantment controlled by " + player.getName());
+                FilterPermanent filter = new FilterPermanent("an artifact or enchantment controlled by " + player.getLogName());
                 filter.add(Predicates.or(
                     new CardTypePredicate(CardType.ARTIFACT),
                     new CardTypePredicate(CardType.ENCHANTMENT)));

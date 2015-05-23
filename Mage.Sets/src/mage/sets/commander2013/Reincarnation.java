@@ -60,7 +60,6 @@ public class Reincarnation extends CardImpl {
         super(ownerId, 166, "Reincarnation", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{1}{G}{G}");
         this.expansionSetCode = "C13";
 
-        this.color.setGreen(true);
 
         // Choose target creature. When that creature dies this turn, return a creature card from its owner's graveyard to the battlefield under the control of that creature's owner.
         this.getSpellAbility().addEffect(new ReincarnationEffect());
@@ -167,7 +166,7 @@ class ReincarnationDelayedEffect extends OneShotEffect {
         if (permanent != null && controller != null) {
             Player player = game.getPlayer(permanent.getOwnerId());
             if (player != null) {
-                FilterCreatureCard filter = new FilterCreatureCard(new StringBuilder("a creature card from ").append(player.getName()).append("'s graveyard").toString());
+                FilterCreatureCard filter = new FilterCreatureCard(new StringBuilder("a creature card from ").append(player.getLogName()).append("'s graveyard").toString());
                 filter.add(new OwnerIdPredicate(player.getId()));
                 Target targetCreature = new TargetCardInGraveyard(filter);
                 if (targetCreature.canChoose(source.getSourceId(), controller.getId(), game)

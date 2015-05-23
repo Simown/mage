@@ -57,8 +57,6 @@ public class PuresightMerrow extends CardImpl {
         this.subtype.add("Merfolk");
         this.subtype.add("Wizard");
 
-        this.color.setBlue(true);
-        this.color.setWhite(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -107,7 +105,7 @@ class PuresightMerrowEffect extends OneShotEffect {
                 if (controller.chooseUse(Outcome.Removal, "Do you wish to exile the card from the top of your library?", game)) {
                     controller.moveCardToExileWithInfo(card, source.getSourceId(), "Puresight Merrow", source.getSourceId(), game, Zone.LIBRARY, true);
                 } else {
-                    game.informPlayers(controller.getName() + " puts the card back on top of their library.");
+                    game.informPlayers(controller.getLogName() + " puts the card back on top of their library.");
                 }
                 return true;
             }

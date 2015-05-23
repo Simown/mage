@@ -51,7 +51,6 @@ public class DistantMemories extends CardImpl {
         super(ownerId, 24, "Distant Memories", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{2}{U}{U}");
         this.expansionSetCode = "MBS";
 
-        this.color.setBlue(true);
 
         this.getSpellAbility().addEffect(new DistantMemoriesEffect());
     }
@@ -97,7 +96,7 @@ class DistantMemoriesEffect extends OneShotEffect {
                 player.shuffleLibrary(game);
 
                 StringBuilder sb = new StringBuilder();
-                sb.append("Have ").append(player.getName()).append(" put ").append(card.getName());
+                sb.append("Have ").append(player.getLogName()).append(" put ").append(card.getName());
                 sb.append(" in his hand? If none of his opponents says yes, he'll draw three cards.");
 
                 boolean putInHand = false;

@@ -52,7 +52,6 @@ public class NeedleSpecter extends CardImpl {
         this.expansionSetCode = "EVE";
         this.subtype.add("Specter");
 
-        this.color.setBlack(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(1);
 
@@ -98,8 +97,8 @@ class NeedleSpecterEffect extends OneShotEffect {
             Player targetPlayer = game.getPlayer(targetPointer.getFirst(game, source));
             if (targetPlayer != null) {
                 int damage = (Integer)getValue("damage");
-                targetPlayer.discard(damage, source, game);
-                game.informPlayers(targetPlayer.getName() + "discards " + damage + " card(s)");
+                targetPlayer.discard(damage, false, source, game);
+                game.informPlayers(targetPlayer.getLogName() + "discards " + damage + " card(s)");
                 return true;
             }
             return false;

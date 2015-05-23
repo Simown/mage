@@ -55,7 +55,6 @@ public class GrandAbolisher extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Cleric");
 
-        this.color.setWhite(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -99,7 +98,7 @@ class GrandAbolisherEffect extends ContinuousRuleModifyingEffectImpl {
         Player activePlayer = game.getPlayer(game.getActivePlayerId());
         MageObject mageObject = game.getObject(source.getSourceId());
         if (activePlayer != null && mageObject != null) {
-            return "You can't cast spells or activate abilities of artifacts, creatures, or enchantments during the turns of " + activePlayer.getName() +
+            return "You can't cast spells or activate abilities of artifacts, creatures, or enchantments during the turns of " + activePlayer.getLogName() +
                     " (" + mageObject.getLogName() + ")";
         }
         return null;

@@ -60,7 +60,6 @@ public class MassMutiny extends CardImpl {
         super(ownerId, 48, "Mass Mutiny", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{R}{R}");
         this.expansionSetCode = "PC2";
 
-        this.color.setRed(true);
         this.getSpellAbility().addEffect(new MassMutinyEffect());
         // For each opponent, gain control of up to one target creature that player controls until end of turn. Untap those creatures. They gain haste until end of turn.
     }
@@ -72,7 +71,7 @@ public class MassMutiny extends CardImpl {
                 Player opponent = game.getPlayer(opponentId);
                 if (opponent != null) {
                     ability.getTargets().clear();
-                    FilterCreaturePermanent filter = new FilterCreaturePermanent(new StringBuilder("creature from opponent ").append(opponent.getName()).toString());
+                    FilterCreaturePermanent filter = new FilterCreaturePermanent("creature from opponent " + opponent.getLogName());
                     filter.add(new ControllerIdPredicate(opponentId));
                     TargetCreaturePermanent target = new TargetCreaturePermanent(0,1, filter,false);
                     ability.addTarget(target);

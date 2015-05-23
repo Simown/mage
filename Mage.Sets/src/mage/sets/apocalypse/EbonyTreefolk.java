@@ -49,8 +49,8 @@ public class EbonyTreefolk extends CardImpl {
         super(ownerId, 97, "Ebony Treefolk", Rarity.UNCOMMON, new CardType[]{CardType.CREATURE}, "{1}{B}{G}");
         this.expansionSetCode = "APC";
         this.subtype.add("Treefolk");
-        this.color.setGreen(true);
-        this.color.setBlack(true);
+
+
         this.power = new MageInt(3);
         this.toughness = new MageInt(3);
         this.addAbility(new SimpleActivatedAbility(Zone.BATTLEFIELD, new BoostSourceEffect(1, 1, Duration.EndOfTurn), new ManaCostsImpl("{B}{G}")));

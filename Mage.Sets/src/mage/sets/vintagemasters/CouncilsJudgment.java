@@ -58,7 +58,6 @@ public class CouncilsJudgment extends CardImpl {
         super(ownerId, 20, "Council's Judgment", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{1}{W}{W}");
         this.expansionSetCode = "VMA";
 
-        this.color.setWhite(true);
 
         // Will of the council - Starting with you, each player votes for a nonland permanent you don't control. Exile each permanent with the most votes or tied for most votes.
         this.getSpellAbility().addEffect(new CouncilsJudgmentEffect());
@@ -96,7 +95,7 @@ class CouncilsJudgmentEffect extends OneShotEffect {
         if (controller != null) {
             Map<Permanent, Integer> chosenCards = new HashMap<>(2);
             int maxCount = 0;
-            FilterNonlandPermanent filter = new FilterNonlandPermanent("a nonland permanent " + controller.getName() + " doesn't control");
+            FilterNonlandPermanent filter = new FilterNonlandPermanent("a nonland permanent " + controller.getLogName() + " doesn't control");
             filter.add(Predicates.not(new ControllerIdPredicate(controller.getId())));
             //Players each choose a legal permanent
             PlayerList playerList = game.getState().getPlayerList().copy();
@@ -124,7 +123,7 @@ class CouncilsJudgmentEffect extends OneShotEffect {
                                 }
                                 chosenCards.put(permanent, 1);
                             }
-                            game.informPlayers(player.getName() + " has chosen: " + permanent.getName());
+                            game.informPlayers(player.getLogName() + " has chosen: " + permanent.getName());
                         }
                     }
                 }

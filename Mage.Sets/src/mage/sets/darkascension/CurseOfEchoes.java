@@ -49,7 +49,6 @@ import mage.game.permanent.Permanent;
 import mage.game.stack.Spell;
 import mage.players.Player;
 import mage.target.TargetPlayer;
-import mage.target.TargetSpell;
 import mage.target.targetpointer.FixedTarget;
 
 /**
@@ -64,7 +63,6 @@ public class CurseOfEchoes extends CardImpl {
         this.subtype.add("Aura");
         this.subtype.add("Curse");
 
-        this.color.setBlue(true);
 
         // Enchant player
         TargetPlayer auraTarget = new TargetPlayer();
@@ -110,17 +108,20 @@ class CurseOfEchoesCopyTriggeredAbility extends TriggeredAbilityImpl {
     }
 
     @Override
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == GameEvent.EventType.SPELL_CAST;
+    }
+
+    @Override
     public boolean checkTrigger(GameEvent event, Game game) {
-        if (event.getType() == GameEvent.EventType.SPELL_CAST) {
-            Spell spell = game.getStack().getSpell(event.getTargetId());
-            if (spell != null && (spell.getCardType().contains(CardType.INSTANT) || spell.getCardType().contains(CardType.SORCERY))) {
-                Permanent enchantment = game.getPermanent(sourceId);
-                if (enchantment != null && enchantment.getAttachedTo() != null) {
-                    Player player = game.getPlayer(enchantment.getAttachedTo());
-                    if (player != null && spell.getControllerId().equals(player.getId())) {
-                        this.getEffects().get(0).setTargetPointer(new FixedTarget(spell.getId()));
-                        return true;
-                    }
+        Spell spell = game.getStack().getSpell(event.getTargetId());
+        if (spell != null && (spell.getCardType().contains(CardType.INSTANT) || spell.getCardType().contains(CardType.SORCERY))) {
+            Permanent enchantment = game.getPermanent(sourceId);
+            if (enchantment != null && enchantment.getAttachedTo() != null) {
+                Player player = game.getPlayer(enchantment.getAttachedTo());
+                if (player != null && spell.getControllerId().equals(player.getId())) {
+                    this.getEffects().get(0).setTargetPointer(new FixedTarget(spell.getId()));
+                    return true;
                 }
             }
         }

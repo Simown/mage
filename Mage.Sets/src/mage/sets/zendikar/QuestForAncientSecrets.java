@@ -35,6 +35,7 @@ import mage.abilities.costs.common.RemoveCountersSourceCost;
 import mage.abilities.costs.common.SacrificeSourceCost;
 import mage.abilities.effects.OneShotEffect;
 import mage.abilities.effects.common.counter.AddCountersSourceEffect;
+import mage.cards.Card;
 import mage.cards.CardImpl;
 import mage.constants.CardType;
 import mage.constants.Outcome;
@@ -56,7 +57,6 @@ public class QuestForAncientSecrets extends CardImpl {
         super(ownerId, 59, "Quest for Ancient Secrets", Rarity.UNCOMMON, new CardType[]{CardType.ENCHANTMENT}, "{U}");
         this.expansionSetCode = "ZEN";
 
-        this.color.setBlue(true);
 
         // Whenever a card is put into your graveyard from anywhere, you may put a quest counter on Quest for Ancient Secrets.
         this.addAbility(new PutCardIntoGraveFromAnywhereAllTriggeredAbility(
@@ -101,8 +101,9 @@ class QuestForAncientSecretsEffect extends OneShotEffect {
     public boolean apply(Game game, Ability source) {
         Player player = game.getPlayer(source.getFirstTarget());
         if (player != null) {
-            player.getLibrary().addAll(player.getGraveyard().getCards(game), game);
-            player.getGraveyard().clear();
+            for (Card card: player.getGraveyard().getCards(game)) {
+                player.moveCardToLibraryWithInfo(card, source.getSourceId(), game, Zone.GRAVEYARD, true, true);
+            }                
             player.shuffleLibrary(game);
             return true;
         }

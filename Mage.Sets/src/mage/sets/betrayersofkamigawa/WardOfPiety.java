@@ -60,7 +60,6 @@ public class WardOfPiety extends CardImpl {
         this.expansionSetCode = "BOK";
         this.subtype.add("Aura");
 
-        this.color.setWhite(true);
 
         // Enchant creature
         TargetPermanent auraTarget = new TargetCreaturePermanent();
@@ -119,7 +118,7 @@ class WardOfPietyPreventDamageTargetEffect extends PreventionEffectImpl {
             }
             Player player = game.getPlayer(getTargetPointer().getFirst(game, source));
             if (player != null) {
-                game.informPlayers("Dealing " + preventionData.getPreventedDamage() + " damage to " + player.getName() + " instead");
+                game.informPlayers("Dealing " + preventionData.getPreventedDamage() + " damage to " + player.getLogName() + " instead");
                 // keep the original source id as it is redirecting
                 player.damage(preventionData.getPreventedDamage(), event.getSourceId(), game, false, true);
             }

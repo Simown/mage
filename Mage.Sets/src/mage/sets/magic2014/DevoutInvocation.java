@@ -55,7 +55,6 @@ public class DevoutInvocation extends CardImpl {
         super(ownerId, 16, "Devout Invocation", Rarity.MYTHIC, new CardType[]{CardType.SORCERY}, "{6}{W}");
         this.expansionSetCode = "M14";
 
-        this.color.setWhite(true);
 
         // Tap any number of untapped creatures you control. Put a 4/4 white Angel creature token with flying onto the battlefield for each creature tapped this way.
         this.getSpellAbility().addEffect(new DevoutInvocationEffect());
@@ -118,7 +117,7 @@ class DevoutInvocationEffect extends OneShotEffect {
             if (tappedAmount > 0) {
                 AngelToken angelToken = new AngelToken();
                 angelToken.putOntoBattlefield(tappedAmount, game, source.getSourceId(), source.getControllerId());
-                game.informPlayers(new StringBuilder(controller.getName()).append(" puts ").append(tappedAmount).append(" token").append(tappedAmount != 1 ?"s":"").append(" onto the battlefield").toString());
+                game.informPlayers(new StringBuilder(controller.getLogName()).append(" puts ").append(tappedAmount).append(" token").append(tappedAmount != 1 ?"s":"").append(" onto the battlefield").toString());
             }
             return true;
         }

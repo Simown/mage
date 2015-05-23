@@ -59,8 +59,6 @@ public class PsychicIntrusion extends CardImpl {
         super(ownerId, 200, "Psychic Intrusion", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{U}{B}");
         this.expansionSetCode = "THS";
 
-        this.color.setBlue(true);
-        this.color.setBlack(true);
 
         // Target opponent reveals his or her hand. You choose a nonland card from that player's graveyard or hand and exile it.
         // You may cast that card for as long as it remains exiled, and you may spend mana as though it were mana of any color
@@ -103,7 +101,7 @@ class PsychicIntrusionExileEffect extends OneShotEffect {
         Player opponent = game.getPlayer(targetPointer.getFirst(game, source));
         MageObject sourceObject = game.getObject(source.getSourceId());
         if (opponent != null && sourceObject != null) {
-            opponent.revealCards(sourceObject.getLogName(), opponent.getHand(), game);
+            opponent.revealCards(sourceObject.getName(), opponent.getHand(), game);
             Player controller = game.getPlayer(source.getControllerId());
             if (controller != null) {
                 int cardsGraveyard = opponent.getGraveyard().count(filter, game);
@@ -137,7 +135,7 @@ class PsychicIntrusionExileEffect extends OneShotEffect {
                 if (card != null) {
                     // move card to exile
                     UUID exileId = CardUtil.getCardExileZoneId(game, source);
-                    controller.moveCardToExileWithInfo(card, exileId, sourceObject.getLogName(),  source.getSourceId(), game, fromHand ? Zone.HAND:Zone.GRAVEYARD, true);
+                    controller.moveCardToExileWithInfo(card, exileId, sourceObject.getName(),  source.getSourceId(), game, fromHand ? Zone.HAND:Zone.GRAVEYARD, true);
                     // allow to cast the card
                     ContinuousEffect effect = new PsychicIntrusionCastFromExileEffect();
                     effect.setTargetPointer(new FixedTarget(card.getId()));
@@ -214,10 +212,16 @@ class PsychicIntrusionSpendAnyManaEffect extends AsThoughEffectImpl {
 
     @Override
     public boolean applies(UUID objectId, Ability source, UUID affectedControllerId, Game game) {
-        if (objectId.equals(getTargetPointer().getFirst(game, source))) {
-            if (affectedControllerId.equals(source.getControllerId())) {
-                return true;
+        if (objectId.equals(((FixedTarget)getTargetPointer()).getTarget()) 
+                && game.getState().getZoneChangeCounter(objectId) <= ((FixedTarget)getTargetPointer()).getZoneChangeCounter() +1) {
+            
+            if (affectedControllerId.equals(source.getControllerId())) {                
+                // if the card moved from exile to spell the zone change counter is increased by 1
+                if (game.getState().getZoneChangeCounter(objectId) == ((FixedTarget)getTargetPointer()).getZoneChangeCounter() +1) {
+                    return true;
+                }
             }            
+            
         } else {
             if (((FixedTarget)getTargetPointer()).getTarget().equals(objectId)) {
                 // object has moved zone so effect can be discarted

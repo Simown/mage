@@ -69,8 +69,8 @@ public class TezzeretAgentOfBolas extends CardImpl {
         super(ownerId, 97, "Tezzeret, Agent of Bolas", Rarity.MYTHIC, new CardType[]{CardType.PLANESWALKER}, "{2}{U}{B}");
         this.expansionSetCode = "MBS";
         this.subtype.add("Tezzeret");
-        this.color.setBlue(true);
-        this.color.setBlack(true);
+
+
         this.addAbility(new EntersBattlefieldAbility(new AddCountersSourceEffect(CounterType.LOYALTY.createInstance(3)), false));
 
         // +1: Look at the top five cards of your library. You may reveal an artifact card from among them and put it into your hand. Put the rest on the bottom of your library in any order.
@@ -78,10 +78,10 @@ public class TezzeretAgentOfBolas extends CardImpl {
 
         // -1: Target artifact becomes an artifact creature with base power and toughness 5/5.
         Effect effect = new AddCardTypeTargetEffect(CardType.CREATURE, Duration.EndOfGame);
-        effect.setText("");
+        effect.setText("Target artifact becomes an artifact creature");
         LoyaltyAbility ability1 = new LoyaltyAbility(effect, -1);
         effect = new SetPowerToughnessTargetEffect(5,5, Duration.EndOfGame);
-        effect.setText("Target artifact becomes an artifact creature with base power and toughness 5/5");
+        effect.setText("with base power and toughness 5/5");
         ability1.addEffect(effect);
         ability1.addTarget(new TargetArtifactPermanent());
         this.addAbility(ability1);

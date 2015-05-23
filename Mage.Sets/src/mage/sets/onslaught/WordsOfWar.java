@@ -55,7 +55,6 @@ public class WordsOfWar extends CardImpl {
         super(ownerId, 244, "Words of War", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{2}{R}");
         this.expansionSetCode = "ONS";
 
-        this.color.setRed(true);
 
         // {1}: The next time you would draw a card this turn, Words of War deals 2 damage to target creature or player instead.
         Ability ability = new SimpleActivatedAbility(Zone.BATTLEFIELD, new WordsOfWarEffect(), new GenericManaCost(1));
@@ -101,13 +100,13 @@ class WordsOfWarEffect extends ReplacementEffectImpl {
             Player player = game.getPlayer(targetPointer.getFirst(game, source));
             if (player != null) {
                 player.damage(2, source.getSourceId(), game, false, true);
-                used = true;
+                discard();
                 return true;
             }
             Permanent permanent = game.getPermanent(targetPointer.getFirst(game, source));
             if (permanent != null) {
                 permanent.damage(2, source.getSourceId(), game, false, true);
-                used = true;
+                discard();
                 return true;
             }
         }
@@ -115,7 +114,12 @@ class WordsOfWarEffect extends ReplacementEffectImpl {
     }
     
     @Override
+    public boolean checksEventType(GameEvent event, Game game) {
+        return event.getType() == GameEvent.EventType.DRAW_CARD;
+    }
+    
+    @Override
     public boolean applies(GameEvent event, Ability source, Game game) {
-        return event.getType() == EventType.DRAW_CARD && source.getControllerId().equals(event.getPlayerId()) && used == false;
+        return source.getControllerId().equals(event.getPlayerId());
     }
 }

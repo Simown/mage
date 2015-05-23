@@ -54,7 +54,6 @@ public class ObstinateFamiliar extends CardImpl {
         this.expansionSetCode = "ODY";
         this.subtype.add("Lizard");
 
-        this.color.setRed(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(1);
 
@@ -76,7 +75,7 @@ class ObstinateFamiliarReplacementEffect extends ReplacementEffectImpl {
 
     public ObstinateFamiliarReplacementEffect() {
         super(Duration.WhileOnBattlefield, Outcome.Benefit);
-        staticText = "If you would draw a card, you may skip that draw instead.";
+        staticText = "If you would draw a card, you may skip that draw instead";
     }
 
     public ObstinateFamiliarReplacementEffect(final ObstinateFamiliarReplacementEffect effect) {
@@ -97,13 +96,17 @@ class ObstinateFamiliarReplacementEffect extends ReplacementEffectImpl {
     public boolean replaceEvent(GameEvent event, Ability source, Game game) {
         return true;
     }
-
+    
+    @Override
+    public boolean checksEventType(GameEvent event, Game game) {
+        return event.getType() == GameEvent.EventType.DRAW_CARD;
+    }   
+    
     @Override
     public boolean applies(GameEvent event, Ability source, Game game) {
         Permanent archmage = game.getPermanent(source.getSourceId());
         Player you = game.getPlayer(source.getControllerId());
-        if (event.getType() == GameEvent.EventType.DRAW_CARD
-                && event.getPlayerId().equals(source.getControllerId())
+        if (event.getPlayerId().equals(source.getControllerId())
                 && archmage != null
                 && you != null
                 && you.chooseUse(Outcome.Benefit, "Would you like to skip drawing a card?", game)) {

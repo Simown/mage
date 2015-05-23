@@ -60,7 +60,6 @@ public class WildMongrel extends CardImpl {
         this.expansionSetCode = "ODY";
         this.subtype.add("Hound");
 
-        this.color.setGreen(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -100,7 +99,7 @@ class ChangeColorEffect extends OneShotEffect {
         if (player != null && wildMongrel != null) {
             ChoiceColor colorChoice = new ChoiceColor();
             if (player.choose(Outcome.Neutral, colorChoice, game)) {
-                game.informPlayers(wildMongrel.getName() + ": " + player.getName() + " has chosen " + colorChoice.getChoice());
+                game.informPlayers(wildMongrel.getName() + ": " + player.getLogName() + " has chosen " + colorChoice.getChoice());
                 ContinuousEffect effect = new BecomesColorTargetEffect(colorChoice.getColor(), Duration.EndOfTurn, "is " + colorChoice.getChoice());
                 effect.setTargetPointer(new FixedTarget(source.getSourceId()));
                 game.addEffect(effect, source);

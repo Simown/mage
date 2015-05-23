@@ -55,8 +55,6 @@ public class RakdosCharm extends CardImpl {
         super(ownerId, 184, "Rakdos Charm", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{B}{R}");
         this.expansionSetCode = "RTR";
 
-        this.color.setBlack(true);
-        this.color.setRed(true);
 
         // Choose one — Exile all cards from target player's graveyard;
         this.getSpellAbility().addEffect(new ExileGraveyardAllTargetPlayerEffect());
@@ -105,7 +103,7 @@ public class RakdosCharm extends CardImpl {
                 Player controller = game.getPlayer(permanent.getControllerId());
                 if (controller != null) {
                     controller.damage(1, permanent.getId(), game, false, true);
-                    game.informPlayers("1 damage to " + controller.getName() + " from " + permanent.getName());
+                    game.informPlayers("1 damage to " + controller.getLogName() + " from " + permanent.getName());
                 }
             }
             return true;

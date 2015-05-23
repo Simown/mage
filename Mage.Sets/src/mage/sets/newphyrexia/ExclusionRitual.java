@@ -60,7 +60,6 @@ public class ExclusionRitual extends CardImpl {
         super(ownerId, 10, "Exclusion Ritual", Rarity.UNCOMMON, new CardType[]{CardType.ENCHANTMENT}, "{4}{W}{W}");
         this.expansionSetCode = "NPH";
 
-        this.color.setWhite(true);
 
         // Imprint - When Exclusion Ritual enters the battlefield, exile target nonland permanent.
         Ability ability = new EntersBattlefieldTriggeredAbility(new ExclusionRitualImprintEffect(), false);
@@ -96,7 +95,7 @@ class ExclusionRitualImprintEffect extends OneShotEffect {
         Permanent targetPermanent = game.getPermanent(targetPointer.getFirst(game, source));
         Player controller = game.getPlayer(source.getControllerId());
         if (controller != null && sourcePermanent != null && targetPermanent != null) {
-            controller.moveCardToExileWithInfo(targetPermanent, getId(), sourcePermanent.getLogName(), source.getSourceId(), game, Zone.BATTLEFIELD, true);
+            controller.moveCardToExileWithInfo(targetPermanent, getId(), sourcePermanent.getName(), source.getSourceId(), game, Zone.BATTLEFIELD, true);
             sourcePermanent.imprint(targetPermanent.getId(), game);
         }
         return true;

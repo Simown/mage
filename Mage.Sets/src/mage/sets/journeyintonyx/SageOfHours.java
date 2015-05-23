@@ -60,7 +60,6 @@ public class SageOfHours extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Wizard");
 
-        this.color.setBlue(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(1);
 
@@ -155,7 +154,7 @@ class SageOfHoursEffect extends OneShotEffect {
                 game.getState().getTurnMods().add(new TurnMod(player.getId(), false));
             }
             game.informPlayers(new StringBuilder("Removed ").append(countersRemoved)
-                    .append(" +1/+1 counters: ").append(player.getName()).append(" takes ")
+                    .append(" +1/+1 counters: ").append(player.getLogName()).append(" takes ")
                     .append(CardUtil.numberToText(turns, "an"))
                     .append(turns > 1 ? " extra turns ":" extra turn ")
                     .append("after this one").toString());

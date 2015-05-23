@@ -57,7 +57,6 @@ public class ForbiddenCrypt extends CardImpl {
         super(ownerId, 22, "Forbidden Crypt", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{3}{B}{B}");
         this.expansionSetCode = "MIR";
 
-        this.color.setBlack(true);
 
         // If you would draw a card, return a card from your graveyard to your hand instead. If you can't, you lose the game.
         this.addAbility(new SimpleStaticAbility(Zone.BATTLEFIELD, new ForbiddenCryptDrawCardReplacementEffect()));
@@ -112,7 +111,7 @@ class ForbiddenCryptDrawCardReplacementEffect extends ReplacementEffectImpl {
                 }
             }
             if (!cardReturned) {
-                game.informPlayers(new StringBuilder(player.getName()).append(" can't return a card from graveyard to hand.").toString());
+                game.informPlayers(new StringBuilder(player.getLogName()).append(" can't return a card from graveyard to hand.").toString());
                 player.lost(game);
             }
             return true;
@@ -167,10 +166,15 @@ class ForbiddenCryptPutIntoYourGraveyardReplacementEffect extends ReplacementEff
         }
         return true;
     }
-
+    
+    @Override
+    public boolean checksEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.ZONE_CHANGE;
+    }   
+    
     @Override
     public boolean applies(GameEvent event, Ability source, Game game) {
-        if (event.getType() == EventType.ZONE_CHANGE && ((ZoneChangeEvent) event).getToZone() == Zone.GRAVEYARD) {
+        if (((ZoneChangeEvent) event).getToZone() == Zone.GRAVEYARD) {
             Card card = game.getCard(event.getTargetId());
             if (card != null && card.getOwnerId().equals(source.getControllerId())) {
                 Permanent permanent = ((ZoneChangeEvent) event).getTarget();

@@ -56,7 +56,6 @@ public class ChaosWarp extends CardImpl {
         super(ownerId, 154, "Chaos Warp", Rarity.RARE, new CardType[]{CardType.INSTANT}, "{2}{R}");
         this.expansionSetCode = "VMA";
 
-        this.color.setRed(true);
 
         // The owner of target permanent shuffles it into his or her library,
         this.getSpellAbility().addEffect(new ChaosWarpShuffleIntoLibraryEffect());
@@ -141,7 +140,7 @@ public ChaosWarpRevealEffect() {
             if (card != null) {
                 Cards cards = new CardsImpl();
                 cards.add(card);
-                owner.revealCards(sourceObject.getLogName(), cards, game);
+                owner.revealCards(sourceObject.getName(), cards, game);
             	if (new FilterPermanentCard().match(card, game)) {
                     owner.putOntoBattlefieldWithInfo(card, game, Zone.LIBRARY, source.getSourceId());
                 }

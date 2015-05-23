@@ -63,7 +63,7 @@ public class ShapeAnew extends CardImpl {
     public ShapeAnew (UUID ownerId) {
         super(ownerId, 43, "Shape Anew", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{U}");
         this.expansionSetCode = "SOM";
-        this.color.setBlue(true);
+
         this.getSpellAbility().addEffect(new SacrificeTargetEffect());
         this.getSpellAbility().addTarget(new TargetPermanent(filter));
         this.getSpellAbility().addEffect(new ShapeAnewEffect());
@@ -116,7 +116,9 @@ public class ShapeAnew extends CardImpl {
             if (artifactCard != null) {
                 artifactCard.putOntoBattlefield(game, Zone.LIBRARY, source.getSourceId(), player.getId());
             }
-            player.getLibrary().addAll(nonArtifactCards.getCards(game), game);
+            for (Card cardToMove: nonArtifactCards.getCards(game)) {
+                cardToMove.moveToZone(Zone.LIBRARY, source.getSourceId(), game, true);
+            }   
             player.shuffleLibrary(game);
             return true;
         }

@@ -58,7 +58,6 @@ public class WordsOfWind extends CardImpl {
         super(ownerId, 122, "Words of Wind", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{2}{U}");
         this.expansionSetCode = "ONS";
 
-        this.color.setBlue(true);
 
         // {1}: The next time you would draw a card this turn, each player returns a permanent he or she controls to its owner's hand instead.
         this.addAbility(new SimpleActivatedAbility(Zone.BATTLEFIELD, new WordsOfWindEffect(), new ManaCostsImpl("{1}")));
@@ -91,13 +90,7 @@ class WordsOfWindEffect extends ReplacementEffectImpl {
     }
 
     @Override
-    public boolean apply(Game game, Ability source) {
-        return true;
-    }
-
-    @Override
-    public boolean replaceEvent(GameEvent event, Ability source, Game game) {
-        
+    public boolean replaceEvent(GameEvent event, Ability source, Game game) {        
         game.informPlayers("Each player returns a permanent he or she controls to its owner's hand instead");
         for (UUID playerId : game.getPlayerList()) {
             Player player = game.getPlayer(playerId);
@@ -117,16 +110,17 @@ class WordsOfWindEffect extends ReplacementEffectImpl {
                 }
             }
         }
-        used = true;
-        return apply(game, source);
+        discard();
+        return true;
     }
-
+    
+    @Override
+    public boolean checksEventType(GameEvent event, Game game) {
+        return event.getType() == GameEvent.EventType.DRAW_CARD;
+    }   
+    
     @Override
     public boolean applies(GameEvent event, Ability source, Game game) {
-        if (event.getType() == EventType.DRAW_CARD && source.getControllerId().equals(event.getPlayerId()) && used == false) {
-            
-            return true;
-        }
-        return false;
+        return source.getControllerId().equals(event.getPlayerId());
     }
 }

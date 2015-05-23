@@ -52,7 +52,7 @@ public class AuraBarbs extends CardImpl {
         super(ownerId, 94, "Aura Barbs", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{2}{R}");
         this.expansionSetCode = "BOK";
         this.subtype.add("Arcane");
-        this.color.setRed(true);
+
 
         // Each enchantment deals 2 damage to its controller, then each Aura attached to a creature deals 2 damage to the creature it's attached to.
         this.getSpellAbility().addEffect(new AuraBarbsEffect());
@@ -88,7 +88,7 @@ public class AuraBarbs extends CardImpl {
                 Player controller = game.getPlayer(permanent.getControllerId());
                 if (controller != null) {
                     controller.damage(2, permanent.getId(), game, false, true);
-                    game.informPlayers("2 damage assigned to " + controller.getName() + " from " + permanent.getName());
+                    game.informPlayers("2 damage assigned to " + controller.getLogName() + " from " + permanent.getName());
                 }
             }
 

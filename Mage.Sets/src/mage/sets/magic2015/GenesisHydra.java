@@ -73,7 +73,6 @@ public class GenesisHydra extends CardImpl {
         this.power = new MageInt(0);
         this.toughness = new MageInt(0);
 
-        this.color.setGreen(true);
 
         // When you cast Genesis Hydra, reveal the top X cards of your library. You may put a nonland permanent card with converted mana cost X or less from among them onto the battlefield. Then shuffle the rest into your library.
         this.addAbility(new CastSourceTriggeredAbility(new GenesisHydraPutOntoBattlefieldEffect(), false));
@@ -178,7 +177,7 @@ class GenesisHydraPutOntoBattlefieldEffect extends OneShotEffect {
                 }
                 target1.clearChosen();
             } else {
-                game.informPlayers(controller.getName() + " didn't choose anything");
+                game.informPlayers(controller.getLogName() + " didn't choose anything");
             }
         } else {
             game.informPlayers("No nonland permanent card with converted mana cost " + count + " or less to choose.");

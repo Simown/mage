@@ -60,7 +60,6 @@ public class OrderOfSuccession extends CardImpl {
         super(ownerId, 52, "Order of Succession", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{U}");
         this.expansionSetCode = "C13";
 
-        this.color.setBlue(true);
 
         // Choose left or right. Starting with you and proceeding in the chosen direction, each player chooses a creature controlled by the next player in that direction. Each player gains control of the creature he or she chose.
         this.getSpellAbility().addChoice(new ChoiceLeftOrRight());
@@ -122,7 +121,7 @@ class OrderOfSuccessionEffect extends OneShotEffect {
                 }
                 // if player is in range he chooses a creature to control
                 if (currentPlayer != null && controller.getInRange().contains(currentPlayer.getId())) {
-                    FilterCreaturePermanent filter = new FilterCreaturePermanent(new StringBuilder("creature controlled by ").append(nextPlayer.getName()).toString());
+                    FilterCreaturePermanent filter = new FilterCreaturePermanent(new StringBuilder("creature controlled by ").append(nextPlayer.getLogName()).toString());
                     filter.add(new ControllerIdPredicate(nextPlayer.getId()));
                     Target target = new TargetCreaturePermanent(filter);
                     target.setNotTarget(false);
@@ -143,7 +142,7 @@ class OrderOfSuccessionEffect extends OneShotEffect {
                         ContinuousEffect effect = new GainControlTargetEffect(Duration.EndOfGame, player.getId());
                         effect.setTargetPointer(new FixedTarget(creature.getId()));
                         game.addEffect(effect, source);
-                        game.informPlayers(new StringBuilder(player.getName()).append(" gains control of ").append(creature.getName()).toString());
+                        game.informPlayers(new StringBuilder(player.getLogName()).append(" gains control of ").append(creature.getName()).toString());
                     }
                 }
             }

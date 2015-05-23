@@ -58,7 +58,6 @@ public class AEtherspouts extends CardImpl {
         super(ownerId, 44, "AEtherspouts", Rarity.RARE, new CardType[]{CardType.INSTANT}, "{3}{U}{U}");
         this.expansionSetCode = "M15";
 
-        this.color.setBlue(true);
 
         // For each attacking creature, its owner puts it on the top or bottom of his or her library.
         this.getSpellAbility().addEffect(new AEtherspoutsEffect());
@@ -114,10 +113,10 @@ class AEtherspoutsEffect extends OneShotEffect {
                     if (permanent.getOwnerId().equals(player.getId())) {
                         if (player.chooseUse(outcome, "Put " + permanent.getLogName() + " to the top? (else it goes to bottom)", game)) {
                             permanentsToTop.add(permanent);
-                            game.informPlayers(permanent.getLogName() + " goes to the top of " + player.getName() + "'s library");
+                            game.informPlayers(permanent.getLogName() + " goes to the top of " + player.getLogName() + "'s library");
                         } else {
                             permanentsToBottom.add(permanent);
-                            game.informPlayers(permanent.getLogName() + " goes to the bottom of " + player.getName() + "'s library");
+                            game.informPlayers(permanent.getLogName() + " goes to the bottom of " + player.getLogName() + "'s library");
                         }
                     }
                 }

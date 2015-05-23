@@ -55,7 +55,6 @@ public class GaeasBlessing extends CardImpl {
         super(ownerId, 77, "Gaea's Blessing", Rarity.SPECIAL, new CardType[]{CardType.SORCERY}, "{1}{G}");
         this.expansionSetCode = "TSB";
 
-        this.color.setGreen(true);
 
         // Target player shuffles up to three target cards from his or her graveyard into his or her library.
         this.getSpellAbility().addEffect(new GaeasBlessingEffect());
@@ -151,7 +150,6 @@ class GaeasBlessingTarget extends TargetCard {
 class GaeasBlessingTriggeredAbility extends ZoneChangeTriggeredAbility {
     public GaeasBlessingTriggeredAbility() {
         super(Zone.LIBRARY, Zone.GRAVEYARD, new GaeasBlessingGraveToLibraryEffect(), "",  false);
-        this.zone = Zone.ALL;
     }
 
     public GaeasBlessingTriggeredAbility(final GaeasBlessingTriggeredAbility ability) {
@@ -185,7 +183,10 @@ class GaeasBlessingGraveToLibraryEffect extends OneShotEffect {
     public boolean apply(Game game, Ability source) {
         Player controller = game.getPlayer(source.getControllerId());
         if (controller != null) {
-            game.informPlayers(new StringBuilder(controller.getName()).append(" shuffle his or her graveyard into his or her library").toString());
+            game.informPlayers(new StringBuilder(controller.getLogName()).append(" shuffle his or her graveyard into his or her library").toString());
+            for (Card card: controller.getGraveyard().getCards(game)) {
+                controller.moveCardToLibraryWithInfo(card, source.getSourceId(), game, Zone.GRAVEYARD, true, true);
+            }               
             controller.getLibrary().addAll(controller.getGraveyard().getCards(game), game);
             controller.getGraveyard().clear();
             controller.shuffleLibrary(game);

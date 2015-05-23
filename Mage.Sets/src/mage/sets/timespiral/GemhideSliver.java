@@ -38,8 +38,7 @@ import mage.constants.CardType;
 import mage.constants.Duration;
 import mage.constants.Rarity;
 import mage.constants.Zone;
-import mage.filter.common.FilterCreaturePermanent;
-import mage.filter.predicate.mageobject.SubtypePredicate;
+import mage.filter.FilterPermanent;
 
 /**
  *
@@ -47,18 +46,13 @@ import mage.filter.predicate.mageobject.SubtypePredicate;
  */
 public class GemhideSliver extends CardImpl {
 
-    private static final FilterCreaturePermanent filter = new FilterCreaturePermanent();
-
-    static {
-        filter.add(new SubtypePredicate("Sliver"));
-    }
+    private static final FilterPermanent filter = new FilterPermanent("Sliver", "All Slivers");
 
     public GemhideSliver(UUID ownerId) {
         super(ownerId, 196, "Gemhide Sliver", Rarity.COMMON, new CardType[]{CardType.CREATURE}, "{1}{G}");
         this.expansionSetCode = "TSP";
         this.subtype.add("Sliver");
 
-        this.color.setGreen(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(1);
 

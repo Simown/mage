@@ -61,7 +61,6 @@ public class UndercityInformer extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Rogue");
 
-        this.color.setBlack(true);
         
         this.power = new MageInt(2);
         this.toughness = new MageInt(3);
@@ -118,11 +117,7 @@ class UndercityInformerEffect extends OneShotEffect {
             }
         }
         player.revealCards("Undercity Informer", cards, game);
-        for(Card card : cards.getCards(game)){
-            if(card != null){
-                card.moveToZone(Zone.GRAVEYARD, id, game, true);
-            }
-        }
+        player.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
         return true;
     }
 }

@@ -62,7 +62,6 @@ public class KurkeshOnakkeAncient extends CardImpl {
         this.subtype.add("Ogre");
         this.subtype.add("Spirit");
 
-        this.color.setRed(true);
         this.power = new MageInt(4);
         this.toughness = new MageInt(3);
 
@@ -155,7 +154,7 @@ class KurkeshOnakkeAncientEffect extends OneShotEffect {
                                 }
                             }
                         }
-                        game.informPlayers(new StringBuilder(sourcePermanent.getName()).append(": ").append(controller.getName()).append(" copied activated ability").toString());
+                        game.informPlayers(new StringBuilder(sourcePermanent.getName()).append(": ").append(controller.getLogName()).append(" copied activated ability").toString());
                         return true;
                     }
                     return false;

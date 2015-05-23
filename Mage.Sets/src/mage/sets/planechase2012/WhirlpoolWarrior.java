@@ -57,7 +57,6 @@ public class WhirlpoolWarrior extends CardImpl {
         this.subtype.add("Merfolk");
         this.subtype.add("Warrior");
 
-        this.color.setBlue(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -149,7 +148,7 @@ class WhirlpoolWarriorActivatedEffect extends OneShotEffect {
                                 card.moveToZone(Zone.LIBRARY, source.getSourceId(), game, true);
                             }
                         }
-                        game.informPlayers(player.getName() + " shuffles the cards from his or her hand into his or her library");
+                        game.informPlayers(player.getLogName() + " shuffles the cards from his or her hand into his or her library");
                         player.shuffleLibrary(game);
                         player.drawCards(cardsHand, game);
                     }

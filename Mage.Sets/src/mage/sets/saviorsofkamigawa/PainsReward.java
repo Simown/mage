@@ -48,7 +48,6 @@ public class PainsReward extends CardImpl {
         super(ownerId, 85, "Pain's Reward", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{2}{B}");
         this.expansionSetCode = "SOK";
 
-        this.color.setBlack(true);
 
         // Each player may bid life. You start the bidding with a bid of any number. In turn order, each player may top the high bid. The bidding ends if the high bid stands. The high bidder loses life equal to the high bid and draws four cards.
         this.getSpellAbility().addEffect(new PainsRewardEffect());
@@ -90,23 +89,23 @@ class PainsRewardEffect extends OneShotEffect {
             Player winner = game.getPlayer(controller.getId());
 
             int highBid = controller.getAmount(0, Integer.MAX_VALUE, "Choose amount of life to bid", game);
-            game.informPlayers(winner.getName() + " has bet " + highBid + " lifes");
+            game.informPlayers(winner.getLogName() + " has bet " + highBid + " lifes");
 
             Player currentPlayer = playerList.getNextInRange(controller, game);
             while (currentPlayer != winner) {
-                String text = winner.getName() + " has bet " + highBid + " life" + (highBid > 1 ? "s" : "") + ". Top the bid?";
+                String text = winner.getLogName() + " has bet " + highBid + " life" + (highBid > 1 ? "s" : "") + ". Top the bid?";
                 if (currentPlayer.chooseUse(Outcome.Detriment, text, game)) {
                     int newBid = currentPlayer.getAmount(highBid + 1, Integer.MAX_VALUE, "Choose amount of life to bid", game);
                     if (newBid > highBid) {
                         highBid = newBid;
                         winner = currentPlayer;
-                        game.informPlayers(currentPlayer.getName() + " bet " + newBid + " life" + (newBid > 1 ? "s" : ""));
+                        game.informPlayers(currentPlayer.getLogName() + " bet " + newBid + " life" + (newBid > 1 ? "s" : ""));
                     }
                 }
                 currentPlayer = playerList.getNextInRange(controller, game);
             }
 
-            game.informPlayers(winner.getName() + " won the auction with a bid of " + highBid + " life" + (highBid > 1 ? "s" : ""));
+            game.informPlayers(winner.getLogName() + " won the auction with a bid of " + highBid + " life" + (highBid > 1 ? "s" : ""));
             winner.loseLife(highBid, game);
             winner.drawCards(4, game);
             return true;

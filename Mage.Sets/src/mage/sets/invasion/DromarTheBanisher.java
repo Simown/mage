@@ -58,9 +58,6 @@ public class DromarTheBanisher extends CardImpl {
         this.supertype.add("Legendary");
         this.subtype.add("Dragon");
 
-        this.color.setBlue(true);
-        this.color.setWhite(true);
-        this.color.setBlack(true);
         this.power = new MageInt(6);
         this.toughness = new MageInt(6);
 
@@ -104,7 +101,7 @@ class DromarTheBanisherEffect extends OneShotEffect {
             ChoiceColor choice = new ChoiceColor();
             player.choose(outcome, choice, game);
             if (choice.getColor() != null) {
-                game.informPlayers(new StringBuilder(player.getName()).append(" chooses ").append(choice.getColor()).toString());
+                game.informPlayers(new StringBuilder(player.getLogName()).append(" chooses ").append(choice.getColor()).toString());
                 FilterPermanent filter = new FilterPermanent();
                 filter.add(new ColorPredicate(choice.getColor()));
                 new ReturnToHandFromBattlefieldAllEffect(filter).apply(game, source);

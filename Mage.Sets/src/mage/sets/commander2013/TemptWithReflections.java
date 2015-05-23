@@ -57,7 +57,6 @@ public class TemptWithReflections extends CardImpl {
         super(ownerId, 60, "Tempt with Reflections", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{U}");
         this.expansionSetCode = "C13";
 
-        this.color.setBlue(true);
 
         // Tempting offer - Choose target creature you control. Put a token onto the battlefield that's a copy of that creature. Each opponent may put a token onto the battlefield that's a copy of that creature. For each opponent who does, put a token onto the battlefield that's a copy of that creature.
         this.getSpellAbility().addEffect(new TemptWithReflectionsEffect());
@@ -111,7 +110,7 @@ class TemptWithReflectionsEffect extends OneShotEffect {
                     } else {
                         decision = " won't copy ";
                     }
-                    game.informPlayers((new StringBuilder(player.getName()).append(decision).append(permanent.getName()).toString()));
+                    game.informPlayers((new StringBuilder(player.getLogName()).append(decision).append(permanent.getName()).toString()));
                 }
                 player = playerList.getNext(game);
             } while (!player.getId().equals(game.getActivePlayerId()));

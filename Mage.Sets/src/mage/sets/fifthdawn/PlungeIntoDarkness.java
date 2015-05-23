@@ -61,7 +61,6 @@ public class PlungeIntoDarkness extends CardImpl {
         super(ownerId, 57, "Plunge into Darkness", Rarity.RARE, new CardType[]{CardType.INSTANT}, "{1}{B}");
         this.expansionSetCode = "5DN";
 
-        this.color.setBlack(true);
 
         // Choose one - 
         this.getSpellAbility().getModes().setMinModes(1);
@@ -168,7 +167,7 @@ class PlungeIntoDarknessSearchEffect extends OneShotEffect {
                 if (card != null) {
                     cards.remove(card);
                     card.moveToZone(Zone.HAND, source.getSourceId(), game, false);
-                    game.informPlayers("Plunge into Darkness: " + player.getName() + " puts a card into his or her hand");
+                    game.informPlayers("Plunge into Darkness: " + player.getLogName() + " puts a card into his or her hand");
                 }
             }
             for (UUID cardId : cards) {

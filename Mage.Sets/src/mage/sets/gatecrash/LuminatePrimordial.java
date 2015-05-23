@@ -56,7 +56,6 @@ public class LuminatePrimordial extends CardImpl {
         this.expansionSetCode = "GTC";
         this.subtype.add("Avatar");
 
-        this.color.setWhite(true);
         this.power = new MageInt(4);
         this.toughness = new MageInt(7);
 
@@ -75,7 +74,7 @@ public class LuminatePrimordial extends CardImpl {
             for(UUID opponentId : game.getOpponents(ability.getControllerId())) {
                 Player opponent = game.getPlayer(opponentId);
                 if (opponent != null) {
-                    FilterCreaturePermanent filter = new FilterCreaturePermanent(new StringBuilder("creature from opponent ").append(opponent.getName()).toString());
+                    FilterCreaturePermanent filter = new FilterCreaturePermanent("creature from opponent " + opponent.getLogName());
                     filter.add(new ControllerIdPredicate(opponentId));
                     TargetCreaturePermanent target = new TargetCreaturePermanent(0,1, filter,false);
                     ability.addTarget(target);

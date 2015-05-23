@@ -55,7 +55,6 @@ public class CaravanVigil extends CardImpl {
         super(ownerId, 173, "Caravan Vigil", Rarity.COMMON, new CardType[]{CardType.SORCERY}, "{G}");
         this.expansionSetCode = "ISD";
 
-        this.color.setGreen(true);
 
         // Search your library for a basic land card, reveal it, put it into your hand, then shuffle your library.
         // Morbid - You may put that card onto the battlefield instead of putting it into your hand if a creature died this turn.
@@ -106,7 +105,7 @@ class CaravanVigilEffect extends OneShotEffect {
                     } else {
                         controller.moveCardToHandWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
                     }
-                    controller.revealCards(sourceObject.getLogName(), cards, game);
+                    controller.revealCards(sourceObject.getName(), cards, game);
                 }                
             }
             controller.shuffleLibrary(game);

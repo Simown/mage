@@ -59,7 +59,6 @@ public class RiptideShapeshifter extends CardImpl {
         this.expansionSetCode = "ONS";
         this.subtype.add("Shapeshifter");
 
-        this.color.setBlue(true);
         this.power = new MageInt(3);
         this.toughness = new MageInt(3);
 
@@ -117,7 +116,9 @@ class RiptideShapeshifterEffect extends OneShotEffect {
                 revealedCards.add(card);
             }
             player.revealCards("Riptide Shapeshifter", revealedCards, game);
-            player.getLibrary().addAll(revealedCards.getCards(game), game);
+            for (Card card: revealedCards.getCards(game)) {
+                card.moveToZone(Zone.LIBRARY, source.getSourceId(), game, true);
+            }                           
             player.shuffleLibrary(game);
             return true;
         }

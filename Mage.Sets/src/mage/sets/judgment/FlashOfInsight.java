@@ -66,7 +66,6 @@ public class FlashOfInsight extends CardImpl {
         super(ownerId, 40, "Flash of Insight", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{X}{1}{U}");
         this.expansionSetCode = "JUD";
 
-        this.color.setBlue(true);
 
         // Look at the top X cards of your library. Put one of them into your hand and the rest on the bottom of your library in any order.
         this.getSpellAbility().addEffect(new FlashOfInsightEffect());
@@ -130,14 +129,14 @@ class FlashOfInsightEffect extends OneShotEffect {
             if (card != null) {
                 cards.remove(card);
                 card.moveToZone(Zone.HAND, source.getSourceId(), game, false);
-                game.informPlayers(sourceObject.getName() + ": " + player.getName() + " puts a card into his or her hand");
+                game.informPlayers(sourceObject.getName() + ": " + player.getLogName() + " puts a card into his or her hand");
             }
         }
 
         target = new TargetCard(Zone.PICK, new FilterCard("card to put on the bottom of your library"));
         if (cards.size() > 0) {
             game.informPlayers(new StringBuilder(sourceObject.getName()).append(": ")
-                    .append(player.getName()).append(" puts ")
+                    .append(player.getLogName()).append(" puts ")
                     .append(cards.size() == 1 ? "a":cards.size())
                     .append(" card").append(cards.size() > 1 ? "s":"")
                     .append(" on the bottom of his or her library").toString());

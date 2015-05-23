@@ -62,7 +62,6 @@ public class GuildscornWard extends CardImpl {
         this.expansionSetCode = "GTC";
 
         this.subtype.add("Aura");
-        this.color.setWhite(true);
 
         // Enchant creature
         TargetPermanent auraTarget = new TargetCreaturePermanent();

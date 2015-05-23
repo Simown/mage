@@ -66,7 +66,6 @@ public class VolcanicOffering extends CardImpl {
         super(ownerId, 40, "Volcanic Offering", Rarity.RARE, new CardType[]{CardType.INSTANT}, "{4}{R}");
         this.expansionSetCode = "C14";
 
-        this.color.setRed(true);
 
         // Destroy target nonbasic land you don't control and target nonbasic land of an opponent's choice you don't control.
         // Volcanic Offering deals 7 damage to target creature you don't control and 7 damage to target creature of an opponent's choice you don't control.
@@ -86,13 +85,13 @@ public class VolcanicOffering extends CardImpl {
         if (controller != null && (ability instanceof SpellAbility)) {
             ability.getTargets().clear();
             ability.addTarget(new TargetPermanent(filterLand));
-            FilterLandPermanent filterLandForOpponent = new FilterLandPermanent("nonbasic land not controlled by " + controller.getName());
+            FilterLandPermanent filterLandForOpponent = new FilterLandPermanent("nonbasic land not controlled by " + controller.getLogName());
             filterLandForOpponent.add(Predicates.not(new SupertypePredicate("Basic")));
             filterLandForOpponent.add(Predicates.not(new ControllerIdPredicate(controller.getId())));
             ability.addTarget(new TargetOpponentsChoicePermanent(filterLandForOpponent));
 
             ability.addTarget(new TargetPermanent(filterCreature));
-            FilterCreaturePermanent filterCreatureForOpponent = new FilterCreaturePermanent("creature not controlled by " + controller.getName());
+            FilterCreaturePermanent filterCreatureForOpponent = new FilterCreaturePermanent("creature not controlled by " + controller.getLogName());
             filterCreatureForOpponent.add(Predicates.not(new ControllerIdPredicate(controller.getId())));
             ability.addTarget(new TargetOpponentsChoicePermanent(filterCreatureForOpponent));
         }

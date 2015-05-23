@@ -56,8 +56,6 @@ public class GrislySalvage extends CardImpl {
         super(ownerId, 165, "Grisly Salvage", Rarity.COMMON, new CardType[]{CardType.INSTANT}, "{B}{G}");
         this.expansionSetCode = "RTR";
 
-        this.color.setBlack(true);
-        this.color.setGreen(true);
 
         // Reveal the top five cards of your library. You may put a creature or land card from among them into your hand. Put the rest into your graveyard.
         this.getSpellAbility().addEffect(new GrislySalvageEffect());
@@ -109,18 +107,16 @@ class GrislySalvageEffect extends OneShotEffect {
             }
 
             if (!cards.isEmpty()) {
-                controller.revealCards(sourceObject.getLogName(), cards, game);
+                controller.revealCards(sourceObject.getName(), cards, game);
                 TargetCard target = new TargetCard(Zone.LIBRARY, filterPutInHand);
                 if (properCardFound && controller.choose(Outcome.DrawCard, cards, target, game)) {
                     Card card = game.getCard(target.getFirstTarget());
                     if (card != null) {
-                        controller.moveCardToHandWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
+                        controller.moveCards(card, Zone.LIBRARY, Zone.HAND, source, game);
                         cards.remove(card);
                     }
                 }
-                for (Card card : cards.getCards(game)) {
-                    controller.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
-                }
+                controller.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
             }
             return true;
         }

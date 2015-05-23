@@ -97,14 +97,15 @@ class DredgeEffect extends ReplacementEffectImpl {
         }
         Player player = game.getPlayer(source.getControllerId());
         if (player != null && player.getLibrary().size() >= amount 
-                && player.chooseUse(outcome, new StringBuilder("Dredge ").append(sourceCard.getName()).
+                && player.chooseUse(outcome, new StringBuilder("Dredge ").append(sourceCard.getLogName()).
                 append("? (").append(amount).append(" cards go from top of library to graveyard)").toString(), game)) {
-            if (!game.isSimulation())
-                game.informPlayers(new StringBuilder(player.getName()).append(" dreges ").append(sourceCard.getName()).toString());
+            if (!game.isSimulation()) {
+                game.informPlayers(new StringBuilder(player.getLogName()).append(" dreges ").append(sourceCard.getLogName()).toString());
+            }
             Cards cardsToGrave = new CardsImpl();
             cardsToGrave.addAll(player.getLibrary().getTopCards(game, amount));
-            player.moveCardsToGraveyardWithInfo(cardsToGrave, source, game, Zone.LIBRARY);
-            player.moveCardToHandWithInfo(sourceCard, source.getSourceId(), game, Zone.GRAVEYARD);
+            player.moveCards(cardsToGrave, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
+            player.moveCards(sourceCard, Zone.GRAVEYARD, Zone.HAND, source, game);
             return true;
         }
         return false;
@@ -118,6 +119,10 @@ class DredgeEffect extends ReplacementEffectImpl {
 
     @Override
     public boolean applies(GameEvent event, Ability source, Game game) {
-        return event.getPlayerId().equals(source.getControllerId());
+        if (event.getPlayerId().equals(source.getControllerId())) {
+            Player controller = game.getPlayer(source.getControllerId());
+            return controller != null && controller.getLibrary().size() >= amount;
+        }
+        return false;
     }
 }

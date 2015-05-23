@@ -71,7 +71,7 @@ public class FlashbackAbility extends SpellAbility {
     public FlashbackAbility(Cost cost, TimingRule timingRule) {
         super(null, "", Zone.GRAVEYARD);
         this.setAdditionalCostsRuleVisible(false);
-        this.name = new StringBuilder("Flashback ").append(cost.getText()).toString();
+        this.name = "Flashback " + cost.getText();
         this.addEffect(new FlashbackEffect());
         this.addCost(cost);
         this.timing = timingRule;
@@ -212,7 +212,7 @@ class FlashbackEffect extends OneShotEffect {
                     spellAbility.getManaCostsToPay().setX(amount);
                 }
                 if (!game.isSimulation())
-                    game.informPlayers(new StringBuilder(controller.getName()).append(" flashbacks ").append(card.getName()).toString());
+                    game.informPlayers(new StringBuilder(controller.getLogName()).append(" flashbacks ").append(card.getName()).toString());
                 spellAbility.setCostModificationActive(false); // prevents to apply cost modification twice for flashbacked spells
                 if (controller.cast(spellAbility, game, true)) {
                     game.addEffect(new FlashbackReplacementEffect(), source);

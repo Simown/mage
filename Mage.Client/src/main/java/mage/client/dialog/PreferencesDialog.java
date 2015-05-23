@@ -136,7 +136,9 @@ public class PreferencesDialog extends javax.swing.JDialog {
     public static final String KEY_MAGE_PANEL_LAST_SIZE = "gamepanelLastSize";
     
     // pref settings of table settings and filtering
-    public static final String KEY_TABLES_SHOW_COMPLETED = "tablePanelShowCompleted";
+    public static final String KEY_TABLES_FILTER_SETTINGS = "tablePanelFilterSettings";
+    public static final String KEY_TABLES_COLUMNS_WIDTH = "tablePanelColumnWidth";
+    public static final String KEY_TABLES_COLUMNS_ORDER = "tablePanelColumnSort";
     
     // positions of divider bars
     public static final String KEY_TABLES_DIVIDER_LOCATION_1 = "tablePanelDividerLocation1";
@@ -161,6 +163,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
     public static final String KEY_NEW_TABLE_DECK_FILE = "newTableDeckFile";
     public static final String KEY_NEW_TABLE_RANGE = "newTableRange";
     public static final String KEY_NEW_TABLE_ATTACK_OPTION = "newTableAttackOption";
+    public static final String KEY_NEW_TABLE_SKILL_LEVEL = "newTableSkillLevel";
     public static final String KEY_NEW_TABLE_NUMBER_PLAYERS = "newTableNumberPlayers";
     public static final String KEY_NEW_TABLE_PLAYER_TYPES = "newTablePlayerTypes";
 
@@ -1508,7 +1511,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
         txtURLServerList.setPreferredSize(new java.awt.Dimension(300, 22));
 
         jLabel17.setFont(new java.awt.Font("Tahoma", 2, 10)); // NOI18N
-        jLabel17.setText("e.g.: http://XMage.info/files/server-list.txt");
+        jLabel17.setText("e.g.: http://XMage.de/files/server-list.txt");
 
         javax.swing.GroupLayout connection_serversLayout = new javax.swing.GroupLayout(connection_servers);
         connection_servers.setLayout(connection_serversLayout);
@@ -2122,7 +2125,7 @@ public class PreferencesDialog extends javax.swing.JDialog {
         if (dialog.rememberPswd.isSelected()) {
             load(prefs, dialog.txtPasswordField, KEY_PROXY_PSWD, "");
         }
-        load(prefs, dialog.txtURLServerList, KEY_CONNECTION_URL_SERVER_LIST, "http://XMage.info/files/server-list.txt");
+        load(prefs, dialog.txtURLServerList, KEY_CONNECTION_URL_SERVER_LIST, "http://XMage.de/files/server-list.txt");
     }
 
     private static void loadSelectedAvatar(Preferences prefs) {

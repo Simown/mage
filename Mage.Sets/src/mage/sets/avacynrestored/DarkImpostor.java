@@ -60,7 +60,6 @@ public class DarkImpostor extends CardImpl {
         this.subtype.add("Vampire");
         this.subtype.add("Assassin");
 
-        this.color.setBlack(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -105,7 +104,7 @@ class DarkImpostorContinuousEffect extends ContinuousEffectImpl {
                 if (card != null) {
                     for (Ability ability: card.getAbilities()) {
                         if (ability instanceof ActivatedAbility) {
-                            perm.addAbility(ability, game);
+                            perm.addAbility(ability, source.getSourceId(), game);
                         }
                     }
                 }

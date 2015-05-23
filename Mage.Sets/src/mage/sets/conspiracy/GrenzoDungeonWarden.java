@@ -59,8 +59,6 @@ public class GrenzoDungeonWarden extends CardImpl {
         this.subtype.add("Goblin");
         this.subtype.add("Rogue");
 
-        this.color.setRed(true);
-        this.color.setBlack(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -119,7 +117,7 @@ class GrenzoDungeonWardenEffect extends OneShotEffect {
     
     GrenzoDungeonWardenEffect() {
         super(Outcome.Benefit);
-        this.staticText = "Put the bottom card of your library into your graveyard. If it's a creature card with power less than or equal to Grenzo's power, put it onto the battlefield";
+        this.staticText = "Put the bottom card of your library into your graveyard. If it's a creature card with power less than or equal to {this}'s power, put it onto the battlefield";
     }
     
     GrenzoDungeonWardenEffect(final GrenzoDungeonWardenEffect effect) {
@@ -133,16 +131,16 @@ class GrenzoDungeonWardenEffect extends OneShotEffect {
     
     @Override
     public boolean apply(Game game, Ability source) {
-        Player player = game.getPlayer(source.getControllerId());
-        if (player != null) {
-            if (player.getLibrary().size() > 0) {
-                Card card = player.getLibrary().removeFromBottom(game);
+        Player controller = game.getPlayer(source.getControllerId());
+        if (controller != null) {
+            if (controller.getLibrary().size() > 0) {
+                Card card = controller.getLibrary().removeFromBottom(game);
                 if (card != null) {
-                    player.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
+                    controller.moveCards(card, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
                     if (card.getCardType().contains(CardType.CREATURE)) {
                         Permanent sourcePermanent = game.getPermanentOrLKIBattlefield(source.getSourceId());
                         if (sourcePermanent != null && card.getPower().getValue() <= sourcePermanent.getPower().getValue()) {
-                            player.putOntoBattlefieldWithInfo(card, game, Zone.GRAVEYARD, source.getSourceId());
+                            controller.putOntoBattlefieldWithInfo(card, game, Zone.GRAVEYARD, source.getSourceId());
                         }
                     }
                 }

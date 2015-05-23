@@ -64,8 +64,6 @@ public class OrzhovCharm extends CardImpl {
         super(ownerId, 185, "Orzhov Charm", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{W}{B}");
         this.expansionSetCode = "GTC";
 
-        this.color.setBlack(true);
-        this.color.setWhite(true);
 
         //Choose one - Return target creature you control and all Auras you control attached to it to their owner's hand
         this.getSpellAbility().addEffect(new OrzhovCharmReturnToHandEffect());
@@ -116,7 +114,7 @@ class OrzhovCharmReturnToHandEffect extends OneShotEffect {
     public boolean apply(Game game, Ability source) {
         Permanent target = game.getPermanent(getTargetPointer().getFirst(game, source));
         if (target != null) {
-            LinkedList<UUID> attachments = new LinkedList<UUID>();
+            LinkedList<UUID> attachments = new LinkedList<>();
             attachments.addAll(target.getAttachments());
             for (UUID attachmentId : attachments) {
                 Permanent attachment = game.getPermanent(attachmentId);

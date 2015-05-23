@@ -57,7 +57,6 @@ public class TomorrowAzamisFamiliar extends CardImpl {
         this.supertype.add("Legendary");
         this.subtype.add("Spirit");
 
-        this.color.setBlue(true);
         this.power = new MageInt(1);
         this.toughness = new MageInt(5);
 
@@ -104,7 +103,12 @@ class TomorrowAzamisFamiliarReplacementEffect extends ReplacementEffectImpl {
     }
 
     @Override
+    public boolean checksEventType(GameEvent event, Game game) {
+        return event.getType() == GameEvent.EventType.DRAW_CARD;
+    }   
+    
+    @Override
     public boolean applies(GameEvent event, Ability source, Game game) {
-        return EventType.DRAW_CARD.equals(event.getType()) && event.getPlayerId().equals(source.getControllerId());
+        return event.getPlayerId().equals(source.getControllerId());
     }
 }

@@ -63,9 +63,6 @@ public class NarsetEnlightenedMaster extends CardImpl {
         this.subtype.add("Human");
         this.subtype.add("Monk");
 
-        this.color.setRed(true);
-        this.color.setBlue(true);
-        this.color.setWhite(true);
         this.power = new MageInt(3);
         this.toughness = new MageInt(2);
 
@@ -108,7 +105,7 @@ class NarsetEnlightenedMasterExileEffect extends OneShotEffect {
                 if (player.getLibrary().size() > 0) {
                     Card card = player.getLibrary().getFromTop(game);
                     if (card != null) {
-                        player.moveCardToExileWithInfo(card, CardUtil.getCardExileZoneId(game, source), sourceObject.getLogName(), source.getSourceId(), game, Zone.LIBRARY, true);
+                        player.moveCardToExileWithInfo(card, CardUtil.getCardExileZoneId(game, source), sourceObject.getName(), source.getSourceId(), game, Zone.LIBRARY, true);
                         if (!card.getCardType().contains(CardType.CREATURE) && !card.getCardType().contains(CardType.LAND)) {
                             ContinuousEffect effect = new NarsetEnlightenedMasterCastFromExileEffect();
                             effect.setTargetPointer(new FixedTarget(card.getId()));
@@ -155,7 +152,7 @@ class NarsetEnlightenedMasterCastFromExileEffect extends AsThoughEffectImpl {
             Card card = game.getCard(objectId);
             if (card != null && game.getState().getZone(objectId) == Zone.EXILED) {
                 Player player = game.getPlayer(affectedControllerId);
-                player.setCastSourceIdWithoutMana(objectId);
+                player.setCastSourceIdWithAlternateMana(objectId, null);
                 return true;
             }
         }

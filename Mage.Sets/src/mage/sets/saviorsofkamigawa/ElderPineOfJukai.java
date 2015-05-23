@@ -57,7 +57,6 @@ public class ElderPineOfJukai extends CardImpl {
         this.expansionSetCode = "SOK";
         this.subtype.add("Spirit");
 
-        this.color.setGreen(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(1);
 
@@ -103,7 +102,7 @@ class ElderPineOfJukaiEffect extends OneShotEffect {
         }        
         Cards cards = new CardsImpl();
         cards.addAll(controller.getLibrary().getTopCards(game, 3));
-        controller.revealCards(sourceObject.getLogName(), cards, game);
+        controller.revealCards(sourceObject.getName(), cards, game);
         for (Card card: cards.getCards(game)) {
             if (card.getCardType().contains(CardType.LAND)) {
                 controller.moveCardToHandWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);

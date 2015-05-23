@@ -58,6 +58,7 @@ import mage.watchers.Watchers;
 
 import java.io.Serializable;
 import java.util.*;
+import mage.util.ThreadLocalStringBuilder;
 
 /**
 *
@@ -71,6 +72,9 @@ import java.util.*;
 */
 public class GameState implements Serializable, Copyable<GameState> {
 
+
+    private static final transient ThreadLocalStringBuilder threadLocalBuilder = new ThreadLocalStringBuilder(1024);
+
     private final Players players;
     private final PlayerList playerList;
     private final Turn turn;
@@ -83,8 +87,9 @@ public class GameState implements Serializable, Copyable<GameState> {
     private final Watchers watchers;
     
 
-    private UUID activePlayerId;
-    private UUID priorityPlayerId;
+    private UUID activePlayerId; // playerId which turn it is
+    private UUID priorityPlayerId; // player that has currently priority
+    private UUID choosingPlayerId; // player that makes a choice at game start
     private SpellStack stack;
     private Command command;
     private Exile exile;
@@ -130,6 +135,7 @@ public class GameState implements Serializable, Copyable<GameState> {
         this.playerList = state.playerList.copy();
         this.activePlayerId = state.activePlayerId;
         this.priorityPlayerId = state.priorityPlayerId;
+        this.choosingPlayerId = state.choosingPlayerId;
         this.turn = state.turn.copy();
         this.stack = state.stack.copy();
         this.command = state.command.copy();
@@ -176,9 +182,10 @@ public class GameState implements Serializable, Copyable<GameState> {
     }
 
     public String getValue(boolean useHidden) {
-        StringBuilder sb = new StringBuilder(1024);
+        StringBuilder sb = threadLocalBuilder.get();
 
-        sb.append(turnNum).append(turn.getPhaseType()).append(turn.getStepType()).append(activePlayerId).append(priorityPlayerId);
+        sb.append(turn.getValue(turnNum));
+        sb.append(activePlayerId).append(priorityPlayerId);
 
         for (Player player: players.values()) {
             sb.append("player").append(player.getLife()).append("hand");
@@ -214,23 +221,22 @@ public class GameState implements Serializable, Copyable<GameState> {
     }
 
     public String getValue(boolean useHidden, Game game) {
-        StringBuilder sb = new StringBuilder(1024);
+        StringBuilder sb = threadLocalBuilder.get();
 
-        sb.append(turnNum).append(turn.getPhaseType()).append(turn.getStepType()).append(activePlayerId).append(priorityPlayerId);
+        sb.append(turn.getValue(turnNum));
+        sb.append(activePlayerId).append(priorityPlayerId);
 
         for (Player player: players.values()) {
             sb.append("player").append(player.isPassed()).append(player.getLife()).append("hand");
             if (useHidden) {
-                sb.append(player.getHand());
+                sb.append(player.getHand().getValue(game));
             }
             else {
                 sb.append(player.getHand().size());
             }
             sb.append("library").append(player.getLibrary().size());
             sb.append("graveyard");
-            for (Card card: player.getGraveyard().getCards(game)) {
-                sb.append(card.getName());
-            }
+            sb.append(player.getGraveyard().getValue(game));
         }
 
         sb.append("permanents");
@@ -262,7 +268,66 @@ public class GameState implements Serializable, Copyable<GameState> {
         }
 
         for (ExileZone zone: exile.getExileZones()) {
-            sb.append("exile").append(zone.getName()).append(zone);
+            sb.append("exile").append(zone.getName()).append(zone.getValue(game));
+        }
+
+        sb.append("combat");
+        for (CombatGroup group: combat.getGroups()) {
+            sb.append(group.getDefenderId()).append(group.getAttackers()).append(group.getBlockers());
+        }
+
+        return sb.toString();
+    }
+
+    public String getValue(Game game, UUID playerId) {
+        StringBuilder sb = threadLocalBuilder.get();
+
+        sb.append(turn.getValue(turnNum));
+        sb.append(activePlayerId).append(priorityPlayerId);
+
+        for (Player player: players.values()) {
+            sb.append("player").append(player.isPassed()).append(player.getLife()).append("hand");
+            if (playerId == player.getId()) {
+                sb.append(player.getHand().getValue(game));
+            }
+            else {
+                sb.append(player.getHand().size());
+            }
+            sb.append("library").append(player.getLibrary().size());
+            sb.append("graveyard");
+            sb.append(player.getGraveyard().getValue(game));
+        }
+
+        sb.append("permanents");
+        List<String> perms = new ArrayList<>();
+        for (Permanent permanent: battlefield.getAllPermanents()) {
+            perms.add(permanent.getValue());
+        }
+        Collections.sort(perms);
+        sb.append(perms);
+
+        sb.append("spells");
+        for (StackObject spell: stack) {
+            sb.append(spell.getControllerId()).append(spell.getName());
+            sb.append(spell.getStackAbility().toString());
+            for (Mode mode: spell.getStackAbility().getModes().values()) {
+                if (!mode.getTargets().isEmpty()) {
+                    sb.append("targets");
+                    for (Target target: mode.getTargets()) {
+                        sb.append(target.getTargets());
+                    }
+                }
+                if (!mode.getChoices().isEmpty()) {
+                    sb.append("choices");
+                    for (Choice choice: mode.getChoices()) {
+                        sb.append(choice.getChoice());
+                    }
+                }
+            }
+        }
+
+        for (ExileZone zone: exile.getExileZones()) {
+            sb.append("exile").append(zone.getName()).append(zone.getValue(game));
         }
 
         sb.append("combat");
@@ -295,6 +360,14 @@ public class GameState implements Serializable, Copyable<GameState> {
 
     public void setPriorityPlayerId(UUID priorityPlayerId) {
         this.priorityPlayerId = priorityPlayerId;
+    }
+
+    public UUID getChoosingPlayerId() {
+        return choosingPlayerId;
+    }
+
+    public void setChoosingPlayerId(UUID choosingPlayerId) {
+        this.choosingPlayerId = choosingPlayerId;
     }
 
     public Battlefield getBattlefield() {
@@ -852,4 +925,4 @@ public class GameState implements Serializable, Copyable<GameState> {
         }
         return copiedCard;
     }
-}
+    }

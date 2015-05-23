@@ -53,7 +53,6 @@ public class AcolytesReward extends CardImpl {
         super(ownerId, 1, "Acolyte's Reward", Rarity.UNCOMMON, new CardType[]{CardType.INSTANT}, "{1}{W}");
         this.expansionSetCode = "BNG";
 
-        this.color.setWhite(true);
 
         // Prevent the next X damage that would be dealt to target creature this turn, where X is your devotion to white. If damage is prevented this way, Acolyte's Reward deals that much damage to target creature or player.
         this.getSpellAbility().addEffect(new AcolytesRewardEffect());
@@ -133,7 +132,7 @@ class AcolytesRewardEffect extends PreventionEffectImpl {
                     Player targetPlayer = game.getPlayer(source.getTargets().get(1).getFirstTarget());
                     if (targetPlayer != null) {
                         targetPlayer.damage(toPrevent, source.getSourceId(), game, false, true);
-                        game.informPlayers(new StringBuilder("Acolyte's Reward ").append("deals ").append(toPrevent).append(" damage to ").append(targetPlayer.getName()).toString());
+                        game.informPlayers(new StringBuilder("Acolyte's Reward ").append("deals ").append(toPrevent).append(" damage to ").append(targetPlayer.getLogName()).toString());
                     } else {
                         Permanent targetDamageCreature = game.getPermanent(source.getTargets().get(1).getFirstTarget());
                         if (targetDamageCreature != null) {

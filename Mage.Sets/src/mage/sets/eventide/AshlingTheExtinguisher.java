@@ -57,7 +57,7 @@ public class AshlingTheExtinguisher extends CardImpl {
         this.supertype.add("Legendary");
         this.subtype.add("Elemental");
         this.subtype.add("Shaman");
-        this.color.setBlack(true);
+
         this.power = new MageInt(4);
         this.toughness = new MageInt(4);
         this.addAbility(new AshlingTheExtinguisherTriggeredAbility());
@@ -96,7 +96,7 @@ class AshlingTheExtinguisherTriggeredAbility extends TriggeredAbilityImpl {
             if (damageEvent.isCombatDamage() && event.getSourceId().equals(this.getSourceId())) {
                 Player opponent = game.getPlayer(event.getPlayerId());
                 if (opponent != null) {
-                    FilterCreaturePermanent filter = new FilterCreaturePermanent("creature " + opponent.getName() + " controls");
+                    FilterCreaturePermanent filter = new FilterCreaturePermanent("creature " + opponent.getLogName() + " controls");
                     filter.add(new ControllerIdPredicate(opponent.getId()));
 
                     this.getTargets().clear();

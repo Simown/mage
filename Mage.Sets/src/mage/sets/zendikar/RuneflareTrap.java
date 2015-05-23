@@ -44,6 +44,7 @@ import mage.target.TargetPlayer;
 import mage.watchers.Watcher;
 
 import java.util.UUID;
+import mage.abilities.costs.Cost;
 
 /**
  *
@@ -56,7 +57,6 @@ public class RuneflareTrap extends CardImpl {
         this.expansionSetCode = "ZEN";
         this.subtype.add("Trap");
 
-        this.color.setRed(true);
 
         // If an opponent drew three or more cards this turn, you may pay {R} rather than pay Runeflare Trap's mana cost.
         this.getSpellAbility().addAlternativeCost(new RuneflareTrapAlternativeCost());
@@ -142,7 +142,7 @@ class CardsDrawnOpponentWatcher extends Watcher {
     }
 }
 
-class RuneflareTrapAlternativeCost extends AlternativeCostImpl {
+class RuneflareTrapAlternativeCost extends AlternativeCostImpl<Cost> {
 
     public RuneflareTrapAlternativeCost() {
         super("you may pay {R} rather than pay Runeflare Trap's mana cost");

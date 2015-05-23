@@ -54,7 +54,6 @@ public class ArmWithAEther extends CardImpl {
         super(ownerId, 28, "Arm with AEther", Rarity.UNCOMMON, new CardType[]{CardType.SORCERY}, "{2}{U}");
         this.expansionSetCode = "NPH";
 
-        this.color.setBlue(true);
 
         // Until end of turn, creatures you control gain "Whenever this creature deals damage to an opponent, you may return target creature that player controls to its owner's hand."
         Effect effect = new GainAbilityControlledEffect(new ArmWithAEtherTriggeredAbility(), Duration.EndOfTurn, new FilterCreaturePermanent());
@@ -91,7 +90,7 @@ class ArmWithAEtherTriggeredAbility extends TriggeredAbilityImpl {
     public boolean checkTrigger(GameEvent event, Game game) {
         Player opponent = game.getPlayer(event.getPlayerId());
         if (opponent != null && event.getType() == GameEvent.EventType.DAMAGED_PLAYER && event.getSourceId().equals(this.sourceId)) {
-            FilterCreaturePermanent filter = new FilterCreaturePermanent("creature " + opponent.getName() + " controls");
+            FilterCreaturePermanent filter = new FilterCreaturePermanent("creature " + opponent.getLogName() + " controls");
             filter.add(new ControllerIdPredicate(opponent.getId()));
 
             this.getTargets().clear();

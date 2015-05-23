@@ -56,7 +56,6 @@ public class SoltariVisionary extends CardImpl {
         this.subtype.add("Soltari");
         this.subtype.add("Cleric");
 
-        this.color.setWhite(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -99,7 +98,7 @@ class SoltariVisionaryTriggeredAbility extends TriggeredAbilityImpl {
             if (soltari != null && soltari.getId() == this.getSourceId()) {
                 FilterEnchantmentPermanent filter = new FilterEnchantmentPermanent("enchantment that player controls.");
                 filter.add(new ControllerIdPredicate(event.getPlayerId()));
-                filter.setMessage("enchantment controlled by " + game.getPlayer(event.getTargetId()).getName());
+                filter.setMessage("enchantment controlled by " + game.getPlayer(event.getTargetId()).getLogName());
                 this.getTargets().clear();
                 this.addTarget(new TargetPermanent(filter));
                 return true;

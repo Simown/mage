@@ -60,7 +60,6 @@ public class BitterFeud extends CardImpl {
         super(ownerId, 32, "Bitter Feud", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{4}{R}");
         this.expansionSetCode = "C14";
 
-        this.color.setRed(true);
 
         // As Bitter Feud enters the battlefield, choose two players.
         this.addAbility(new AsEntersBattlefieldAbility(new BitterFeudEntersBattlefieldEffect()));
@@ -102,7 +101,7 @@ class BitterFeudEntersBattlefieldEffect extends OneShotEffect {
             if (player1 != null && player2 != null) {
                 game.getState().setValue(source.getSourceId() + "_player1", player1);
                 game.getState().setValue(source.getSourceId() + "_player2", player2);
-                game.informPlayers(permanent.getName() + ": " + controller.getName() + " has chosen " + player1.getName() + " and " + player2.getName());
+                game.informPlayers(permanent.getLogName() + ": " + controller.getLogName() + " has chosen " + player1.getLogName() + " and " + player2.getLogName());
                 permanent.addInfo("chosen players", "<font color = 'blue'>Chosen players: " + player1.getName() +", " + player2.getName() + "</font>", game);
                 return true;
             }

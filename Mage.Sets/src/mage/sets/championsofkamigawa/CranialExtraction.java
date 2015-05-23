@@ -55,7 +55,7 @@ public class CranialExtraction extends CardImpl {
         super(ownerId, 105, "Cranial Extraction", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{B}");
         this.expansionSetCode = "CHK";
                 this.subtype.add("Arcane");
-        this.color.setBlack(true);
+
 
                 /* Name a nonland card. Search target player's graveyard, hand, and library for 
                  * all cards with that name and exile them. Then that player shuffles his or her library. */
@@ -118,8 +118,8 @@ class CranialExtractionEffect extends OneShotEffect {
                     controller.moveCardToExileWithInfo(card, null, "", source.getSourceId(), game, Zone.LIBRARY, true);
                 }
             }
-            controller.lookAtCards(sourceObject.getLogName() + " Hand", player.getHand(), game);
-            controller.lookAtCards(sourceObject.getLogName() + " Library", new CardsImpl(Zone.PICK, player.getLibrary().getCards(game)), game);
+            controller.lookAtCards(sourceObject.getName() + " Hand", player.getHand(), game);
+            controller.lookAtCards(sourceObject.getName() + " Library", new CardsImpl(Zone.PICK, player.getLibrary().getCards(game)), game);
             player.shuffleLibrary(game);
         }
         return true;

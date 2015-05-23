@@ -59,7 +59,6 @@ public class WhimsOfTheFates extends CardImpl {
         super(ownerId, 115, "Whims of the Fates", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{5}{R}");
         this.expansionSetCode = "BNG";
 
-        this.color.setRed(true);
 
         // Starting with you, each player separates all permanents he or she controls into three piles. Then each player chooses one of his or her piles at random and sacrifices those permanents.
         this.getSpellAbility().addEffect(new WhimsOfTheFateEffect());
@@ -139,7 +138,7 @@ class WhimsOfTheFateEffect extends OneShotEffect {
                         }
                         target.setRequired(false);
                         currentPlayer.chooseTarget(outcome, target, source, game);
-                        StringBuilder message = new StringBuilder(currentPlayer.getName()).append(" pile ").append(i).append(": ");
+                        StringBuilder message = new StringBuilder(currentPlayer.getLogName()).append(" pile ").append(i).append(": ");
                         if (target.getTargets().isEmpty()) {
                             message.append(" (empty)");
                         } else {
@@ -155,7 +154,7 @@ class WhimsOfTheFateEffect extends OneShotEffect {
                     }
 
                     // add all permanents not targeted yet to the third pile
-                    StringBuilder message = new StringBuilder(currentPlayer.getName()).append(" pile 3: ");
+                    StringBuilder message = new StringBuilder(currentPlayer.getLogName()).append(" pile 3: ");
                     for (Permanent permanent : game.getState().getBattlefield().getAllActivePermanents(currentPlayer.getId())) {
                         if (!playerPiles.get(1).contains(permanent.getId()) && !playerPiles.get(2).contains(permanent.getId())) {
                             playerPiles.get(3).add(permanent.getId());
@@ -175,7 +174,7 @@ class WhimsOfTheFateEffect extends OneShotEffect {
                 if (player != null) {
                     // decide which pile to sacrifice
                     int sacrificePile = rnd.nextInt(3) + 1; // random number from 1 - 3
-                    game.informPlayers(new StringBuilder(player.getName()).append(" sacrifices pile number ").append(sacrificePile).toString());
+                    game.informPlayers(new StringBuilder(player.getLogName()).append(" sacrifices pile number ").append(sacrificePile).toString());
                     for (UUID permanentId : playerPiles.getValue().get(sacrificePile)) {
                         Permanent permanent = game.getPermanent(permanentId);
                         if (permanent != null) {

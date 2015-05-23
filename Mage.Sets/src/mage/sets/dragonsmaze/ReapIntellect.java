@@ -61,8 +61,6 @@ public class ReapIntellect extends CardImpl {
         super(ownerId, 95, "Reap Intellect", Rarity.MYTHIC, new CardType[]{CardType.SORCERY}, "{X}{2}{U}{B}");
         this.expansionSetCode = "DGM";
 
-        this.color.setBlue(true);
-        this.color.setBlack(true);
 
         // Target opponent reveals his or her hand. You choose up to X nonland cards from it and exile them. For each card exiled this way, search that player's graveyard, hand, and library for any number of cards with the same name as that card and exile them. Then that player shuffles his or her library.
         this.getSpellAbility().addEffect(new ReapIntellectEffect());
@@ -105,7 +103,7 @@ class ReapIntellectEffect extends OneShotEffect {
         if (targetPlayer != null && sourceObject != null && controller != null) {
             
             // reveal hand of target player 
-            targetPlayer.revealCards(sourceObject.getLogName(), targetPlayer.getHand(), game);
+            targetPlayer.revealCards(sourceObject.getName(), targetPlayer.getHand(), game);
             
             // Chose cards to exile from hand
             Cards exiledCards = new CardsImpl();

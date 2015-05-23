@@ -67,8 +67,6 @@ public class DetentionSphere extends CardImpl {
         super(ownerId, 155, "Detention Sphere", Rarity.RARE, new CardType[]{CardType.ENCHANTMENT}, "{1}{W}{U}");
         this.expansionSetCode = "RTR";
 
-        this.color.setWhite(true);
-        this.color.setBlue(true);
 
         // When Detention Sphere enters the battlefield, you may exile
         // target nonland permanent not named Detention Sphere and all
@@ -114,12 +112,12 @@ class DetentionSphereEntersEffect extends OneShotEffect {
         if (sourceObject != null && exileId != null && targetPermanent != null && controller != null) {
 
             if (targetPermanent.getName().isEmpty()) { // face down creature
-                controller.moveCardToExileWithInfo(targetPermanent, exileId, sourceObject.getLogName(), source.getSourceId(), game, Zone.BATTLEFIELD, true);
+                controller.moveCardToExileWithInfo(targetPermanent, exileId, sourceObject.getName(), source.getSourceId(), game, Zone.BATTLEFIELD, true);
             } else {
-                String name = targetPermanent.getLogName();
+                String name = targetPermanent.getName();
                 for (Permanent permanent : game.getBattlefield().getActivePermanents(source.getControllerId(), game)) {
-                    if (permanent != null && permanent.getLogName().equals(name)) {
-                        controller.moveCardToExileWithInfo(permanent, exileId, sourceObject.getLogName(), source.getSourceId(), game, Zone.BATTLEFIELD, true);
+                    if (permanent != null && permanent.getName().equals(name)) {
+                        controller.moveCardToExileWithInfo(permanent, exileId, sourceObject.getName(), source.getSourceId(), game, Zone.BATTLEFIELD, true);
                     }
                 }
             }

@@ -74,6 +74,8 @@ import mage.game.stack.StackAbility;
 import mage.players.Player;
 import mage.target.Target;
 import mage.target.Targets;
+import mage.util.GameLog;
+import mage.util.ThreadLocalStringBuilder;
 import mage.watchers.Watcher;
 import org.apache.log4j.Logger;
 
@@ -84,6 +86,7 @@ import org.apache.log4j.Logger;
 public abstract class AbilityImpl implements Ability {
 
     private static final transient Logger logger = Logger.getLogger(AbilityImpl.class);
+    private static final transient ThreadLocalStringBuilder threadLocalBuilder = new ThreadLocalStringBuilder(100);
     private static final List<Watcher> emptyWatchers = new ArrayList<>();
     private static final List<Ability> emptyAbilities = new ArrayList<>();
 
@@ -243,7 +246,8 @@ public abstract class AbilityImpl implements Ability {
         if (controller == null) {
             return false;
         }
-
+        game.applyEffects();
+        
         /* 20130201 - 601.2b
          * If the spell is modal the player announces the mode choice (see rule 700.2).
          */
@@ -394,7 +398,7 @@ public abstract class AbilityImpl implements Ability {
             }
             if (variableManaCost != null) {
                 int xValue = getManaCostsToPay().getX();
-                game.informPlayers(new StringBuilder(controller.getName()).append(" announces a value of ").append(xValue).append(" for ").append(variableManaCost.getText()).toString());
+                game.informPlayers(new StringBuilder(controller.getLogName()).append(" announces a value of ").append(xValue).append(" for ").append(variableManaCost.getText()).toString());
             }
         }
         activated = true;
@@ -481,7 +485,7 @@ public abstract class AbilityImpl implements Ability {
                 // set the xcosts to paid
                 variableCost.setAmount(xValue);
                 ((Cost) variableCost).setPaid();
-                String message = new StringBuilder(controller.getName())
+                String message = new StringBuilder(controller.getLogName())
                         .append(" announces a value of ").append(xValue).append(" (").append(variableCost.getActionText()).append(")").toString();
                 if (announceString == null) {
                     announceString = message;
@@ -519,7 +523,7 @@ public abstract class AbilityImpl implements Ability {
                 if (!noMana) {
                     xValue = controller.announceXMana(variableManaCost.getMinX(), variableManaCost.getMaxX(), "Announce the value for " + variableManaCost.getText(), game, this);
                     int amountMana = xValue * variableManaCost.getMultiplier();
-                    StringBuilder manaString = new StringBuilder();
+                    StringBuilder manaString = threadLocalBuilder.get();
                     if (variableManaCost.getFilter() == null || variableManaCost.getFilter().isColorless()) {
                         manaString.append("{").append(amountMana).append("}");
                     } else {
@@ -727,7 +731,7 @@ public abstract class AbilityImpl implements Ability {
 
     @Override
     public String getRule(boolean all) {
-        StringBuilder sbRule = new StringBuilder();
+        StringBuilder sbRule = threadLocalBuilder.get();
         if (all || this.abilityType != AbilityType.SPELL) {
             if (manaCosts.size() > 0) {
                 sbRule.append(manaCosts.getText());
@@ -873,6 +877,9 @@ public abstract class AbilityImpl implements Ability {
      */
     @Override
     public boolean isInUseableZone(Game game, MageObject source, GameEvent event) {
+        if (!this.hasSourceObjectAbility(game, source, event)) {
+            return false;
+        }
         if (zone.equals(Zone.COMMAND)) {
             if (this.getSourceId() == null) { // commander effects
                 return true;
@@ -884,18 +891,31 @@ public abstract class AbilityImpl implements Ability {
             }
         }
 
-        MageObject object;
         UUID parameterSourceId;
         // for singleton abilities like Flying we can't rely on abilities' source because it's only once in continuous effects
         // so will use the sourceId of the object itself that came as a parameter if it is not null
         if (this instanceof MageSingleton && source != null) {
-            object = source;
             parameterSourceId = source.getId();
         } else {
-            object = game.getObject(getSourceId());
             parameterSourceId = getSourceId();
         }
-
+        // check agains shortLKI for effects that move multiple object at the same time (e.g. destroy all)
+        if (game.getShortLivingLKI(getSourceId(), getZone())) {
+            return true;
+        }
+        // check against current state
+        Zone test = game.getState().getZone(parameterSourceId);
+        return test != null && zone.match(test);
+    }
+    
+    @Override
+    public boolean hasSourceObjectAbility(Game game, MageObject source, GameEvent event) {
+        MageObject object = source;
+        // for singleton abilities like Flying we can't rely on abilities' source because it's only once in continuous effects
+        // so will use the sourceId of the object itself that came as a parameter if it is not null
+        if (object == null) {
+            object = game.getObject(getSourceId());
+        }
         if (object != null && !object.getAbilities().contains(this)) {
             if (object instanceof Permanent) {
                 return false;
@@ -907,15 +927,9 @@ public abstract class AbilityImpl implements Ability {
                 }
             }
         }
-        // check agains shortLKI for effects that move multiple object at the same time (e.g. destroy all)
-        if (game.getShortLivingLKI(getSourceId(), getZone())) {
-            return true;
-        }
-        // check against current state
-        Zone test = game.getState().getZone(parameterSourceId);
-        return test != null && zone.match(test);
+        return true;
     }
-
+    
     @Override
     public String toString() {
         return getRule();
@@ -979,15 +993,15 @@ public abstract class AbilityImpl implements Ability {
     }
 
     protected String getMessageText(Game game) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = threadLocalBuilder.get();
         MageObject object = game.getObject(this.sourceId);
         if (object != null) {
             if (object instanceof StackAbility) {
                 Card card = game.getCard(((StackAbility) object).getSourceId());
                 if (card != null) {
-                    sb.append(card.getLogName());
+                    sb.append(GameLog.getColoredObjectName(card));
                 } else {
-                    sb.append(object.getName());
+                    sb.append(GameLog.getColoredObjectName(object));
                 }
             } else {
                 if (object instanceof Spell) {
@@ -999,7 +1013,7 @@ public abstract class AbilityImpl implements Ability {
                     }
                     sb.append(getOptionalTextSuffix(game, spell));
                 } else {
-                    sb.append(object.getLogName());
+                    sb.append(GameLog.getColoredObjectName(object));
                 }
             }
         } else {
@@ -1062,7 +1076,7 @@ public abstract class AbilityImpl implements Ability {
     }
 
     protected String getTargetDescriptionForLog(Targets targets, Game game) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(); // threadLocal StringBuilder can't be used because calling method already uses it
         if (targets.size() > 0) {
             String usedVerb = null;
             for (Target target : targets) {

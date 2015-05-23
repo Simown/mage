@@ -59,14 +59,13 @@ public class Phantasmagorian extends CardImpl {
         this.expansionSetCode = "PLC";
         this.subtype.add("Horror");
 
-        this.color.setBlack(true);
         this.power = new MageInt(6);
         this.toughness = new MageInt(6);
 
         // When you cast Phantasmagorian, any player may discard three cards. If a player does, counter Phantasmagorian.
         this.addAbility(new CastSourceTriggeredAbility(new CounterSourceEffect()));
         // Discard three cards: Return Phantasmagorian from your graveyard to your hand.
-        this.addAbility(new SimpleActivatedAbility(Zone.GRAVEYARD, new ReturnSourceFromGraveyardToHandEffect(), new DiscardTargetCost(new TargetCardInHand(3, 3, new FilterCard()))));
+        this.addAbility(new SimpleActivatedAbility(Zone.GRAVEYARD, new ReturnSourceFromGraveyardToHandEffect(), new DiscardTargetCost(new TargetCardInHand(3, 3, new FilterCard("three cards")))));
     }
 
     public Phantasmagorian(final Phantasmagorian card) {
@@ -109,7 +108,7 @@ class CounterSourceEffect extends OneShotEffect {
                 if(player.chooseUse(Outcome.Detriment, "Discard three cards to counter " + spell.getName() + "?", game)){
                     DiscardTargetCost cost = new DiscardTargetCost(new TargetCardInHand(3, 3, new FilterCard()));
                     if(cost.pay(source, game, source.getSourceId(), uuid, false)){
-                        game.informPlayers(player.getName() + " discards 3 cards to counter " + spell.getName() + ".");
+                        game.informPlayers(player.getLogName() + " discards 3 cards to counter " + spell.getName() + ".");
                         game.getStack().counter(spell.getId(), source.getSourceId(), game);
                         return true;
                     }

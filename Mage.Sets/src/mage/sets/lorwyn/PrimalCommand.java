@@ -34,10 +34,12 @@ import mage.abilities.effects.OneShotEffect;
 import mage.abilities.effects.common.GainLifeTargetEffect;
 import mage.abilities.effects.common.PutOnLibraryTargetEffect;
 import mage.abilities.effects.common.search.SearchLibraryPutInHandEffect;
+import mage.cards.Card;
 import mage.cards.CardImpl;
 import mage.constants.CardType;
 import mage.constants.Outcome;
 import mage.constants.Rarity;
+import mage.constants.Zone;
 import mage.filter.FilterPermanent;
 import mage.filter.common.FilterCreatureCard;
 import mage.filter.predicate.Predicates;
@@ -64,7 +66,6 @@ public class PrimalCommand extends CardImpl {
         super(ownerId, 233, "Primal Command", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{3}{G}{G}");
         this.expansionSetCode = "LRW";
 
-        this.color.setGreen(true);
 
         // Choose two - 
         this.getSpellAbility().getModes().setMinModes(2);
@@ -120,8 +121,9 @@ class PrimalCommandShuffleGraveyardEffect extends OneShotEffect {
     public boolean apply(Game game, Ability source) {
         Player player = game.getPlayer(source.getFirstTarget());
         if (player != null) {
-            player.getLibrary().addAll(player.getGraveyard().getCards(game), game);
-            player.getGraveyard().clear();
+            for (Card card: player.getGraveyard().getCards(game)) {
+                player.moveCardToLibraryWithInfo(card, source.getSourceId(), game, Zone.GRAVEYARD, true, true);
+            }                 
             player.shuffleLibrary(game);
             return true;
         }

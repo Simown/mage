@@ -70,7 +70,6 @@ public class ConstrictingSliver extends CardImpl {
         this.expansionSetCode = "M15";
         this.subtype.add("Sliver");
 
-        this.color.setWhite(true);
         this.power = new MageInt(3);
         this.toughness = new MageInt(3);
 
@@ -118,7 +117,7 @@ class ConstrictingSliverExileEffect extends OneShotEffect {
         // If the creature leaves the battlefield before its triggered ability resolves,
         // the target creature won't be exiled.
         if (permanent != null) {
-            return new ExileTargetEffect(CardUtil.getCardExileZoneId(game, source), permanent.getLogName()).apply(game, source);
+            return new ExileTargetEffect(CardUtil.getCardExileZoneId(game, source), permanent.getName()).apply(game, source);
         }
         return false;
     }

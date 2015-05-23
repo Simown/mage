@@ -60,7 +60,6 @@ public class SuturedGhoul extends CardImpl {
         this.expansionSetCode = "M12";
         this.subtype.add("Zombie");
 
-        this.color.setBlack(true);
         this.power = new MageInt(0);
         this.toughness = new MageInt(0);
 
@@ -117,7 +116,7 @@ class SuturedGhoulEffect extends OneShotEffect {
                 }
 
                 String msg = count == 1 ? "1 card" : count + "cards";
-                game.informPlayers("Sutured Ghoul: " + player.getName() + " exiled " + msg);
+                game.informPlayers("Sutured Ghoul: " + player.getLogName() + " exiled " + msg);
             }
 
         } else {

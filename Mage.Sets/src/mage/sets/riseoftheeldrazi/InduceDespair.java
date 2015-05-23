@@ -54,7 +54,6 @@ public class InduceDespair extends CardImpl {
         super(ownerId, 114, "Induce Despair", Rarity.COMMON, new CardType[]{CardType.INSTANT}, "{2}{B}");
         this.expansionSetCode = "ROE";
 
-        this.color.setBlack(true);
 
         // As an additional cost to cast Induce Despair, reveal a creature card from your hand.
         // Target creature gets -X/-X until end of turn, where X is the revealed card's converted mana cost.
@@ -91,7 +90,7 @@ class InduceDespairEffect extends OneShotEffect {
         if (cost != null) {
             int CMC = -1 * cost.convertedManaCosts;
             if (creature != null) {
-                creature.addAbility(new SimpleStaticAbility(Zone.BATTLEFIELD, new BoostSourceEffect(CMC, CMC, Duration.EndOfTurn)), game);
+                creature.addAbility(new SimpleStaticAbility(Zone.BATTLEFIELD, new BoostSourceEffect(CMC, CMC, Duration.EndOfTurn)), source.getSourceId(), game, false);
             }
         }
         return true;

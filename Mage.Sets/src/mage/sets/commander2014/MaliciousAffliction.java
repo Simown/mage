@@ -69,7 +69,6 @@ public class MaliciousAffliction extends CardImpl {
         super(ownerId, 25, "Malicious Affliction", Rarity.RARE, new CardType[]{CardType.INSTANT}, "{B}{B}");
         this.expansionSetCode = "C14";
 
-        this.color.setBlack(true);
 
         // Morbid - When you cast Malicious Affliction, if a creature died this turn, you may copy Malicious Affliction and may choose a new target for the copy.
         Ability ability = new ConditionalTriggeredAbility(
@@ -122,7 +121,7 @@ class CopySourceSpellEffect extends OneShotEffect {
                 if (activateMessage.startsWith(" casts ")) {
                     activateMessage = activateMessage.substring(6);
                 }
-                game.informPlayers(controller.getName() + " copies " + activateMessage);
+                game.informPlayers(controller.getLogName() + " copies " + activateMessage);
                 return true;
             }
         }

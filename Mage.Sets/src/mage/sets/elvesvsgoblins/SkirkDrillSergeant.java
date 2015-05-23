@@ -66,7 +66,6 @@ public class SkirkDrillSergeant extends CardImpl {
         this.expansionSetCode = "EVG";
         this.subtype.add("Goblin");
 
-        this.color.setRed(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(1);
 
@@ -119,13 +118,13 @@ class SkirkDrillSergeantEffect extends OneShotEffect {
             Card card = player.getLibrary().getFromTop(game);
             Cards cards = new CardsImpl();
             cards.add(card);
-            player.revealCards(sourceObject.getLogName(), cards, game);
+            player.revealCards(sourceObject.getName(), cards, game);
 
             if (card != null) {
                 if (filter.match(card, game)) {
                     player.putOntoBattlefieldWithInfo(card, game, Zone.LIBRARY, source.getSourceId());
                 } else {
-                    player.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
+                    player.moveCards(card, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
                 }
             }
         }

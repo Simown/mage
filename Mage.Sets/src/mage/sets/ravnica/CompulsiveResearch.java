@@ -51,7 +51,6 @@ public class CompulsiveResearch extends CardImpl {
         super(ownerId, 40, "Compulsive Research", Rarity.COMMON, new CardType[]{CardType.SORCERY}, "{2}{U}");
         this.expansionSetCode = "RAV";
 
-        this.color.setBlue(true);
 
         // Target player draws three cards. Then that player discards two cards unless he or she discards a land card.
         this.getSpellAbility().addTarget(new TargetPlayer());
@@ -94,7 +93,7 @@ class CompulsiveResearchDiscardEffect extends OneShotEffect {
             if (card != null) {
                 targetPlayer.discard(card, source, game);
                 if (!card.getCardType().contains(CardType.LAND) && !targetPlayer.getHand().isEmpty()) {
-                    targetPlayer.discard(1, source, game);
+                    targetPlayer.discard(1, false, source, game);
                 }
                 return true;
             }            

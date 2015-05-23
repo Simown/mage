@@ -56,7 +56,6 @@ public class ScoutTheBorders extends CardImpl {
         super(ownerId, 148, "Scout the Borders", Rarity.COMMON, new CardType[]{CardType.SORCERY}, "{2}{G}");
         this.expansionSetCode = "KTK";
 
-        this.color.setGreen(true);
 
         // Reveal the top five cards of your library. You may put a creature or land card from among them into your hand. Put the rest into your graveyard.
         this.getSpellAbility().addEffect(new  ScoutTheBordersEffect());
@@ -113,23 +112,17 @@ class  ScoutTheBordersEffect extends OneShotEffect {
             }
 
             if (!cards.isEmpty()) {
-                controller.revealCards(sourceObject.getLogName(), cards, game);
+                controller.revealCards(sourceObject.getName(), cards, game);
                 TargetCard target = new TargetCard(Zone.LIBRARY, filterPutInHand);
                 if (properCardFound && controller.choose(Outcome.DrawCard, cards, target, game)) {
                     Card card = game.getCard(target.getFirstTarget());
                     if (card != null) {
-                        controller.moveCardToHandWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
+                        controller.moveCards(card, Zone.LIBRARY, Zone.HAND, source, game);
                         cards.remove(card);
                     }
 
                 }
-
-                for (UUID cardId : cards) {
-                    Card card = game.getCard(cardId);
-                    if (card != null) {
-                        controller.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
-                    }
-                }
+                controller.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
             }
             return true;
         }

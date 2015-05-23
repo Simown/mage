@@ -70,8 +70,8 @@ public class DomriRade extends CardImpl {
         super(ownerId, 156, "Domri Rade", Rarity.MYTHIC, new CardType[]{CardType.PLANESWALKER}, "{1}{R}{G}");
         this.expansionSetCode = "GTC";
         this.subtype.add("Domri");
-        this.color.setGreen(true);
-        this.color.setRed(true);
+
+
 
         this.addAbility(new EntersBattlefieldAbility(new AddCountersSourceEffect(CounterType.LOYALTY.createInstance(3)), false));
 
@@ -124,11 +124,11 @@ class DomriRadeEffect1 extends OneShotEffect {
             if (card != null) {
                 CardsImpl cards = new CardsImpl();
                 cards.add(card);
-                controller.lookAtCards(sourceObject.getLogName(), cards, game);
+                controller.lookAtCards(sourceObject.getName(), cards, game);
                 if (card.getCardType().contains(CardType.CREATURE)) {
                     if (controller.chooseUse(outcome, "Reveal " + card.getName() + " and put it into your hand?", game)) {
                         controller.moveCardToHandWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
-                        controller.revealCards(sourceObject.getLogName(), cards, game);
+                        controller.revealCards(sourceObject.getName(), cards, game);
                     }
                 }
                 return true;

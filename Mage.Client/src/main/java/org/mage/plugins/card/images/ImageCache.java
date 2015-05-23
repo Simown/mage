@@ -92,16 +92,27 @@ public class ImageCache {
                         if (path == null) {
                             return null;
                         }
-                        TFile file = new TFile(path);
-                        if (!file.exists()) {
-                            log.debug("File does not exist: " + file.toString());
+                        TFile file = getTFile(path);
+                        if (file == null) {
                             return null;
                         }
 
                         if (thumbnail && path.endsWith(".jpg")) {
                             String thumbnailPath = buildThumbnailPath(path);
-                            TFile thumbnailFile = new TFile(thumbnailPath);
-                            if (thumbnailFile.exists()) {
+                            TFile thumbnailFile = null;
+                            try {
+                                thumbnailFile = new TFile(thumbnailPath);
+                            } catch (Exception ex) {
+                            }
+                            boolean exists =false;
+                            if (thumbnailFile != null) {
+                                try {
+                                    exists = thumbnailFile.exists();
+                                } catch(Exception ex) {
+                                    exists = false;
+                                }
+                            }                            
+                            if (exists) {
                                 log.debug("loading thumbnail for " + key + ", path="+thumbnailPath);
                                 return loadImage(thumbnailFile);
                             } else {
@@ -135,15 +146,21 @@ public class ImageCache {
         CardDownloadData info = new CardDownloadData("Morph", "KTK", 0, false, 0, "KTK");
         info.setToken(true);
         String path = CardImageUtils.generateTokenImagePath(info);
-        TFile file = new TFile(path);
-        return loadImage(file);
+        if (path == null) {
+            return null;
+        }
+        TFile file = getTFile(path);
+        return loadImage(file);        
     }
 
     public static BufferedImage getManifestImage() {
         CardDownloadData info = new CardDownloadData("Manifest", "FRF", 0, false, 0, "FRF");
         info.setToken(true);
         String path = CardImageUtils.generateTokenImagePath(info);
-        TFile file = new TFile(path);
+        if (path == null) {
+            return null;
+        }        
+        TFile file = getTFile(path);
         return loadImage(file);
     }
 
@@ -196,29 +213,13 @@ public class ImageCache {
         return getImage(key);
     }
 
-//    /**
-//     * Returns the Image corresponding to the Path
-//     */
-//    private static BufferedImage getImageByPath(String path) {
-//        if (path == null) {
-//            return null;
-//        }
-//        TFile file = new TFile(path);
-//        if (!file.exists()) {
-//            log.warn("File does not exist: " + file.toString());
-//            return null;
-//        }
-//        return getWizardsCard(loadImage(file));
-//
-//    }
-
     /**
      * Returns the Image corresponding to the key
      */
     private static BufferedImage getImage(String key) {
         try {
             BufferedImage image = imageCache.get(key);
-            return image;
+            return image; 
         } catch (NullPointerException ex) {
             // unfortunately NullOutputException, thrown when apply() returns
             // null, is not public
@@ -266,15 +267,18 @@ public class ImageCache {
      * @return {@link BufferedImage}
      */
     public static BufferedImage loadImage(TFile file) {
+        if (file == null) {
+            return null;
+        }
         BufferedImage image = null;
         if (!file.exists()) {
             log.debug("File does not exist: " + file.toString());
             return null;
         }
         try {
-            TFileInputStream inputStream = new TFileInputStream(file);
-            image = ImageIO.read(inputStream);
-            inputStream.close();
+            try (TFileInputStream inputStream = new TFileInputStream(file)) {
+                image = ImageIO.read(inputStream);
+            }
         } catch (Exception e) {
             log.error(e, e);
         }
@@ -284,17 +288,13 @@ public class ImageCache {
 
     public static BufferedImage makeThumbnail(BufferedImage original, String path) {
         BufferedImage image = getResizedImage(original, Constants.THUMBNAIL_SIZE_FULL);
-        TFile imageFile = new TFile(path);
+        TFile imageFile = getTFile(path);
+        if (imageFile == null) {
+            return null;
+        }
         try {
-            TFileOutputStream outputStream = null;
-            try {
-                //log.debug("thumbnail path:"+path);
-                outputStream = new TFileOutputStream(imageFile);
+            try (TFileOutputStream outputStream = new TFileOutputStream(imageFile)) {
                 ImageIO.write(image, "jpg", outputStream);
-            } finally {
-                if (outputStream != null) {
-                    outputStream.close();
-                }
             }
         } catch (IOException e) {
             log.error(e,e);
@@ -381,5 +381,15 @@ public class ImageCache {
         }
 
         return getFullSizeImage(original, scale);
+    }
+    
+    public static TFile getTFile(String path) {
+        try {
+            TFile file = new TFile(path);
+            return file;
+        } catch (NullPointerException ex) {
+            log.warn("Imagefile does not exist: " + path);
+        }
+        return null;        
     }
 }

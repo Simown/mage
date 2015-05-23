@@ -66,7 +66,6 @@ public class BalaGedThief extends CardImpl {
         this.subtype.add("Rogue");
         this.subtype.add("Ally");
 
-        this.color.setBlack(true);
         this.power = new MageInt(2);
         this.toughness = new MageInt(2);
 
@@ -149,7 +148,7 @@ class BalaGedThiefEffect extends OneShotEffect {
             Card card = revealedCards.get(targetInHand.getFirstTarget(), game);
             if (card != null) {
                 targetPlayer.discard(card, source, game);
-                game.informPlayers(new StringBuilder("Bala Ged Thief: ").append(targetPlayer.getName()).append(" discarded ").append(card.getName()).toString());
+                game.informPlayers(new StringBuilder("Bala Ged Thief: ").append(targetPlayer.getLogName()).append(" discarded ").append(card.getName()).toString());
             }
         }
         return true;

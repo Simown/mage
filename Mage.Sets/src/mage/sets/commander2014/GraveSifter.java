@@ -61,7 +61,6 @@ public class GraveSifter extends CardImpl {
         this.subtype.add("Elemental");
         this.subtype.add("Beast");
 
-        this.color.setGreen(true);
         this.power = new MageInt(5);
         this.toughness = new MageInt(7);
 
@@ -107,7 +106,7 @@ class GraveSifterEffect extends OneShotEffect {
                 if (player != null) {
                     typeChoice.clearChoice();
                     if (player.choose(outcome, typeChoice, game)) {
-                        game.informPlayers(player.getName() + " has chosen: " + typeChoice.getChoice());
+                        game.informPlayers(player.getLogName() + " has chosen: " + typeChoice.getChoice());
                         FilterCard filter = new FilterCreatureCard("creature cards with creature type " + typeChoice.getChoice()+ " from your graveyard");
                         filter.add(new SubtypePredicate(typeChoice.getChoice()));
                         Target target = new TargetCardInYourGraveyard(0,Integer.MAX_VALUE, filter);

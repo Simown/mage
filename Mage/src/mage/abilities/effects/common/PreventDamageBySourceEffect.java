@@ -76,7 +76,7 @@ public class PreventDamageBySourceEffect extends PreventionEffectImpl {
     @Override
     public void init(Ability source, Game game) {
         this.target.choose(Outcome.PreventDamage, source.getControllerId(), source.getSourceId(), game);
-        mageObjectReference = new MageObjectReference(target.getFirstTarget(), game);
+        mageObjectReference = new MageObjectReference(target.getFirstTarget(), game);        
     }
 
     @Override
@@ -85,7 +85,7 @@ public class PreventDamageBySourceEffect extends PreventionEffectImpl {
             MageObject mageObject = game.getObject(event.getSourceId());
             if (mageObject != null && mageObjectReference.refersTo(mageObject, game)) {
                 return true;
-            }
+            }            
         }
         return false;
     }

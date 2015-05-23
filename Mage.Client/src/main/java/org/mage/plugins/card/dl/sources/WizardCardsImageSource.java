@@ -1,3 +1,31 @@
+/*
+* Copyright 2010 BetaSteward_at_googlemail.com. All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without modification, are
+* permitted provided that the following conditions are met:
+*
+*    1. Redistributions of source code must retain the above copyright notice, this list of
+*       conditions and the following disclaimer.
+*
+*    2. Redistributions in binary form must reproduce the above copyright notice, this list
+*       of conditions and the following disclaimer in the documentation and/or other materials
+*       provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY BetaSteward_at_googlemail.com ``AS IS'' AND ANY EXPRESS OR IMPLIED
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+* FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL BetaSteward_at_googlemail.com OR
+* CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+* ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* The views and conclusions contained in the software and documentation are those of the
+* authors and should not be interpreted as representing official policies, either expressed
+* or implied, of BetaSteward_at_googlemail.com.
+*/
+
 package org.mage.plugins.card.dl.sources;
 
 import java.io.BufferedReader;
@@ -69,11 +97,11 @@ public class WizardCardsImageSource implements CardImageSource {
         setsAliases.put("BRB", "Battle Royale Box Set");
         setsAliases.put("BTD", "Beatdown Box Set");
         setsAliases.put("C13", "Commander 2013 Edition");
-        setsAliases.put("C14", "Commander 2014 Edition");
+        setsAliases.put("C14", "Commander 2014");
         setsAliases.put("CHK", "Champions of Kamigawa");
         setsAliases.put("CHR", "Chronicles");
         setsAliases.put("CMD", "Magic: The Gathering-Commander");
-        setsAliases.put("CNS", "Magic: The Gathering-Conspiracy");
+        setsAliases.put("CNS", "Magic: The Gathering—Conspiracy");
         setsAliases.put("CON", "Conflux");
         setsAliases.put("CSP", "Coldsnap");
         setsAliases.put("DD2", "Duel Decks: Jace vs. Chandra");
@@ -145,7 +173,7 @@ public class WizardCardsImageSource implements CardImageSource {
         setsAliases.put("MIR", "Mirage");
         setsAliases.put("MLP", "Launch Party");
         setsAliases.put("MMA", "Modern Masters");
-        setsAliases.put("MMB", "Modern Masters 2015");
+        setsAliases.put("MM2", "Modern Masters 2015");
         setsAliases.put("MMQ", "Mercadian Masques");
         setsAliases.put("MOR", "Morningtide");
         setsAliases.put("MPRP", "Magic Player Rewards");
@@ -179,7 +207,7 @@ public class WizardCardsImageSource implements CardImageSource {
         setsAliases.put("TMP", "Tempest");
         setsAliases.put("TOR", "Torment");
         setsAliases.put("TPR", "Tempest Remastered");
-        setsAliases.put("TSB", "Time Spiral 'Timeshifted'");
+        setsAliases.put("TSB", "Time Spiral \"Timeshifted\"");
         setsAliases.put("TSP", "Time Spiral");
         setsAliases.put("UDS", "Urza's Destiny");
         setsAliases.put("UGL", "Unglued");
@@ -250,17 +278,21 @@ public class WizardCardsImageSource implements CardImageSource {
                         String cardName = normalizeName(cardsImages.get(i).attr("alt"));
                         if (cardName != null && !cardName.isEmpty()) {
                             if (cardName.equals("Forest") || cardName.equals("Swamp") || cardName.equals("Mountain") || cardName.equals("Island") || cardName.equals("Plains")) {
-                                Integer multiverseId = Integer.parseInt(cardsImages.get(i).attr("src").replaceAll("[^\\d]", ""));
-                                String urlLandDocument = "http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=" + multiverseId;
-                                Document landDoc = Jsoup.connect(urlLandDocument).get();
-                                Elements variations = landDoc.select("a.variationlink");
-                                int landNumber = 1;
-                                for (Element variation : variations) {
-                                    Integer landMultiverseId = Integer.parseInt(variation.attr("onclick").replaceAll("[^\\d]", ""));
-                                     // ""
-                                    setLinks.put((cardName + landNumber).toLowerCase(), "/Handlers/Image.ashx?multiverseid=" +landMultiverseId + "&type=card");
-                                    landNumber++;
-                                }
+                            	Integer multiverseId = Integer.parseInt(cardsImages.get(i).attr("src").replaceAll("[^\\d]", ""));
+                            	String urlLandDocument = "http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=" + multiverseId;
+                            	Document landDoc = Jsoup.connect(urlLandDocument).get();
+                            	Elements variations = landDoc.select("a.variationlink");
+                            	if(!variations.isEmpty()) {
+                            		int landNumber = 1;
+                            		for (Element variation : variations) {
+                            			Integer landMultiverseId = Integer.parseInt(variation.attr("onclick").replaceAll("[^\\d]", ""));
+                            			// ""
+                            			setLinks.put((cardName + landNumber).toLowerCase(), "/Handlers/Image.ashx?multiverseid=" +landMultiverseId + "&type=card");
+                            			landNumber++;
+                            		}
+                            	} else {
+                            		setLinks.put(cardName.toLowerCase(), cardsImages.get(i).attr("src").substring(5));
+                            	}
                             } else {
                                 setLinks.put(cardName.toLowerCase(), cardsImages.get(i).attr("src").substring(5));
                             }
@@ -276,6 +308,14 @@ public class WizardCardsImageSource implements CardImageSource {
     }
 
     private String normalizeName(String name) {
+    	//Split card
+    	if(name.contains("//")) {
+    		name = name.substring(0, name.indexOf("(") - 1);
+    	}
+    	//Special timeshifted name
+    	if(name.startsWith("XX")) {
+    		name = name.substring(name.indexOf("(") + 1, name.length() - 1);
+    	}
         return name.replace("\u2014", "-").replace("\u2019", "'")
                 .replace("\u00C6", "AE").replace("\u00E6", "ae")
                 .replace("\u00C3\u2020", "AE")                

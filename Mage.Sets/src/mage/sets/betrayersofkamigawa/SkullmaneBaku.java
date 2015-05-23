@@ -65,7 +65,7 @@ public class SkullmaneBaku extends CardImpl {
         super(ownerId, 83, "Skullmane Baku", Rarity.COMMON, new CardType[]{CardType.CREATURE}, "{3}{B}{B}");
         this.expansionSetCode = "BOK";
         this.subtype.add("Spirit");
-        this.color.setBlack(true);
+
         this.power = new MageInt(2);
         this.toughness = new MageInt(1);
         
@@ -110,7 +110,7 @@ public class SkullmaneBaku extends CardImpl {
             }
             Permanent creature = game.getPermanent(targetPointer.getFirst(game, source));
             if (creature != null && numberToUnboost != 0) {
-                creature.addAbility(new SimpleStaticAbility(Zone.BATTLEFIELD, new BoostSourceEffect(numberToUnboost, numberToUnboost, Duration.EndOfTurn)), game);
+                creature.addAbility(new SimpleStaticAbility(Zone.BATTLEFIELD, new BoostSourceEffect(numberToUnboost, numberToUnboost, Duration.EndOfTurn)), source.getSourceId(), game, false);
             }
             return true;
         }

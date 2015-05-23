@@ -52,7 +52,6 @@ public class BeastHunt extends CardImpl {
         super(ownerId, 158, "Beast Hunt", Rarity.COMMON, new CardType[]{CardType.SORCERY}, "{3}{G}");
         this.expansionSetCode = "ZEN";
 
-        this.color.setGreen(true);
 
         this.getSpellAbility().addEffect(new BeastHuntEffect());
     }
@@ -87,25 +86,19 @@ class BeastHuntEffect extends OneShotEffect {
         }
 
         Cards cards = new CardsImpl();
-        int count = Math.min(controller.getLibrary().size(), 3);
-        for (int i = 0; i < count; i++) {
-            Card card = controller.getLibrary().removeFromTop(game);
-            if (card != null) {
-                cards.add(card);
-                if (card.getCardType().contains(CardType.CREATURE)) {
-                    controller.moveCardToHandWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
-                } else {
-                    controller.moveCardToGraveyardWithInfo(card, source.getSourceId(), game, Zone.LIBRARY);
-                }
-            } else {
-                return false;
-            }
-        }
-
+        Cards cardsToHand = new CardsImpl();
+        cards.addAll(controller.getLibrary().getTopCards(game, 3));
         if (!cards.isEmpty()) {
-            controller.revealCards(sourceObject.getLogName(), cards, game);
+            controller.revealCards(sourceObject.getName(), cards, game);
+            for (Card card: cards.getCards(game)) {
+                if (card.getCardType().contains(CardType.CREATURE)) {
+                    cardsToHand.add(card);
+                    cards.remove(card);
+                }
+            }
+            controller.moveCards(cardsToHand, Zone.LIBRARY, Zone.HAND, source, game);
+            controller.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
         }
-
         return true;
     }
 

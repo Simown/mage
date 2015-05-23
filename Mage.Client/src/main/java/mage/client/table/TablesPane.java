@@ -56,6 +56,10 @@ public class TablesPane extends MagePane {
             initComponents();
         }
     }
+    
+    public void cleanUp() {
+        tablesPanel.cleanUp();
+    }
 
     public void showTables() {
         UUID roomId = MageFrame.getSession().getMainRoomId();

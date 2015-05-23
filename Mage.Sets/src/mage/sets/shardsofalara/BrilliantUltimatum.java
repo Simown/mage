@@ -56,9 +56,6 @@ public class BrilliantUltimatum extends CardImpl {
         super(ownerId, 159, "Brilliant Ultimatum", Rarity.RARE, new CardType[]{CardType.SORCERY}, "{W}{W}{U}{U}{U}{B}{B}");
         this.expansionSetCode = "ALA";
 
-        this.color.setBlue(true);
-        this.color.setBlack(true);
-        this.color.setWhite(true);
 
         // Exile the top five cards of your library. An opponent separates those cards into two piles. You may play any number of cards from one of those piles without paying their mana costs.
         this.getSpellAbility().addEffect(new BrilliantUltimatumEffect());
@@ -140,7 +137,7 @@ class BrilliantUltimatumEffect extends OneShotEffect {
             
             boolean choice = you.choosePile(Outcome.PlayForFree, "Which pile (play for free)?", pileOne, pileTwo, game);
             if (choice) {
-                game.informPlayer(you, you.getName() + " chose Pile 1.");
+                game.informPlayer(you, you.getLogName() + " chose Pile 1.");
                 while (!pileOne.isEmpty() && you.chooseUse(Outcome.PlayForFree, "Do you want to play a card from Pile 1?", game)) {
                     TargetCard targetExiledCard = new TargetCard(Zone.EXILED, new FilterCard());
                     if (you.chooseTarget(Outcome.PlayForFree, pile1, targetExiledCard, source, game)) {
@@ -159,7 +156,7 @@ class BrilliantUltimatumEffect extends OneShotEffect {
                     }
                 }
             } else {
-                game.informPlayer(you, you.getName() + " chose Pile 2.");
+                game.informPlayer(you, you.getLogName() + " chose Pile 2.");
                 while (!pileTwo.isEmpty() && you.chooseUse(Outcome.PlayForFree, "Do you want to play a card from Pile 2?", game)) {
                     TargetCard targetExiledCard = new TargetCard(Zone.EXILED, new FilterCard());
                     if (you.chooseTarget(Outcome.PlayForFree, pile2, targetExiledCard, source, game)) {

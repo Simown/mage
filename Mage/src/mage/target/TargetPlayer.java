@@ -92,7 +92,7 @@ public class TargetPlayer extends TargetImpl {
         for (UUID playerId: game.getPlayer(sourceControllerId).getInRange()) {
             Player player = game.getPlayer(playerId);
             if (player != null && !player.hasLeft() && filter.match(player, sourceId, sourceControllerId, game)) {
-                if (player.canBeTargetedBy(targetSource, game)) {
+                if (player.canBeTargetedBy(targetSource, sourceControllerId, game)) {
                     count++;
                     if (count >= this.minNumberOfTargets) {
                         return true;
@@ -133,7 +133,7 @@ public class TargetPlayer extends TargetImpl {
         for (UUID playerId: game.getPlayer(sourceControllerId).getInRange()) {
             Player player = game.getPlayer(playerId);
             if (player != null && !player.hasLeft() && filter.match(player, sourceId, sourceControllerId, game)) {
-                if (isNotTarget() || player.canBeTargetedBy(targetSource, game)) {
+                if (isNotTarget() || player.canBeTargetedBy(targetSource, sourceControllerId, game)) {
                     possibleTargets.add(playerId);
                 }
             }
@@ -178,7 +178,7 @@ public class TargetPlayer extends TargetImpl {
         Player player = game.getPlayer(id);
         if (player != null) {
             if (source != null) {
-                return (isNotTarget() || player.canBeTargetedBy(game.getObject(source.getSourceId()), game))
+                return (isNotTarget() || player.canBeTargetedBy(game.getObject(source.getSourceId()), source.getControllerId(), game))
                         && filter.match(player, source.getSourceId(), source.getControllerId(), game);
             } else {
                 return filter.match(player, game);
@@ -198,7 +198,7 @@ public class TargetPlayer extends TargetImpl {
         for (UUID targetId: getTargets()) {
             Player player = game.getPlayer(targetId);
             if (player != null) {
-                sb.append(player.getName()).append(" ");
+                sb.append(player.getLogName()).append(" ");
             } else {
                 sb.append("[target missing]");
             }

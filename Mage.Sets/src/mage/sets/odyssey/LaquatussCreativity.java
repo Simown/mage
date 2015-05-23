@@ -49,7 +49,6 @@ public class LaquatussCreativity extends CardImpl {
         super(ownerId, 88, "Laquatus's Creativity", Rarity.UNCOMMON, new CardType[]{CardType.SORCERY}, "{4}{U}");
         this.expansionSetCode = "ODY";
 
-        this.color.setBlue(true);
 
         // Target player draws cards equal to the number of cards in his or her hand, then discards that many cards.
         this.getSpellAbility().addEffect(new LaquatussCreativityEffect());
@@ -87,7 +86,7 @@ class LaquatussCreativityEffect extends OneShotEffect {
         Player player = game.getPlayer(source.getFirstTarget());
         int handCount = player.getHand().count(new FilterCard(), game);
         player.drawCards(handCount, game);
-        player.discard(handCount, source, game);
+        player.discard(handCount, false, source, game);
         return false;
     }
 }

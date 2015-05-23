@@ -64,7 +64,6 @@ public class QuietSpeculation extends CardImpl {
         super(ownerId, 49, "Quiet Speculation", Rarity.UNCOMMON, new CardType[]{CardType.SORCERY}, "{1}{U}");
         this.expansionSetCode = "JUD";
 
-        this.color.setBlue(true);
 
         // Search target player's library for up to three cards with flashback and put them into that player's graveyard. Then the player shuffles his or her library.
         TargetCardInLibrary target = new TargetCardInLibrary(0, 3, filterCard);
@@ -106,17 +105,9 @@ class SearchLibraryPutInGraveEffect extends SearchEffect {
         }
         if (player.searchLibrary(target, game)) {
             if (target.getTargets().size() > 0) {
-                Cards cards = new CardsImpl();
-                for (UUID cardId: (List<UUID>)target.getTargets()) {
-                    Card card = player.getLibrary().remove(cardId, game);
-                    if (card != null){
-                        card.moveToZone(Zone.GRAVEYARD, source.getSourceId(), game, false);
-                        cards.add(card);
-                    }
-                }
-                if (cards.size() > 0) {
-                    player.revealCards("Quiet Speculation", cards, game);
-                }
+                Cards cards = new CardsImpl(target.getTargets());
+                player.revealCards("Quiet Speculation", cards, game);
+                player.moveCards(cards, Zone.LIBRARY, Zone.GRAVEYARD, source, game);
             }
             player.shuffleLibrary(game);
             return true;

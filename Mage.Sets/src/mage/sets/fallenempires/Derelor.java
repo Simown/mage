@@ -57,12 +57,11 @@ public class Derelor extends CardImpl {
         this.expansionSetCode = "FEM";
         this.subtype.add("Thrull");
 
-        this.color.setBlack(true);
         this.power = new MageInt(4);
         this.toughness = new MageInt(4);
 
         // Black spells you cast cost {B} more to cast.
-        this.addAbility(new SimpleStaticAbility(Zone.BATTLEFIELD, new SpellsCostIncreasementControllerEffect(filter, new ManaCostsImpl("B"))));
+        this.addAbility(new SimpleStaticAbility(Zone.BATTLEFIELD, new SpellsCostIncreasementControllerEffect(filter, new ManaCostsImpl<>("{B}"))));
     }
 
     public Derelor(final Derelor card) {
