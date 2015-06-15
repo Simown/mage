@@ -247,7 +247,7 @@ public abstract class AbilityImpl implements Ability {
             return false;
         }
         game.applyEffects();
-        
+
         /* 20130201 - 601.2b
          * If the spell is modal the player announces the mode choice (see rule 700.2).
          */
@@ -299,7 +299,7 @@ public abstract class AbilityImpl implements Ability {
         // A player can't apply two alternative methods of casting or two alternative costs to a single spell.
         if (!activateAlternateOrAdditionalCosts(sourceObject, noMana, controller, game)){
             if (getAbilityType().equals(AbilityType.SPELL)
-                    && ((SpellAbility) this).getSpellAbilityType().equals(SpellAbilityType.LAND_ALTERNATE)) {
+                    && ((SpellAbility) this).getSpellAbilityType().equals(SpellAbilityType.FACE_DOWN_CREATURE)) {
                 return false;
             }
         }
@@ -334,7 +334,7 @@ public abstract class AbilityImpl implements Ability {
             }
             if (getTargets().size() > 0 && getTargets().chooseTargets(getEffects().get(0).getOutcome(), this.controllerId, this, game) == false) {
                 if ((variableManaCost != null || announceString != null) && !game.isSimulation()) {
-                    game.informPlayer(controller, new StringBuilder(sourceObject != null ? sourceObject.getLogName(): "").append(": no valid targets with this value of X").toString());
+                    game.informPlayer(controller, (sourceObject != null ? sourceObject.getIdName(): "") + ": no valid targets with this value of X");
                 } 
                 return false; // when activation of ability is canceled during target selection
             }
@@ -352,10 +352,18 @@ public abstract class AbilityImpl implements Ability {
         //20100716 - 601.2e
         if (sourceObject != null) {
             sourceObject.adjustCosts(this, game);
-            for (Ability ability : sourceObject.getAbilities()) {
-                if (ability instanceof AdjustingSourceCosts) {
-                    ((AdjustingSourceCosts)ability).adjustCosts(this, game);
-                }
+            if (sourceObject instanceof Card) {
+                for (Ability ability : ((Card)sourceObject).getAbilities(game)) {
+                    if (ability instanceof AdjustingSourceCosts) {
+                        ((AdjustingSourceCosts)ability).adjustCosts(this, game);
+                    }
+                }                
+            } else {
+                for (Ability ability : sourceObject.getAbilities()) {
+                    if (ability instanceof AdjustingSourceCosts) {
+                        ((AdjustingSourceCosts)ability).adjustCosts(this, game);
+                    }
+                }                
             }
         }
 
@@ -927,6 +935,9 @@ public abstract class AbilityImpl implements Ability {
                 }
             }
         }
+        if (object instanceof Permanent) {
+            return ((Permanent) object).isPhasedIn();
+        }
         return true;
     }
     
@@ -1071,6 +1082,7 @@ public abstract class AbilityImpl implements Ability {
         return sb.toString();
     }
 
+    @Override
     public String getTargetDescription(Targets targets, Game game) {
         return getTargetDescriptionForLog(targets, game);
     }

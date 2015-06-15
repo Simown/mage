@@ -36,6 +36,7 @@ import java.util.UUID;
 import mage.MageObject;
 import mage.MageObjectImpl;
 import mage.Mana;
+import mage.ObjectColor;
 import mage.abilities.Abilities;
 import mage.abilities.AbilitiesImpl;
 import mage.abilities.Ability;
@@ -59,6 +60,7 @@ import static mage.constants.Zone.PICK;
 import static mage.constants.Zone.STACK;
 import mage.counters.Counter;
 import mage.counters.Counters;
+import mage.game.CardAttribute;
 import mage.game.CardState;
 import mage.game.Game;
 import mage.game.command.Commander;
@@ -357,6 +359,12 @@ public abstract class CardImpl extends MageObjectImpl implements Card {
                         break;
                     case STACK:
                         StackObject stackObject = game.getStack().getSpell(getId());
+                        if (stackObject == null && (this instanceof SplitCard)) { // handle if half od Split cast is on the stack
+                            stackObject = game.getStack().getSpell(((SplitCard)this).getLeftHalfCard().getId());
+                            if (stackObject == null) {
+                                stackObject = game.getStack().getSpell(((SplitCard)this).getRightHalfCard().getId());
+                            }
+                        }
                         if (stackObject != null) {
                             game.getStack().remove(stackObject);
                         }
@@ -763,5 +771,15 @@ public abstract class CardImpl extends MageObjectImpl implements Card {
     public void setSpellAbility(SpellAbility ability) {
         spellAbility = ability;
     }
-    
+
+    @Override
+    public ObjectColor getColor(Game game) {
+        if (game != null) {
+            CardAttribute cardAttribute = game.getState().getCardAttribute(getId());
+            if (cardAttribute != null) {
+                return cardAttribute.getColor();
+            }
+        }
+        return super.getColor(game); //To change body of generated methods, choose Tools | Templates.
+    }
 }

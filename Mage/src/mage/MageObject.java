@@ -13,6 +13,7 @@ import mage.game.Game;
 public interface MageObject extends MageItem, Serializable {
 
     String getName();
+    String getIdName();
     String getLogName();
     String getImageName();
     void setName(String name);
@@ -25,7 +26,7 @@ public interface MageObject extends MageItem, Serializable {
     Abilities<Ability> getAbilities();
     boolean hasAbility(UUID abilityId, Game game);
 
-    ObjectColor getColor();
+    ObjectColor getColor(Game game);
     ManaCosts<ManaCost> getManaCost();
 
     MageInt getPower();

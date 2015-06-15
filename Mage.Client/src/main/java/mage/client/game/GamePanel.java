@@ -90,6 +90,8 @@ import mage.client.dialog.PickChoiceDialog;
 import mage.client.dialog.PickNumberDialog;
 import mage.client.dialog.PickPileDialog;
 import mage.client.dialog.PreferencesDialog;
+import static mage.client.dialog.PreferencesDialog.KEY_GAME_MANA_AUTOPAYMENT;
+import static mage.client.dialog.PreferencesDialog.KEY_GAME_MANA_AUTOPAYMENT_ONLY_ONE;
 import mage.client.dialog.ShowCardsDialog;
 import mage.client.game.FeedbackPanel.FeedbackMode;
 import mage.client.plugins.adapters.MageActionCallback;
@@ -382,7 +384,8 @@ public final class GamePanel extends javax.swing.JPanel {
         this.gameChatPanel.connect(session.getGameChatId(gameId));
         if (!session.joinGame(gameId)) {
             removeGame();
-        } else {
+        } else {            
+            // play start sound
             AudioManager.playYourGameStarted();
         }
     }
@@ -456,6 +459,11 @@ public final class GamePanel extends javax.swing.JPanel {
 
     public synchronized void init(GameView game) {
         addPlayers(game);
+        // default menu states
+        setMenuStates(
+                PreferencesDialog.getCachedValue(KEY_GAME_MANA_AUTOPAYMENT, "true").equals("true"),
+                PreferencesDialog.getCachedValue(KEY_GAME_MANA_AUTOPAYMENT_ONLY_ONE, "true").equals("true"));
+
         updateGame(game);
     }
 
@@ -478,7 +486,8 @@ public final class GamePanel extends javax.swing.JPanel {
             }
         }
         PlayerView player = game.getPlayers().get(playerSeat);
-        PlayAreaPanel sessionPlayer = new PlayAreaPanel(player, bigCard, gameId, true, game.getPriorityTime(), game.isPlayer(), this);
+        PlayAreaPanel sessionPlayer = new PlayAreaPanel(player, bigCard, gameId, game.getPriorityTime(), this, 
+                new PlayAreaPanelOptions(game.isPlayer(), true, game.isRollbackTurnsAllowed()));
         players.put(player.getPlayerId(), sessionPlayer);
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
@@ -510,7 +519,8 @@ public final class GamePanel extends javax.swing.JPanel {
                 col = numColumns - 1;
             }
             player = game.getPlayers().get(playerNum);
-            PlayAreaPanel playerPanel = new PlayAreaPanel(player, bigCard, gameId, false, game.getPriorityTime(), game.isPlayer(), this);
+            PlayAreaPanel playerPanel = new PlayAreaPanel(player, bigCard, gameId, game.getPriorityTime(), this,
+                    new PlayAreaPanelOptions(game.isPlayer(), false, game.isRollbackTurnsAllowed()));
             players.put(player.getPlayerId(), playerPanel);
             c = new GridBagConstraints();
             c.fill = GridBagConstraints.BOTH;
@@ -727,10 +737,11 @@ public final class GamePanel extends javax.swing.JPanel {
     /**
      * Set the same state for menu selections to all player areas.
      * @param manaPoolAutomatic 
+     * @param manaPoolAutomaticRestricted 
      */
-    public void setMenuStates(boolean manaPoolAutomatic) {
+    public void setMenuStates(boolean manaPoolAutomatic, boolean manaPoolAutomaticRestricted) {
        for(PlayAreaPanel playAreaPanel: players.values()) {
-           playAreaPanel.setMenuStates(manaPoolAutomatic);
+           playAreaPanel.setMenuStates(manaPoolAutomatic, manaPoolAutomaticRestricted);
        } 
     }
     
@@ -801,7 +812,7 @@ public final class GamePanel extends javax.swing.JPanel {
                 ShowCardsDialog newReveal = new ShowCardsDialog();
                 revealed.put(reveal.getName(), newReveal);
             }
-            revealed.get(reveal.getName()).loadCards("Revealed " + reveal.getName(), CardsViewUtil.convertSimple(reveal.getCards(), loadedCards), bigCard, Config.dimensions, gameId, false);
+            revealed.get(reveal.getName()).loadCards("Revealed " + reveal.getName(), reveal.getCards(), bigCard, Config.dimensions, gameId, false);
         }
     }
 
@@ -814,7 +825,7 @@ public final class GamePanel extends javax.swing.JPanel {
                 ShowCardsDialog newLookedAt = new ShowCardsDialog();
                 lookedAt.put(looked.getName(), newLookedAt);
             }
-            lookedAt.get(looked.getName()).loadCards("Looked at by " + looked.getName(), CardsViewUtil.convertSimple(looked.getCards(), loadedCards), bigCard, Config.dimensions, gameId, false);
+            lookedAt.get(looked.getName()).loadCards("Looked at by " + looked.getName(), looked.getCards(), bigCard, Config.dimensions, gameId, false);
         }
     }
 

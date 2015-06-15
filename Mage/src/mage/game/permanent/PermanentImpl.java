@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.UUID;
 import mage.MageObject;
 import mage.MageObjectReference;
+import mage.ObjectColor;
 import mage.abilities.Abilities;
 import mage.abilities.Ability;
 import mage.abilities.effects.ContinuousEffect;
@@ -119,6 +120,7 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
     protected List<Counter> markedDamage;
     protected int timesLoyaltyUsed = 0;
     protected Map<String, String> info;
+    protected int createOrder;
     
     private static final List<UUID> emptyList = Collections.unmodifiableList(new ArrayList<UUID>());
 
@@ -126,7 +128,7 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
         super(ownerId, name);
         this.originalControllerId = controllerId;
         this.controllerId = controllerId;
-        this.counters = new Counters();
+        this.counters = new Counters();        
     }
 
     public PermanentImpl(UUID id, UUID ownerId, UUID controllerId, String name) {
@@ -179,6 +181,7 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
 
         this.morphed = permanent.morphed;
         this.manifested = permanent.manifested;
+        this.createOrder = permanent.createOrder;
     }
 
     @Override
@@ -1347,4 +1350,21 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
         fightTarget.damage(getPower().getValue(), getId(), game, false, true);
         return true;
     }
+
+    @Override
+    public int getCreateOrder() {
+        return createOrder;
     }
+    
+    @Override
+    public void setCreateOrder(int createOrder) {
+        this.createOrder = createOrder;
+    }
+
+    @Override
+    public ObjectColor getColor(Game game) {
+        return color;
+    }
+     
+    
+}

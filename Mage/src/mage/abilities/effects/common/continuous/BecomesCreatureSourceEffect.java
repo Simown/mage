@@ -32,7 +32,6 @@ import mage.MageInt;
 import mage.MageObjectReference;
 import mage.abilities.Ability;
 import mage.abilities.effects.ContinuousEffectImpl;
-import mage.cards.Card;
 import mage.constants.CardType;
 import mage.constants.Duration;
 import mage.constants.Layer;
@@ -106,8 +105,8 @@ public class BecomesCreatureSourceEffect extends ContinuousEffectImpl implements
                     break;
                 case ColorChangingEffects_5:
                     if (sublayer == SubLayer.NA) {
-                        if (token.getColor().hasColor()) {
-                            permanent.getColor().setColor(token.getColor());
+                        if (token.getColor(game).hasColor()) {
+                            permanent.getColor(game).setColor(token.getColor(game));
                         }
                     }
                     break;

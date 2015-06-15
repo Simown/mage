@@ -100,6 +100,11 @@ public class Commander implements CommandObject{
     }
 
     @Override
+    public String getIdName() {
+        return card.getName() + " ["+card.getId().toString().substring(0,3) +"]";        
+    }
+
+    @Override
     public String getLogName() {
         return GameLog.getColoredObjectName(this);
     }
@@ -144,8 +149,8 @@ public class Commander implements CommandObject{
     }
 
     @Override
-    public ObjectColor getColor() {
-        return card.getColor();
+    public ObjectColor getColor(Game game) {
+        return card.getColor(game);
     }
 
     @Override

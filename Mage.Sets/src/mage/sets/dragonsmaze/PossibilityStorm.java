@@ -54,7 +54,6 @@ import mage.target.targetpointer.FixedTarget;
  * @author LevelX2
  */
 
-
 public class PossibilityStorm extends CardImpl {
 
     public PossibilityStorm(UUID ownerId) {
@@ -123,7 +122,7 @@ class PossibilityStormEffect extends OneShotEffect {
 
     public PossibilityStormEffect() {
         super(Outcome.Neutral);
-        staticText = "that player exiles it, then exiles cards from the top of his or her library until he or she exiles a card that shares a card type with it. That player may cast that card without paying its mana cost. Then he or she puts all cards exiled with Possibility Storm on the bottom of his or her library in a random order";
+        staticText = "that player exiles it, then exiles cards from the top of his or her library until he or she exiles a card that shares a card type with it. That player may cast that card without paying its mana cost. Then he or she puts all cards exiled with {this} on the bottom of his or her library in a random order";
     }
 
     public PossibilityStormEffect(final PossibilityStormEffect effect) {
@@ -137,19 +136,21 @@ class PossibilityStormEffect extends OneShotEffect {
         if (sourceObject != null && spell != null) {
             Player spellController = game.getPlayer(spell.getControllerId());
             if (spellController != null &&
-                spellController.moveCardToExileWithInfo(spell, source.getSourceId(), sourceObject.getName(), source.getSourceId(), game, Zone.STACK, true)) {
+                spellController.moveCardToExileWithInfo(spell, source.getSourceId(), sourceObject.getIdName(), source.getSourceId(), game, Zone.STACK, true)) {
                 if (spellController.getLibrary().size() > 0) {
                     Library library = spellController.getLibrary();
                     Card card;
                     do {
                         card = library.removeFromTop(game);
                         if (card != null) {
-                            spellController.moveCardToExileWithInfo(card, source.getSourceId(), sourceObject.getName(), source.getSourceId(), game, Zone.LIBRARY, true);
+                            spellController.moveCardToExileWithInfo(card, source.getSourceId(), sourceObject.getIdName(), source.getSourceId(), game, Zone.LIBRARY, true);
                         }
                     } while (library.size() > 0 && card != null && !sharesType(card, spell.getCardType()));
 
-                    if (card != null && sharesType(card, spell.getCardType())) {
-                        if (spellController.chooseUse(Outcome.PlayForFree, new StringBuilder("Cast ").append(card.getName()).append(" without paying cost?").toString(), game)) {
+                    if (card != null && sharesType(card, spell.getCardType()) && 
+                            !card.getCardType().contains(CardType.LAND) &&
+                            card.getSpellAbility().getTargets().canChoose(spellController.getId(), game)) {
+                        if (spellController.chooseUse(Outcome.PlayForFree, "Cast " + card.getLogName() + " without paying cost?", game)) {
                             spellController.cast(card.getSpellAbility(), game, true);
                         }
                     }

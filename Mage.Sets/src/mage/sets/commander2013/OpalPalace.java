@@ -64,12 +64,12 @@ public class OpalPalace extends CardImpl {
         super(ownerId, 310, "Opal Palace", Rarity.COMMON, new CardType[]{CardType.LAND}, "");
         this.expansionSetCode = "C13";
 
-        // {tap}: Add {1} to your mana pool.
+        // {T}: Add {1} to your mana pool.
         this.addAbility(new ColorlessManaAbility());
         // {1}, {tap}: Add to your mana pool one mana of any color in your commander's color identity. If you spend this mana to cast your commander, it enters the battlefield with a number of +1/+1 counters on it equal to the number of times it's been cast from the command zone this game.
         Ability ability = new CommanderColorIdentityManaAbility(new GenericManaCost(1));
         ability.addCost(new TapSourceCost());
-        this.addAbility(ability, new OpalPalaceWatcher());
+        this.addAbility(ability, new OpalPalaceWatcher(ability.getOriginalId().toString()));
 
         ability = new SimpleStaticAbility(Zone.ALL, new OpalPalaceEntersBattlefieldEffect());
         ability.setRuleVisible(false);
@@ -90,13 +90,17 @@ public class OpalPalace extends CardImpl {
 class OpalPalaceWatcher extends Watcher {
 
     public List<UUID> commanderId = new ArrayList<>();
-
-    public OpalPalaceWatcher() {
+    private final String originalId;
+    
+    public OpalPalaceWatcher(String originalId) {
         super("ManaPaidFromOpalPalaceWatcher", WatcherScope.CARD);
+        this.originalId = originalId;        
     }
 
     public OpalPalaceWatcher(final OpalPalaceWatcher watcher) {
         super(watcher);
+        this.commanderId.addAll(watcher.commanderId);
+        this.originalId = watcher.originalId;
     }
 
     @Override
@@ -107,7 +111,7 @@ class OpalPalaceWatcher extends Watcher {
     @Override
     public void watch(GameEvent event, Game game) {
         if (event.getType() == GameEvent.EventType.MANA_PAYED) {
-            if (event.getSourceId().equals(this.getSourceId()) && event.getFlag()) { // flag indicates that mana was produced with second ability
+            if (event.getData() != null && event.getData().equals(originalId)) {
                 Spell spell = game.getStack().getSpell(event.getTargetId());
                 if (spell != null) {
                     Card card = spell.getCard();
@@ -146,19 +150,15 @@ class OpalPalaceEntersBattlefieldEffect extends ReplacementEffectImpl {
     }
 
     @Override
-    public boolean applies(GameEvent event, Ability source, Game game) {
-        if (event.getType() == EventType.ENTERS_THE_BATTLEFIELD) {
-            OpalPalaceWatcher watcher = (OpalPalaceWatcher) game.getState().getWatchers().get("ManaPaidFromOpalPalaceWatcher", source.getSourceId());
-            if (watcher != null) {
-                return watcher.commanderId.contains(event.getTargetId());
-            }
-        }
-        return false;
+    public boolean checksEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.ENTERS_THE_BATTLEFIELD;
     }
-
+    
     @Override
-    public boolean apply(Game game, Ability source) {
-        return false;
+    public boolean applies(GameEvent event, Ability source, Game game) {
+        OpalPalaceWatcher watcher = (OpalPalaceWatcher) game.getState().getWatchers().get("ManaPaidFromOpalPalaceWatcher", source.getSourceId());
+        return watcher != null &&
+                watcher.commanderId.contains(event.getTargetId());
     }
 
     @Override
