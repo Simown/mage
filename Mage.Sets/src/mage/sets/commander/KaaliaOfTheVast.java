@@ -30,15 +30,15 @@ package mage.sets.commander;
 import java.util.UUID;
 import mage.MageInt;
 import mage.abilities.Ability;
-import mage.constants.CardType;
-import mage.constants.Rarity;
-import mage.constants.Zone;
 import mage.abilities.TriggeredAbilityImpl;
 import mage.abilities.effects.OneShotEffect;
 import mage.abilities.keyword.FlyingAbility;
 import mage.cards.Card;
 import mage.cards.CardImpl;
+import mage.constants.CardType;
 import mage.constants.Outcome;
+import mage.constants.Rarity;
+import mage.constants.Zone;
 import mage.filter.common.FilterCreatureCard;
 import mage.filter.predicate.Predicates;
 import mage.filter.predicate.mageobject.SubtypePredicate;
@@ -95,8 +95,13 @@ class KaaliaOfTheVastAttacksAbility extends TriggeredAbilityImpl {
     }
 
     @Override
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.ATTACKER_DECLARED;
+    }
+
+    @Override
     public boolean checkTrigger(GameEvent event, Game game) {
-        if (event.getType() == EventType.ATTACKER_DECLARED && event.getSourceId().equals(this.getSourceId())) {
+        if (event.getSourceId().equals(this.getSourceId())) {
             Player opponent = game.getPlayer(event.getTargetId());
             if (opponent != null) {
                 return true;
@@ -144,7 +149,7 @@ class KaaliaOfTheVastEffect extends OneShotEffect {
     @Override
     public boolean apply(Game game, Ability source) {
         Player player = game.getPlayer(source.getControllerId());
-        if (player == null || !player.chooseUse(Outcome.PutCreatureInPlay, "Put an Angel, Demon, or Dragon creature card from your hand onto the battlefield tapped and attacking?", game)) {
+        if (player == null || !player.chooseUse(Outcome.PutCreatureInPlay, "Put an Angel, Demon, or Dragon creature card from your hand onto the battlefield tapped and attacking?", source, game)) {
             return false;
         }
         TargetCardInHand target = new TargetCardInHand(filter);

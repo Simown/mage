@@ -116,7 +116,7 @@ public class DeckGeneratorDialog {
 
         // Singletons
         cSingleton = new JCheckBox("Singleton", false);
-        cSingleton.setToolTipText("Allow only a single copy of each card in your deck.");
+        cSingleton.setToolTipText("Allow only a single copy of each non-land card in your deck.");
         String singletonEnabled = PreferencesDialog.getCachedValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_SINGLETON, "false");
         cSingleton.setSelected(Boolean.valueOf(singletonEnabled));
         jCheckBoxes.add(cSingleton);
@@ -130,7 +130,6 @@ public class DeckGeneratorDialog {
 
         // Non-basic lands
         cNonBasicLands = new JCheckBox("Non-basic Lands", false);
-        cNonBasicLands.setEnabled(false); // TODO: FIX AND TURN ON
         cNonBasicLands.setToolTipText("Use non-basic lands in your deck.");
         String nonBasicEnabled = PreferencesDialog.getCachedValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_NON_BASIC_LANDS, "false");
         cNonBasicLands.setSelected(Boolean.valueOf(nonBasicEnabled));

@@ -31,7 +31,7 @@ import java.util.UUID;
 import mage.MageInt;
 import mage.abilities.Ability;
 import mage.abilities.common.SimpleStaticAbility;
-import mage.abilities.costs.common.ReturnToHandTargetCost;
+import mage.abilities.costs.common.ReturnToHandTargetPermanentCost;
 import mage.abilities.costs.common.SacrificeTargetCost;
 import mage.abilities.effects.ReplacementEffectImpl;
 import mage.abilities.keyword.FlyingAbility;
@@ -103,7 +103,7 @@ class ExaltedDragonReplacementEffect extends ReplacementEffectImpl {
         if ( player != null ) {
             SacrificeTargetCost attackCost = new SacrificeTargetCost(new TargetControlledPermanent(filter));
             if ( attackCost.canPay(source, source.getSourceId(), event.getPlayerId(), game) &&
-                 player.chooseUse(Outcome.Neutral, "Sacrifice a land?", game) )
+                 player.chooseUse(Outcome.Neutral, "Sacrifice a land?", source, game) )
             {
                 if (attackCost.pay(source, game, source.getSourceId(), event.getPlayerId(), false) ) {
                     return false;

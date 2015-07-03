@@ -28,8 +28,6 @@
 package mage.sets.worldwake;
 
 import java.util.UUID;
-
-import mage.constants.*;
 import mage.abilities.Ability;
 import mage.abilities.TriggeredAbilityImpl;
 import mage.abilities.common.BeginningOfUpkeepTriggeredAbility;
@@ -38,12 +36,18 @@ import mage.cards.Card;
 import mage.cards.CardImpl;
 import mage.cards.Cards;
 import mage.cards.CardsImpl;
+import mage.constants.CardType;
+import mage.constants.Outcome;
+import mage.constants.Rarity;
+import mage.constants.TargetController;
+import mage.constants.Zone;
 import mage.counters.CounterType;
 import mage.filter.common.FilterCreatureCard;
 import mage.filter.predicate.Predicates;
 import mage.filter.predicate.mageobject.SubtypePredicate;
 import mage.game.Game;
 import mage.game.events.GameEvent;
+import mage.game.events.GameEvent.EventType;
 import mage.game.permanent.Permanent;
 import mage.players.Player;
 import mage.target.common.TargetCardInHand;
@@ -101,7 +105,7 @@ class QuestForUlasTempleEffect extends OneShotEffect {
             Cards cards = new CardsImpl(card);
             controller.lookAtCards(sourcePermanent.getName(), cards, game);
             if (card.getCardType().contains(CardType.CREATURE)) {
-                if (controller.chooseUse(Outcome.DrawCard, "Do you wish to reveal the creature card at the top of the library?", game)) {
+                if (controller.chooseUse(Outcome.DrawCard, "Do you wish to reveal the creature card at the top of the library?", source, game)) {
                     controller.revealCards(sourcePermanent.getName(), cards, game);
                     Permanent questForUlasTemple = game.getPermanent(source.getSourceId());
                     if (questForUlasTemple != null) {
@@ -131,12 +135,14 @@ class QuestForUlasTempleTriggeredAbility extends TriggeredAbilityImpl {
     }
 
     @Override
-    public boolean checkTrigger(GameEvent event, Game game) {
-        if (event.getType().equals(GameEvent.EventType.END_TURN_STEP_PRE)) {
-            Permanent quest = game.getPermanent(super.getSourceId());
-            return quest != null && quest.getCounters().getCount(CounterType.QUEST) >= 3;
-        }
-        return false;
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.END_TURN_STEP_PRE;
+    }
+
+    @Override
+public boolean checkTrigger(GameEvent event, Game game) {
+        Permanent quest = game.getPermanent(super.getSourceId());
+        return quest != null && quest.getCounters().getCount(CounterType.QUEST) >= 3;
     }
 
     @Override
@@ -172,7 +178,7 @@ class QuestForUlasTempleEffect2 extends OneShotEffect {
         if (controller != null) {
             TargetCardInHand target = new TargetCardInHand(filter);
             if (target.canChoose(source.getSourceId(), controller.getId(), game)
-                    &&controller.chooseUse(Outcome.PutCreatureInPlay, query, game)) {
+                    &&controller.chooseUse(Outcome.PutCreatureInPlay, query, source, game)) {
                 if (controller.choose(Outcome.PutCreatureInPlay, target, source.getSourceId(), game)) {
                     Card card = game.getCard(target.getFirstTarget());
                     if (card != null) {

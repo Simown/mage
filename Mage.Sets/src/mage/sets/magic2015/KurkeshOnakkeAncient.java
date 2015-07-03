@@ -93,18 +93,21 @@ class KurkeshOnakkeAncientTriggeredAbility extends TriggeredAbilityImpl {
     public KurkeshOnakkeAncientTriggeredAbility copy() {
         return new KurkeshOnakkeAncientTriggeredAbility(this);
     }
+
+    @Override
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.ACTIVATED_ABILITY;
+    }
     
     @Override
     public boolean checkTrigger(GameEvent event, Game game) {
-        if (event.getType() == EventType.ACTIVATED_ABILITY) { 
-            Card source = game.getPermanentOrLKIBattlefield(event.getSourceId());
-            if (source.getCardType().contains(CardType.ARTIFACT)) {
-                StackAbility stackAbility = (StackAbility) game.getStack().getStackObject(event.getSourceId());
-                if (!(stackAbility.getStackAbility() instanceof ManaAbility)) {
-                    Effect effect = this.getEffects().get(0);
-                    effect.setValue("stackAbility", stackAbility.getStackAbility());
-                    return true;
-                }
+        Card source = game.getPermanentOrLKIBattlefield(event.getSourceId());
+        if (source.getCardType().contains(CardType.ARTIFACT)) {
+            StackAbility stackAbility = (StackAbility) game.getStack().getStackObject(event.getSourceId());
+            if (!(stackAbility.getStackAbility() instanceof ManaAbility)) {
+                Effect effect = this.getEffects().get(0);
+                effect.setValue("stackAbility", stackAbility.getStackAbility());
+                return true;
             }
         }
         return false;
@@ -137,7 +140,7 @@ class KurkeshOnakkeAncientEffect extends OneShotEffect {
         Player player = game.getPlayer(source.getControllerId());
         ColoredManaCost cost = new ColoredManaCost(ColoredManaSymbol.R);
         if (player != null) {
-            if (player.chooseUse(Outcome.Benefit, "Pay " + cost.getText() + "? If you do, copy that ability.  You may choose new targets for the copy.", game)) {
+            if (player.chooseUse(Outcome.Benefit, "Pay " + cost.getText() + "? If you do, copy that ability.  You may choose new targets for the copy.", source, game)) {
                 if (cost.pay(source, game, source.getSourceId(), source.getControllerId(), false)) {
                     Ability ability = (Ability) getValue("stackAbility");
                     Player controller = game.getPlayer(source.getControllerId());
@@ -147,7 +150,7 @@ class KurkeshOnakkeAncientEffect extends OneShotEffect {
                         newAbility.newId();
                         game.getStack().push(new StackAbility(newAbility, source.getControllerId()));
                         if (newAbility.getTargets().size() > 0) {
-                            if (controller.chooseUse(newAbility.getEffects().get(0).getOutcome(), "Choose new targets?", game)) {
+                            if (controller.chooseUse(newAbility.getEffects().get(0).getOutcome(), "Choose new targets?", source, game)) {
                                 newAbility.getTargets().clearChosen();
                                 if (newAbility.getTargets().chooseTargets(newAbility.getEffects().get(0).getOutcome(), source.getControllerId(), newAbility, game) == false) {
                                     return false;

@@ -41,6 +41,7 @@ import mage.constants.Rarity;
 import mage.constants.Zone;
 import mage.game.Game;
 import mage.game.events.GameEvent;
+import mage.game.events.GameEvent.EventType;
 import mage.game.permanent.Permanent;
 import mage.game.permanent.PermanentToken;
 import mage.game.permanent.token.EmptyToken;
@@ -90,8 +91,13 @@ class MirrorworksAbility extends TriggeredAbilityImpl {
     }
 
     @Override
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.ENTERS_THE_BATTLEFIELD;
+    }
+
+    @Override
     public boolean checkTrigger(GameEvent event, Game game) {
-        if (event.getType() == GameEvent.EventType.ENTERS_THE_BATTLEFIELD && !event.getTargetId().equals(this.getSourceId())) {
+        if (!event.getTargetId().equals(this.getSourceId())) {
             Permanent permanent = game.getPermanent(event.getTargetId());
             if (permanent != null
                     && permanent.getControllerId().equals(getControllerId())
@@ -138,7 +144,7 @@ class MirrorworksEffect extends OneShotEffect {
             }
             if (target != null) {
                 Cost cost = new ManaCostsImpl("{2}");
-                if (player.chooseUse(outcome, new StringBuilder("Pay ").append(cost.getText()).append(" and put a token copy of ").append(target.getName()).append(" onto the battlefield").toString(), game)) {
+                if (player.chooseUse(outcome, new StringBuilder("Pay ").append(cost.getText()).append(" and put a token copy of ").append(target.getName()).append(" onto the battlefield").toString(), source, game)) {
                     cost.clearPaid();
                     if (cost.pay(source, game, source.getSourceId(), source.getControllerId(), false)) {
                         if (target instanceof Permanent) {

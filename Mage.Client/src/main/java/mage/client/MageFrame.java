@@ -1,32 +1,83 @@
 /*
-* Copyright 2010 BetaSteward_at_googlemail.com. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are
-* permitted provided that the following conditions are met:
-*
-*    1. Redistributions of source code must retain the above copyright notice, this list of
-*       conditions and the following disclaimer.
-*
-*    2. Redistributions in binary form must reproduce the above copyright notice, this list
-*       of conditions and the following disclaimer in the documentation and/or other materials
-*       provided with the distribution.
-*
-* THIS SOFTWARE IS PROVIDED BY BetaSteward_at_googlemail.com ``AS IS'' AND ANY EXPRESS OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-* FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL BetaSteward_at_googlemail.com OR
-* CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-* ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-* The views and conclusions contained in the software and documentation are those of the
-* authors and should not be interpreted as representing official policies, either expressed
-* or implied, of BetaSteward_at_googlemail.com.
-*/
+ * Copyright 2010 BetaSteward_at_googlemail.com. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY BetaSteward_at_googlemail.com ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL BetaSteward_at_googlemail.com OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of BetaSteward_at_googlemail.com.
+ */
 package mage.client;
 
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.SplashScreen;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.beans.PropertyVetoException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.prefs.Preferences;
+import javax.imageio.ImageIO;
+import javax.swing.AbstractButton;
+import javax.swing.Box;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JDesktopPane;
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar.Separator;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import mage.cards.decks.Deck;
 import mage.cards.repository.CardCriteria;
 import mage.cards.repository.CardInfo;
@@ -34,6 +85,7 @@ import mage.cards.repository.CardRepository;
 import mage.client.cards.BigCard;
 import mage.client.chat.ChatPanel;
 import mage.client.components.MageComponents;
+import mage.client.components.MageDesktopManager;
 import mage.client.components.MageJDesktop;
 import mage.client.components.MageRoundPane;
 import mage.client.components.MageUI;
@@ -42,7 +94,14 @@ import mage.client.components.tray.MageTray;
 import mage.client.constants.Constants.DeckEditorMode;
 import mage.client.deckeditor.DeckEditorPane;
 import mage.client.deckeditor.collection.viewer.CollectionViewerPane;
-import mage.client.dialog.*;
+import mage.client.dialog.AboutDialog;
+import mage.client.dialog.ConnectDialog;
+import mage.client.dialog.ErrorDialog;
+import mage.client.dialog.FeedbackDialog;
+import mage.client.dialog.GameEndDialog;
+import mage.client.dialog.PreferencesDialog;
+import mage.client.dialog.TableWaitingDialog;
+import mage.client.dialog.UserRequestDialog;
 import mage.client.draft.DraftPane;
 import mage.client.draft.DraftPanel;
 import mage.client.game.GamePane;
@@ -67,36 +126,15 @@ import mage.remote.Session;
 import mage.remote.SessionImpl;
 import mage.utils.MageVersion;
 import mage.view.GameEndView;
+import mage.view.UserRequestMessage;
+import net.java.truevfs.access.TArchiveDetector;
+import net.java.truevfs.access.TConfig;
+import net.java.truevfs.kernel.spec.FsAccessOption;
 import org.apache.log4j.Logger;
 import org.mage.card.arcane.ManaSymbols;
 import org.mage.plugins.card.constants.Constants;
 import org.mage.plugins.card.images.DownloadPictures;
 import org.mage.plugins.card.utils.impl.ImageManagerImpl;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.JToolBar.Separator;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.beans.PropertyVetoException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.prefs.Preferences;
-import static mage.client.dialog.PreferencesDialog.KEY_CONNECT_FLAG;
-import mage.view.UserRequestMessage;
-import net.java.truevfs.access.TArchiveDetector;
-import net.java.truevfs.access.TConfig;
-import net.java.truevfs.kernel.spec.FsAccessOption;
 
 /**
  * @author BetaSteward_at_googlemail.com
@@ -119,7 +157,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
     private static final Preferences prefs = Preferences.userNodeForPackage(MageFrame.class);
     private JLabel title;
     private Rectangle titleRectangle;
-    private static final MageVersion version = new MageVersion(MageVersion.MAGE_VERSION_MAJOR, MageVersion.MAGE_VERSION_MINOR, MageVersion.MAGE_VERSION_PATCH,  MageVersion.MAGE_VERSION_MINOR_PATCH, MageVersion.MAGE_VERSION_INFO);
+    private static final MageVersion version = new MageVersion(MageVersion.MAGE_VERSION_MAJOR, MageVersion.MAGE_VERSION_MINOR, MageVersion.MAGE_VERSION_PATCH, MageVersion.MAGE_VERSION_MINOR_PATCH, MageVersion.MAGE_VERSION_INFO);
     private UUID clientId;
     private static MagePane activeFrame;
     private static boolean liteMode = false;
@@ -174,7 +212,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
      */
     public MageFrame() {
         setWindowTitle();
-        
+
         clientId = UUID.randomUUID();
         EDTExceptionHandler.registerExceptionHandler();
         addWindowListener(new WindowAdapter() {
@@ -199,6 +237,9 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
         Plugins.getInstance().loadPlugins();
 
         initComponents();
+
+        desktopPane.setDesktopManager(new MageDesktopManager());
+
         setSize(1024, 768);
         SettingsManager.getInstance().setScreenWidthAndHeight(1024, 768);
         DialogManager.updateParams(768, 1024, false);
@@ -329,9 +370,9 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
     }
 
     public void setWindowTitle() {
-        setTitle(TITLE_NAME + "  Client: " 
+        setTitle(TITLE_NAME + "  Client: "
                 + version == null ? "<not available>" : version.toString() + "  Server: "
-                + ((session != null && session.isConnected()) ? session.getVersionInfo():"<not connected>"));
+                        + ((session != null && session.isConnected()) ? session.getVersionInfo() : "<not connected>"));
     }
 
     private void addTooltipContainer() {
@@ -521,7 +562,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
     }
 
     public void btnSymbolsActionPerformed(java.awt.event.ActionEvent evt) {
-        if (JOptionPane.showConfirmDialog(this, "Do you want to download mana symbols?") == JOptionPane.OK_OPTION) {
+        if (JOptionPane.showConfirmDialog(this, "Do you want to download game symbols and additional image files?", "Download additional resources", JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
             Plugins.getInstance().downloadSymbols();
         }
     }
@@ -548,7 +589,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
         if (frame instanceof GamePane) {
             ArrowBuilder.getBuilder().showPanel(((GamePane) frame).getGameId());
             MusicPlayer.playBGM();
-        }else{
+        } else {
             MusicPlayer.stopBGM();
         }
     }
@@ -559,7 +600,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
         if (activeFrame != frame) {
             frame.deactivated();
         }
-        
+
     }
 
     private static MagePane getTopMost(MagePane exclude) {
@@ -581,11 +622,11 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
         return topmost;
     }
 
-    /** 
+    /**
      * Shows a game for a player of the game
-     * 
+     *
      * @param gameId
-     * @param playerId 
+     * @param playerId
      */
     public void showGame(UUID gameId, UUID playerId) {
         try {
@@ -601,7 +642,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
 
     public void watchGame(UUID gameId) {
         try {
-            for(Component component :desktopPane.getComponents()) {
+            for (Component component : desktopPane.getComponents()) {
                 if (component instanceof GamePane
                         && ((GamePane) component).getGameId().equals(gameId)) {
                     setActive((GamePane) component);
@@ -641,7 +682,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
         } catch (PropertyVetoException ex) {
         }
     }
-    
+
     public void endDraft(UUID draftId) {
         // inform all open draft panes about
         for (JInternalFrame window : desktopPane.getAllFramesInLayer(JLayeredPane.DEFAULT_LAYER)) {
@@ -651,12 +692,12 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
             }
         }
     }
-    
+
     public void showTournament(UUID tournamentId) {
         try {
-            for(Component component :desktopPane.getComponents()) {
-                if (component instanceof TournamentPane &&
-                    ((TournamentPane) component).getTournamentId().equals(tournamentId)) {
+            for (Component component : desktopPane.getComponents()) {
+                if (component instanceof TournamentPane
+                        && ((TournamentPane) component).getTournamentId().equals(tournamentId)) {
                     setActive((TournamentPane) component);
                     return;
                 }
@@ -722,12 +763,12 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
             connection.setProxyPort(proxyPort);
             connection.setProxyUsername(proxyUsername);
             connection.setProxyPassword(proxyPassword);
-            
+
             setUserPrefsToConnection(connection);
-            
+
             logger.debug("connecting (auto): " + proxyType + " " + proxyServer + " " + proxyPort + " " + proxyUsername);
-            if (MageFrame.connect(connection)) {  
-                showGames(false);                
+            if (MageFrame.connect(connection)) {
+                showGames(false);
                 return true;
             } else {
                 showMessage("Unable to connect to server");
@@ -741,12 +782,11 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
     public void setUserPrefsToConnection(Connection connection) {
         connection.setUserData(PreferencesDialog.getUserData());
     }
-    
+
     /**
-     * This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -920,7 +960,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
                 session.disconnect(false);
                 tablesPane.clearChat();
                 setWindowTitle();
-                showMessage("You have disconnected");                
+                showMessage("You have disconnected");
             }
         } else {
             connectDialog.showDialog();
@@ -968,7 +1008,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
             }
         }
         CardRepository.instance.closeDB();
-        tablesPane.cleanUp();                
+        tablesPane.cleanUp();
         Plugins.getInstance().shutdown();
         dispose();
         System.exit(0);
@@ -992,7 +1032,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
         this.tablesPane.hideTables();
     }
 
-    public void showGames(boolean setActive) {        
+    public void showGames(boolean setActive) {
         MagePane topPanebefore = getTopMost(tablesPane);
         if (!tablesPane.isVisible()) {
             this.tablesPane.setVisible(true);
@@ -1005,9 +1045,9 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
             if (topPanebefore != null) {
                 setActive(topPanebefore);
             }
-        }        
+        }
     }
-    
+
     public void hideGames() {
         JInternalFrame[] windows = desktopPane.getAllFramesInLayer(JLayeredPane.DEFAULT_LAYER);
         for (JInternalFrame window : windows) {
@@ -1026,8 +1066,8 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
             // close & remove sideboarding or construction pane if open
             if (window instanceof DeckEditorPane) {
                 DeckEditorPane deckEditorPane = (DeckEditorPane) window;
-                if (deckEditorPane.getDeckEditorMode().equals(DeckEditorMode.LIMITED_BUILDING) 
-                        || deckEditorPane.getDeckEditorMode().equals(DeckEditorMode.SIDEBOARDING)){
+                if (deckEditorPane.getDeckEditorMode().equals(DeckEditorMode.LIMITED_BUILDING)
+                        || deckEditorPane.getDeckEditorMode().equals(DeckEditorMode.SIDEBOARDING)) {
                     deckEditorPane.removeFrame();
                 }
             }
@@ -1054,7 +1094,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
                 }
             }
         }
-        
+
         try {
             DeckEditorPane deckEditorPane = new DeckEditorPane();
             desktopPane.add(deckEditorPane, JLayeredPane.DEFAULT_LAYER);
@@ -1130,7 +1170,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
      * @param args the command line arguments
      */
     public static void main(final String args[]) {
-         // Workaround for #451
+        // Workaround for #451
         System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
         logger.info("Starting MAGE client version " + version);
         logger.info("Logging level: " + logger.getEffectiveLevel());
@@ -1168,7 +1208,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
                 }
                 instance = new MageFrame();
                 instance.setVisible(true);
-                
+
             }
         });
     }
@@ -1232,7 +1272,6 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
     public static void removeGame(UUID gameId) {
         games.remove(gameId);
     }
-    
 
     public static DraftPanel getDraft(UUID draftId) {
         return drafts.get(draftId);
@@ -1243,7 +1282,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
         if (draftPanel != null) {
             drafts.remove(draftId);
             draftPanel.hideDraft();
-        }        
+        }
     }
 
     public static void addDraft(UUID draftId, DraftPanel draftPanel) {
@@ -1331,6 +1370,7 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
 }
 
 class MagePaneMenuItem extends JCheckBoxMenuItem {
+
     private final MagePane frame;
 
     public MagePaneMenuItem(MagePane frame) {

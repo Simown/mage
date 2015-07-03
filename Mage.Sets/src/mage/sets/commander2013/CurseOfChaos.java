@@ -91,17 +91,20 @@ class CurseOfChaosTriggeredAbility extends TriggeredAbilityImpl {
     }
 
     @Override
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.DECLARED_ATTACKERS;
+    }
+
+    @Override
     public boolean checkTrigger(GameEvent event, Game game) {
-        if (event.getType().equals(EventType.DECLARED_ATTACKERS)) {
-            Permanent enchantment = game.getPermanent(this.getSourceId());
-            if (enchantment != null
-                    && enchantment.getAttachedTo() != null
-                    && game.getCombat().getPlayerDefenders(game).contains(enchantment.getAttachedTo())) {
-                for (Effect effect: this.getEffects()) {
-                    effect.setTargetPointer(new FixedTarget(game.getCombat().getAttackerId()));                    
-                }
-                return true;
+        Permanent enchantment = game.getPermanent(this.getSourceId());
+        if (enchantment != null
+                && enchantment.getAttachedTo() != null
+                && game.getCombat().getPlayerDefenders(game).contains(enchantment.getAttachedTo())) {
+            for (Effect effect: this.getEffects()) {
+                effect.setTargetPointer(new FixedTarget(game.getCombat().getAttackerId()));                    
             }
+            return true;
         }
         return false;
     }
@@ -138,7 +141,7 @@ class CurseOfChaosEffect extends OneShotEffect {
     public boolean apply(Game game, Ability source) {
         Player attacker = game.getPlayer(this.getTargetPointer().getFirst(game, source));
         if (attacker != null) {
-            if (attacker.getHand().size() > 0 && attacker.chooseUse(outcome, "Discard a card and draw a card?", game)){
+            if (attacker.getHand().size() > 0 && attacker.chooseUse(outcome, "Discard a card and draw a card?", source, game)){
                 attacker.discard(1, false, source, game);
                 attacker.drawCards(1, game);
             }

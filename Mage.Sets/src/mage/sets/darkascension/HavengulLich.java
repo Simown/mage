@@ -51,6 +51,7 @@ import mage.filter.FilterCard;
 import mage.filter.common.FilterCreatureCard;
 import mage.game.Game;
 import mage.game.events.GameEvent;
+import mage.game.events.GameEvent.EventType;
 import mage.game.permanent.Permanent;
 import mage.target.common.TargetCardInGraveyard;
 
@@ -93,7 +94,7 @@ public class HavengulLich extends CardImpl {
 class HavengulLichPlayEffect extends AsThoughEffectImpl {
 
     public HavengulLichPlayEffect() {
-        super(AsThoughEffectType.PLAY_FROM_NON_HAND_ZONE, Duration.EndOfTurn, Outcome.Benefit);
+        super(AsThoughEffectType.PLAY_FROM_NOT_OWN_HAND_ZONE, Duration.EndOfTurn, Outcome.Benefit);
         staticText = "You may cast target creature card in a graveyard this turn";
     }
 
@@ -170,8 +171,13 @@ class HavengulLichDelayedTriggeredAbility extends DelayedTriggeredAbility {
     }
 
     @Override
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.SPELL_CAST;
+    }
+
+    @Override
     public boolean checkTrigger(GameEvent event, Game game) {
-        return event.getType() == GameEvent.EventType.SPELL_CAST && event.getSourceId().equals(cardId);
+        return event.getSourceId().equals(cardId);
     }
 
     @Override

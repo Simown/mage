@@ -48,6 +48,7 @@ import mage.filter.predicate.Predicates;
 import mage.filter.predicate.mageobject.CardTypePredicate;
 import mage.game.Game;
 import mage.game.events.GameEvent;
+import mage.game.events.GameEvent.EventType;
 import mage.game.permanent.Permanent;
 import mage.target.TargetPermanent;
 
@@ -58,21 +59,21 @@ import mage.target.TargetPermanent;
 public class AmberPrison extends CardImpl {
 
     private static final FilterPermanent filter = new FilterPermanent("artifact, creature, or land");
-    
+
     static {
         filter.add(Predicates.or(
                 new CardTypePredicate(CardType.ARTIFACT),
                 new CardTypePredicate(CardType.CREATURE),
                 new CardTypePredicate(CardType.LAND)));
     }
-    
+
     public AmberPrison(UUID ownerId) {
         super(ownerId, 257, "Amber Prison", Rarity.RARE, new CardType[]{CardType.ARTIFACT}, "{4}");
         this.expansionSetCode = "MIR";
 
         // You may choose not to untap Amber Prison during your untap step.
         this.addAbility(new SkipUntapOptionalAbility());
-        
+
         // {4}, {tap}: Tap target artifact, creature, or land. That permanent doesn't untap during its controller's untap step for as long as Amber Prison remains tapped.
         Ability ability = new SimpleActivatedAbility(Zone.BATTLEFIELD, new AmberPrisonTapTargetEffect(), new GenericManaCost(4));
         ability.addCost(new TapSourceCost());
@@ -98,7 +99,7 @@ class AmberPrisonTapTargetEffect extends OneShotEffect {
         super(Outcome.Tap);
         this.staticText = "Tap target artifact, creature, or land. That permanent doesn't untap during its controller's untap step for as long as {source} remains tapped.";
     }
-    
+
     public AmberPrisonTapTargetEffect(final AmberPrisonTapTargetEffect effect) {
         super(effect);
     }
@@ -107,7 +108,7 @@ class AmberPrisonTapTargetEffect extends OneShotEffect {
     public AmberPrisonTapTargetEffect copy() {
         return new AmberPrisonTapTargetEffect(this);
     }
-    
+
     @Override
     public boolean apply(Game game, Ability source) {
         Permanent sourcePermanent = game.getPermanent(source.getSourceId());
@@ -122,7 +123,7 @@ class AmberPrisonTapTargetEffect extends OneShotEffect {
         }
         return true;
     }
-    
+
 }
 
 class AmberPrisonRestrictionEffect extends RestrictionEffect {
@@ -130,7 +131,7 @@ class AmberPrisonRestrictionEffect extends RestrictionEffect {
     public AmberPrisonRestrictionEffect() {
         super(Duration.WhileOnBattlefield);
     }
-    
+
     public AmberPrisonRestrictionEffect(final AmberPrisonRestrictionEffect effect) {
         super(effect);
     }
@@ -139,7 +140,7 @@ class AmberPrisonRestrictionEffect extends RestrictionEffect {
     public AmberPrisonRestrictionEffect copy() {
         return new AmberPrisonRestrictionEffect(this);
     }
-    
+
     @Override
     public boolean applies(Permanent permanent, Ability source, Game game) {
         Permanent sourcePermanent = game.getPermanent(source.getSourceId());
@@ -152,12 +153,11 @@ class AmberPrisonRestrictionEffect extends RestrictionEffect {
     }
 
     @Override
-    public boolean canBeUntapped(Permanent permanent, Game game) {
+    public boolean canBeUntapped(Permanent permanent, Ability source, Game game) {
         return false;
     }
-    
-}
 
+}
 
 class AmberPrisonUntapTriggeredAbility extends TriggeredAbilityImpl {
 
@@ -166,22 +166,25 @@ class AmberPrisonUntapTriggeredAbility extends TriggeredAbilityImpl {
         this.usesStack = false;
         this.ruleVisible = false;
     }
-    
+
     public AmberPrisonUntapTriggeredAbility(final AmberPrisonUntapTriggeredAbility ability) {
         super(ability);
     }
-    
+
     @Override
     public AmberPrisonUntapTriggeredAbility copy() {
         return new AmberPrisonUntapTriggeredAbility(this);
     }
 
     @Override
-    public boolean checkTrigger(GameEvent event, Game game) {
-        return event.getType().equals(GameEvent.EventType.UNTAP) && event.getTargetId().equals(this.getSourceId());
-                
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.UNTAP;
     }
-    
+
+    @Override
+    public boolean checkTrigger(GameEvent event, Game game) {
+        return event.getTargetId().equals(this.getSourceId());
+    }
 }
 
 class AmberPrisonReleaseOnUntapEffect extends OneShotEffect {
@@ -189,7 +192,7 @@ class AmberPrisonReleaseOnUntapEffect extends OneShotEffect {
     public AmberPrisonReleaseOnUntapEffect() {
         super(Outcome.Detriment);
     }
-    
+
     public AmberPrisonReleaseOnUntapEffect(final AmberPrisonReleaseOnUntapEffect effect) {
         super(effect);
     }
@@ -198,7 +201,7 @@ class AmberPrisonReleaseOnUntapEffect extends OneShotEffect {
     public AmberPrisonReleaseOnUntapEffect copy() {
         return new AmberPrisonReleaseOnUntapEffect(this);
     }
-    
+
     @Override
     public boolean apply(Game game, Ability source) {
         Permanent sourcePermanent = game.getPermanent(source.getSourceId());
@@ -208,5 +211,5 @@ class AmberPrisonReleaseOnUntapEffect extends OneShotEffect {
         }
         return false;
     }
-    
+
 }

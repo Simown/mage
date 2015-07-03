@@ -95,18 +95,11 @@ public class EntersBattlefieldEffect extends ReplacementEffectImpl {
 
     @Override
     public boolean applies(GameEvent event, Ability source, Game game) {
-        if (event.getType() == EventType.ENTERS_THE_BATTLEFIELD) {
-            if (event.getTargetId().equals(source.getSourceId())) {
-                if (condition == null || condition.apply(game, source)) {
-                    return true;
-                }
+        if (event.getTargetId().equals(source.getSourceId())) {
+            if (condition == null || condition.apply(game, source)) {
+                return true;
             }
         }
-        return false;
-    }
-
-    @Override
-    public boolean apply(Game game, Ability source) {
         return false;
     }
 
@@ -118,7 +111,7 @@ public class EntersBattlefieldEffect extends ReplacementEffectImpl {
             if (controller == null || object == null) {
                 return false;
             }
-            if (!controller.chooseUse(outcome, new StringBuilder("Use effect of ").append(object.getLogName()).append("?").toString(), game)) {
+            if (!controller.chooseUse(outcome, new StringBuilder("Use effect of ").append(object.getLogName()).append("?").toString(), source, game)) {
                 return false;
             }
         }

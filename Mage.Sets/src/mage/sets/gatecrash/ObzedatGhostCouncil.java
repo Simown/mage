@@ -1,5 +1,5 @@
 /*
-/*
+ /*
  *  Copyright 2010 BetaSteward_at_googlemail.com. All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without modification, are
@@ -29,9 +29,6 @@
 package mage.sets.gatecrash;
 
 import java.util.UUID;
-
-import mage.constants.CardType;
-import mage.constants.Rarity;
 import mage.MageInt;
 import mage.abilities.Ability;
 import mage.abilities.DelayedTriggeredAbility;
@@ -46,13 +43,16 @@ import mage.abilities.effects.common.continuous.GainAbilitySourceEffect;
 import mage.abilities.keyword.HasteAbility;
 import mage.cards.Card;
 import mage.cards.CardImpl;
+import mage.constants.CardType;
 import mage.constants.Duration;
 import mage.constants.Outcome;
+import mage.constants.Rarity;
 import mage.constants.TargetController;
 import mage.constants.Zone;
 import mage.game.ExileZone;
 import mage.game.Game;
 import mage.game.events.GameEvent;
+import mage.game.events.GameEvent.EventType;
 import mage.game.permanent.Permanent;
 import mage.players.Player;
 import mage.target.common.TargetOpponent;
@@ -70,7 +70,6 @@ public class ObzedatGhostCouncil extends CardImpl {
         this.subtype.add("Advisor");
         this.supertype.add("Legendary");
 
-        
         this.power = new MageInt(5);
         this.toughness = new MageInt(5);
 
@@ -95,7 +94,6 @@ public class ObzedatGhostCouncil extends CardImpl {
     }
 }
 
-
 class ObzedatGhostCouncilExileSourceEffect extends OneShotEffect {
 
     public ObzedatGhostCouncilExileSourceEffect() {
@@ -116,7 +114,7 @@ class ObzedatGhostCouncilExileSourceEffect extends OneShotEffect {
     public boolean apply(Game game, Ability source) {
         Permanent permanent = game.getPermanent(source.getSourceId());
         if (permanent != null) {
-            return permanent.moveToExile(source.getSourceId(),permanent.getName(), source.getSourceId(), game);
+            return permanent.moveToExile(source.getSourceId(), permanent.getName(), source.getSourceId(), game);
         }
         return false;
     }
@@ -139,8 +137,13 @@ class BeginningOfYourUpkeepdelayTriggeredAbility extends DelayedTriggeredAbility
     }
 
     @Override
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.UPKEEP_STEP_PRE;
+    }
+
+    @Override
     public boolean checkTrigger(GameEvent event, Game game) {
-        return event.getType() == GameEvent.EventType.UPKEEP_STEP_PRE && event.getPlayerId().equals(this.controllerId);
+        return event.getPlayerId().equals(this.controllerId);
     }
 
     @Override
@@ -175,7 +178,7 @@ class ObzedatGhostCouncilReturnEffect extends OneShotEffect {
         if (card != null) {
             ExileZone currentZone = game.getState().getExile().getExileZone(source.getSourceId());
             // return it only from the own exile zone
-            if (currentZone.size() > 0) {
+            if (currentZone != null && currentZone.size() > 0) {
                 Player owner = game.getPlayer(card.getOwnerId());
                 if (owner != null && owner.putOntoBattlefieldWithInfo(card, game, Zone.EXILED, source.getSourceId())) {
                     return true;

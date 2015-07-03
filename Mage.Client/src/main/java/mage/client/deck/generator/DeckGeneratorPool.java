@@ -28,8 +28,10 @@
 package mage.client.deck.generator;
 
 import mage.Mana;
+import mage.abilities.Ability;
 import mage.cards.Card;
 import mage.cards.decks.Deck;
+import mage.cards.repository.CardInfo;
 import mage.constants.ColoredManaSymbol;
 
 import java.util.*;
@@ -49,7 +51,7 @@ public class DeckGeneratorPool
     private static final int LAND_COUNT_60 = 24;
     private static final int NONCREATURE_COUNT_60 = 13;
 
-    // Count how many copies of the card exists in the deck to check we don't go over 4 copies
+    // Count how many copies of the card exists in the deck to check we don't go over 4 copies (or 1 for singleton)
     private Map<String, Integer> cardCounts = new HashMap<>();
 
     private final int creatureCount;
@@ -57,6 +59,7 @@ public class DeckGeneratorPool
     private final int landCount;
     private final boolean isSingleton;
 
+    // If there is only a single colour selected to generate a deck
     private boolean monoColored = false;
 
     private final int deckSize;
@@ -76,13 +79,9 @@ public class DeckGeneratorPool
         this.deck = new Deck();
 
         if(this.deckSize > 40) {
-//            this.creatureCount = (int)Math.ceil(deckSize * CREATURE_PERCENTAGE_60);
-//            this.nonCreatureCount = (int)Math.ceil(deckSize * NONCREATURE_PERCENTAGE_60);
-//            this.landCount = (int)Math.ceil(deckSize * LAND_PERCENTAGE_60);
             this.creatureCount = CREATURE_COUNT_60;
             this.nonCreatureCount = NONCREATURE_COUNT_60;
             this.landCount = LAND_COUNT_60;
-            // TODO: TESTING OUT SOME DIFFERENT NUMBERS
             poolCMCs = new ArrayList<DeckGeneratorCMC>() {{
                 add(new DeckGeneratorCMC(0, 2, 0.20f));
                 add(new DeckGeneratorCMC(3, 5, 0.50f));
@@ -92,9 +91,6 @@ public class DeckGeneratorPool
 
         }
         else {
-//            this.creatureCount = (int)Math.ceil(deckSize * CREATURE_PERCENTAGE_40);
-//            this.nonCreatureCount = (int)Math.ceil(deckSize * NONCREATURE_PERCENTAGE_40);
-//            this.landCount = (int)Math.ceil(deckSize * niceilLAND_PERCENTAGE_40);
             this.creatureCount = CREATURE_COUNT_40;
             this.nonCreatureCount = NONCREATURE_COUNT_40;
             this.landCount = LAND_COUNT_40;
@@ -106,15 +102,17 @@ public class DeckGeneratorPool
                 add(new DeckGeneratorCMC(7, 100, 0.5f));
             }};
         }
+
         if(allowedColors.size() == 1) {
             monoColored = true;
         }
+
     }
 
     public boolean isValidSpellCard(Card card)
     {
         int cardCount = getCardCount((card.getName()));
-        // Check it hasn't already got 4 copies in the deck
+        // Check it hasn't already got the maximum number of copies in a deck)
         if(cardCount < (isSingleton ? 1 : 4)) {
             if(cardFitsChosenColors(card)) {
                 return true;
@@ -123,11 +121,10 @@ public class DeckGeneratorPool
         return false;
     }
 
-    // TODO: add helper function that checks for null and increases count
     public boolean isValidLandCard(Card card)
     {
         int cardCount = getCardCount((card.getName()));
-        if(cardCount < (isSingleton ? 1 : 4)) {
+        if(cardCount < 4) {
             if(cardProducesChosenColors(card)) {
                 return true;
             }
@@ -166,7 +163,7 @@ public class DeckGeneratorPool
     public void tryAddReserve(Card card, int cardCMC) {
         // Only cards with CMC < 7 and don't already exist in the deck
         // can be added to our reserve pool as not to overwhelm the curve
-        // with high CMC cards
+        // with high CMC cards and duplicates.
         if(cardCMC < 7 && getCardCount(card.getName()) == 0) {
             this.reserveSpells.add(card);
         }
@@ -206,6 +203,7 @@ public class DeckGeneratorPool
             // Add randomly selected spells needed
             deckCards.addAll(spellsToAdd);
         }
+
         // More spells than needed
         else if(spellSize > (deckSize - landCount)) {
 
@@ -225,7 +223,6 @@ public class DeckGeneratorPool
 
     public Map<String, Double> calculateSpellColourPercentages() {
 
-        // Double for percentages
         final Map<String, Integer> colorCount = new HashMap<>();
         for (final ColoredManaSymbol color : ColoredManaSymbol.values()) {
             colorCount.put(color.toString(), 0);
@@ -268,12 +265,11 @@ public class DeckGeneratorPool
             manaCounts.put(color.toString(), 0);
         }
         for(Card land: deckLands)  {
-            for(Mana landMana: land.getMana()) {
+            for(Ability landAbility: land.getAbilities()) {
                 for (ColoredManaSymbol color : allowedColors) {
-                    int amount = landMana.getColor(color);
-                    if (amount > 0) {
+                    if(isBasicLandAbility(landAbility.getRule(), color.toString())) {
                         Integer count = manaCounts.get(color.toString());
-                        manaCounts.put(color.toString(), count+amount);
+                        manaCounts.put(color.toString(), count + 1);
                     }
                 }
             }
@@ -283,24 +279,52 @@ public class DeckGeneratorPool
 
 
     private boolean cardProducesChosenColors(Card card) {
-        int score = 0;
-        for (Mana mana : card.getMana()) {
-            for (ColoredManaSymbol color : allowedColors) {
-                score = score + mana.getColor(color);
+        int count = 0;
+        // All mock card abilities will be MockAbilities so we can't differentiate between ManaAbilities
+        // so we have to do some basic string matching on land cards to tell TODO: reword and fix
+        List<Ability> landAbilities = card.getAbilities();
+        for(Ability ability: landAbilities) {
+            String abilityString = ability.getRule();
+            // Produces mana for selected colors
+            for(ColoredManaSymbol color: allowedColors) {
+                String manaSymbol = color.toString();
+                if(isBasicLandAbility(abilityString, manaSymbol)) {
+                    count++;
+                }
             }
         }
-        if (score > 1) {
+        return (count > 1);
+    }
+
+    private boolean isBasicLandAbility(String ability, String manaSymbol) {
+        return ability.contains("Add {" + manaSymbol + "} ");
+    }
+
+    public List<Card> filterLands(List<CardInfo> landCardsInfo) {
+        List<Card> matchingLandList = new ArrayList<>();
+        for(CardInfo landCardInfo: landCardsInfo) {
+            Card landCard = landCardInfo.getMockCard();
+            if(cardProducesChosenColors(landCard)) {
+                matchingLandList.add(landCard);
+            }
+        }
+        return matchingLandList;
+    }
+
+    protected static boolean isColoredMana(String symbol) {
+        // Hybrid mana
+        if(symbol.contains("/")) {
             return true;
+        }
+        for(ColoredManaSymbol c: ColoredManaSymbol.values()) {
+            if (symbol.charAt(0) == (c.toString().charAt(0))) {
+                return true;
+            }
         }
         return false;
     }
 
-    protected static boolean isColoredMana(String symbol) {
-        return symbol.equals("W") || symbol.equals("G") || symbol.equals("U") || symbol.equals("B") || symbol.equals("R") || symbol.contains("/");
-    }
-
     public Deck getDeck() {
-
         Set<Card> actualDeck = deck.getCards();
         for(Card card : deckCards)
             actualDeck.add(card);

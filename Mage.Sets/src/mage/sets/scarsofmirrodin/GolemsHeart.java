@@ -25,18 +25,18 @@
  *  authors and should not be interpreted as representing official policies, either expressed
  *  or implied, of BetaSteward_at_googlemail.com.
  */
-
 package mage.sets.scarsofmirrodin;
 
 import java.util.UUID;
-import mage.constants.CardType;
-import mage.constants.Rarity;
-import mage.constants.Zone;
 import mage.abilities.TriggeredAbilityImpl;
 import mage.abilities.effects.common.GainLifeEffect;
 import mage.cards.CardImpl;
+import mage.constants.CardType;
+import mage.constants.Rarity;
+import mage.constants.Zone;
 import mage.game.Game;
 import mage.game.events.GameEvent;
+import mage.game.events.GameEvent.EventType;
 import mage.game.stack.Spell;
 
 /**
@@ -45,13 +45,15 @@ import mage.game.stack.Spell;
  */
 public class GolemsHeart extends CardImpl {
 
-    public GolemsHeart (UUID ownerId) {
+    public GolemsHeart(UUID ownerId) {
         super(ownerId, 161, "Golem's Heart", Rarity.UNCOMMON, new CardType[]{CardType.ARTIFACT}, "{2}");
         this.expansionSetCode = "SOM";
+
+        // Whenever a player casts an artifact spell, you may gain 1 life.
         this.addAbility(new GolemsHeartAbility());
     }
 
-    public GolemsHeart (final GolemsHeart card) {
+    public GolemsHeart(final GolemsHeart card) {
         super(card);
     }
 
@@ -78,14 +80,14 @@ class GolemsHeartAbility extends TriggeredAbilityImpl {
     }
 
     @Override
+    public boolean checkEventType(GameEvent event, Game game) {
+        return event.getType() == EventType.SPELL_CAST;
+    }
+
+    @Override
     public boolean checkTrigger(GameEvent event, Game game) {
-        if (event.getType() == GameEvent.EventType.SPELL_CAST) {
-            Spell spell = game.getStack().getSpell(event.getTargetId());
-            if (spell != null && spell.getCardType().contains(CardType.ARTIFACT)) {
-                return true;
-            }
-        }
-        return false;
+        Spell spell = game.getStack().getSpell(event.getTargetId());
+        return spell != null && spell.getCardType().contains(CardType.ARTIFACT);
     }
 
     @Override

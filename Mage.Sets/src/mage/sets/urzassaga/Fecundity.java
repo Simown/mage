@@ -50,7 +50,6 @@ public class Fecundity extends CardImpl {
         super(ownerId, 251, "Fecundity", Rarity.UNCOMMON, new CardType[]{CardType.ENCHANTMENT}, "{2}{G}");
         this.expansionSetCode = "USG";
 
-
         // Whenever a creature dies, that creature's controller may draw a card.
         this.addAbility(new DiesCreatureTriggeredAbility(new FecundityEffect(), false, false, true));
     }
@@ -87,7 +86,7 @@ class FecundityEffect extends OneShotEffect {
         if (permanent != null) {
             Player controller = game.getPlayer(permanent.getControllerId());
             if (controller != null) {
-                if (controller.chooseUse(outcome, "Draw a card?", game)) {
+                if (controller.chooseUse(outcome, "Draw a card?", source, game)) {
                     controller.drawCards(1, game);
                 }
                 return true;
