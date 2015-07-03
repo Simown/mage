@@ -175,7 +175,10 @@ public class ComputerPlayer extends PlayerImpl implements Player {
         super(name, range);
         flagName = "computer";
         human = false;
-        userData = new UserData(UserGroup.COMPUTER, 64, false, true, false, null, "Computer.png", false);
+        userData = UserData.getDefaultUserDataView();
+        userData.setAvatarId(64);
+        userData.setGroupId(UserGroup.COMPUTER.getGroupId());
+        userData.setFlagName("Computer.png");
         pickedCards = new ArrayList<>();
     }
 
@@ -1525,7 +1528,7 @@ public class ComputerPlayer extends PlayerImpl implements Player {
             return modes.getMode();
         }
         //TODO: improve this;
-        for (Mode mode : modes.values()) {
+        for (Mode mode : modes.getAvailableModes(source, game)) {
             if (!modes.getSelectedModes().contains(mode.getId()) // select only modes not already selected
                     && mode.getTargets().canChoose(source.getSourceId(), source.getControllerId(), game)) { // and where targets are available
                 return mode;
