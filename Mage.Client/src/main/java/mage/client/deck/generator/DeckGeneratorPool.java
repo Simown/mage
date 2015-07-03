@@ -265,12 +265,11 @@ public class DeckGeneratorPool
             manaCounts.put(color.toString(), 0);
         }
         for(Card land: deckLands)  {
-            for(Mana landMana: land.getMana()) {
+            for(Ability landAbility: land.getAbilities()) {
                 for (ColoredManaSymbol color : allowedColors) {
-                    int amount = landMana.getColor(color);
-                    if (amount > 0) {
+                    if(isBasicLandAbility(landAbility.getRule(), color.toString())) {
                         Integer count = manaCounts.get(color.toString());
-                        manaCounts.put(color.toString(), count+amount);
+                        manaCounts.put(color.toString(), count + 1);
                     }
                 }
             }
@@ -289,12 +288,16 @@ public class DeckGeneratorPool
             // Produces mana for selected colors
             for(ColoredManaSymbol color: allowedColors) {
                 String manaSymbol = color.toString();
-                if(abilityString.contains("Add {" + manaSymbol + "} ")) {
+                if(isBasicLandAbility(abilityString, manaSymbol)) {
                     count++;
                 }
             }
         }
         return (count > 1);
+    }
+
+    private boolean isBasicLandAbility(String ability, String manaSymbol) {
+        return ability.contains("Add {" + manaSymbol + "} ");
     }
 
     public List<Card> filterLands(List<CardInfo> landCardsInfo) {

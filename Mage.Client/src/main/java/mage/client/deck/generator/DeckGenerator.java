@@ -222,7 +222,9 @@ public class DeckGenerator {
                 while (countNonBasic < landsCount/2) {
                     Card card = landCards.get(random.nextInt(allCount));
                     if (genPool.isValidLandCard(card)) {
-                        genPool.addCard(card.copy());
+                        Card addedCard = card.copy();
+                        deckLands.add(addedCard);
+                        genPool.addCard(addedCard);
                         countNonBasic++;
                     }
                     tries++;
