@@ -58,7 +58,7 @@ public class DeckGenerator {
     public static String generateDeck() {
 
         genDialog = new DeckGeneratorDialog();
-        if(genDialog.getSelectedColors() != null) {
+        if (genDialog.getSelectedColors() != null) {
             Deck deck = buildDeck();
             String deckPath = genDialog.saveDeck(deck);
             return deckPath;
@@ -100,7 +100,7 @@ public class DeckGenerator {
 
         Random random = new Random();
         List<Character> availableColors = new ArrayList();
-        for(ColoredManaSymbol cms: ColoredManaSymbol.values()) {
+        for (ColoredManaSymbol cms : ColoredManaSymbol.values()) {
             availableColors.add(cms.toString().charAt(0));
         }
 
@@ -122,18 +122,17 @@ public class DeckGenerator {
         return generatedColors.toString();
     }
 
-    private static Deck generateDeck(int deckSize, List<ColoredManaSymbol> allowedColors, List<String> setsToUse)
-    {
+    private static Deck generateDeck(int deckSize, List<ColoredManaSymbol> allowedColors, List<String> setsToUse) {
         genPool = new DeckGeneratorPool(deckSize, allowedColors, genDialog.isSingleton());
 
-        final String [] sets = setsToUse.toArray(new String[0]);
+        final String[] sets = setsToUse.toArray(new String[0]);
 
         // Creatures
-        final  CardCriteria creatureCriteria = new CardCriteria();
+        final CardCriteria creatureCriteria = new CardCriteria();
         creatureCriteria.setCodes(sets);
         creatureCriteria.notTypes(CardType.LAND);
         creatureCriteria.types(CardType.CREATURE);
-        if(!(genDialog.useArtifacts()))
+        if (!(genDialog.useArtifacts()))
             creatureCriteria.notTypes(CardType.ARTIFACT);
 
         // Non-creatures (sorcery, instant, enchantment, artifact etc.)
@@ -141,7 +140,7 @@ public class DeckGenerator {
         nonCreatureCriteria.setCodes(sets);
         nonCreatureCriteria.notTypes(CardType.LAND);
         nonCreatureCriteria.notTypes(CardType.CREATURE);
-        if(!(genDialog.useArtifacts()))
+        if (!(genDialog.useArtifacts()))
             nonCreatureCriteria.notTypes(CardType.ARTIFACT);
 
         // Non-basic land
@@ -150,162 +149,20 @@ public class DeckGenerator {
         nonBasicLandCriteria.types(CardType.LAND);
         nonBasicLandCriteria.notSupertypes("Basic");
 
+        // Generate basic land cards
+        Map<String, List<CardInfo>> basicLands = generateBasicLands(setsToUse);
+
         generateSpells(creatureCriteria, genPool.getCreatureCount());
         generateSpells(nonCreatureCriteria, genPool.getNonCreatureCount());
-        generateLands(nonBasicLandCriteria, genPool.getLandCount(), setsToUse);
+        generateLands(nonBasicLandCriteria, genPool.getLandCount(), basicLands);
 
         // Reconstructs the final deck and adjusts for Math rounding and/or missing cards
         return genPool.getDeck();
     }
 
-    private static void generateSpells(CardCriteria criteria, int spellCount)
-    {
-        List<CardInfo> cardPool = CardRepository.instance.findCards(criteria);
-        int retrievedCount = cardPool.size();
-        List<DeckGeneratorCMC> deckCMCs = genPool.getCMCsForSpellCount(spellCount);
-        Random random = new Random();
-        int count = 0;
-        int reservesAdded = 0;
-        if (retrievedCount > 0 && retrievedCount >= spellCount) {
-            int tries = 0;
-            while (count < spellCount) {
-                Card card = cardPool.get(random.nextInt(retrievedCount)).getMockCard();
-                if (genPool.isValidSpellCard(card)) {
-                    int cardCMC = card.getManaCost().convertedManaCost();
-                    for(DeckGeneratorCMC deckCMC: deckCMCs) {
-                        if(cardCMC >= deckCMC.min && cardCMC <= deckCMC.max) {
-                            int currentAmount = deckCMC.getAmount();
-                            if(currentAmount > 0) {
-                                deckCMC.setAmount(currentAmount - 1);
-                                genPool.addCard(card.copy());
-                                count++;
-                            }
-                        }
-                        else {
-                            // TODO: Needs working out more - what number is best?
-                            if(reservesAdded < genPool.getDeckSize()/2) {
-                                genPool.tryAddReserve(card, cardCMC);
-                                reservesAdded++;
-                            }
-                        }
-                    }
-                }
-                tries++;
-                if (tries > MAX_TRIES) {
-                    // Break here, we'll fill in random missing ones later
-                    break;
-                }
-            }
-        } else {
-            throw new IllegalStateException("Not enough cards to generate deck.");
-        }
+    private static Map<String, List<CardInfo>> generateBasicLands(List<String> setsToUse) {
 
-    }
-
-    private static void generateLands(CardCriteria criteria, int landsCount, List<String> setsToUse) {
-
-        int tries = 0;
-        int countNonBasic = 0;
-        // Store the nonbasic lands (if any) we'll add
-        List<Card> deckLands = new ArrayList<>();
-
-        // Calculates the percentage of coloured mana symbols over all spells in the deck
-        Map<String, Double> percentage = genPool.calculateSpellColourPercentages();
-
-        // Only dual/tri colour lands are generated for now, and not non-basic lands that only produce colourless mana.
-        if(!genPool.isMonoColoredDeck() && genDialog.useNonBasicLand()) {
-            List<Card> landCards = genPool.filterLands(CardRepository.instance.findCards(criteria));
-            int allCount = landCards.size();
-            Random random = new Random();
-            if (allCount > 0) {
-                // Up to 50% of lands can be dual lands
-                while (countNonBasic < landsCount/2) {
-                    Card card = landCards.get(random.nextInt(allCount));
-                    if (genPool.isValidLandCard(card)) {
-                        Card addedCard = card.copy();
-                        deckLands.add(addedCard);
-                        genPool.addCard(addedCard);
-                        countNonBasic++;
-                    }
-                    tries++;
-                    // to avoid infinite loop
-                    if (tries > MAX_TRIES) {
-                        // Not a problem, just use what we have
-                        break;
-                    }
-                }
-            }
-        }
-        // Calculate the amount of coloured mana already can be produced by the non-basic lands
-        Map<String, Integer> count = genPool.calculateManaCounts(deckLands);
-        // Fill up the rest of the land quota with basic lands
-        addBasicLands(landsCount - countNonBasic, percentage, count, setsToUse);
-    }
-
-    private static void addBasicLands(int landsNeeded, Map<String, Double> percentage, Map<String, Integer> count, List<String> setsToUse)
-    {
-        int colorTotal = 0;
-        ColoredManaSymbol colourToAdd = null;
-
-        // Add up the totals for all colors, to keep track of the percentage a color is.
-        for(Map.Entry<String, Integer> c : count.entrySet()) {
-            colorTotal += c.getValue();
-        }
-
-        // Keep adding basic lands until we fill the deck
-        while(landsNeeded > 0) {
-
-            double minPercentage = Integer.MIN_VALUE;
-
-            for(ColoredManaSymbol color: ColoredManaSymbol.values()) {
-                // What percentage of this color is requested
-                double neededPercentage = percentage.get(color.toString());
-                // If there is a 0% need for basic lands of this colour, skip it
-                if(neededPercentage <= 0) {
-                    continue;
-                }
-                int currentCount = count.get(color.toString());
-                double thisPercentage = 0.0;
-                // Calculate the percentage of lands so far that produce this colour
-                if(currentCount > 0)
-                    thisPercentage = (currentCount/(double)colorTotal) * 100.0;
-                // Check if the color is the most "needed" (highest percentage) we have seen so far
-                if(neededPercentage-thisPercentage > minPercentage) {
-                    // Put this color land forward to be added
-                    colourToAdd = color;
-                    minPercentage = (neededPercentage-thisPercentage);
-                }
-            }
-            // TODO: Massive loops for each land selected, fix this
-            genPool.addCard(getBestBasicLand(colourToAdd, setsToUse));
-            count.put(colourToAdd.toString(), count.get(colourToAdd.toString())+1);
-            colorTotal++;
-            landsNeeded--;
-        }
-    }
-
-    private static Card getBestBasicLand(ColoredManaSymbol color, List<String> setsToUse) {
-
-        String cardName = "";
-        switch(color) {
-            case G:
-                cardName = "Forest";
-                break;
-            case W:
-                cardName = "Plains";
-                break;
-            case R:
-                cardName = "Mountain";
-                break;
-            case B:
-                cardName = "Swamp";
-                break;
-            case U:
-                cardName = "Island";
-                break;
-        }
-
-        List<String> landSets = new LinkedList<String>();
+        List<String> landSets = new LinkedList<>();
 
         // decide from which sets basic lands are taken from
         for (String setCode :setsToUse) {
@@ -346,16 +203,144 @@ public class DeckGenerator {
         if (!landSets.isEmpty()) {
             criteria.setCodes(landSets.toArray(new String[landSets.size()]));
         }
-        criteria.rarities(Rarity.LAND).name(cardName);
-        List<CardInfo> cards = CardRepository.instance.findCards(criteria);
 
-        if (cards.isEmpty() && !setsToUse.isEmpty()) {
-            cards = CardRepository.instance.findCards(cardName);
+        Map<String, List<CardInfo>> basicLandMap = new HashMap<>();
+
+        for(ColoredManaSymbol c: ColoredManaSymbol.values()) {
+            String landName = genPool.getBasicLandName(c.toString());
+            criteria.rarities(Rarity.LAND).name(landName);
+            List<CardInfo> cards = CardRepository.instance.findCards(criteria);
+            basicLandMap.put(landName, cards);
+        }
+        return basicLandMap;
+    }
+
+
+
+    private static void generateSpells(CardCriteria criteria, int spellCount) {
+        List<CardInfo> cardPool = CardRepository.instance.findCards(criteria);
+        int retrievedCount = cardPool.size();
+        List<DeckGeneratorCMC> deckCMCs = genPool.getCMCsForSpellCount(spellCount);
+        Random random = new Random();
+        int count = 0;
+        int reservesAdded = 0;
+        if (retrievedCount > 0 && retrievedCount >= spellCount) {
+            int tries = 0;
+            while (count < spellCount) {
+                Card card = cardPool.get(random.nextInt(retrievedCount)).getMockCard();
+                if (genPool.isValidSpellCard(card)) {
+                    int cardCMC = card.getManaCost().convertedManaCost();
+                    for (DeckGeneratorCMC deckCMC : deckCMCs) {
+                        if (cardCMC >= deckCMC.min && cardCMC <= deckCMC.max) {
+                            int currentAmount = deckCMC.getAmount();
+                            if (currentAmount > 0) {
+                                deckCMC.setAmount(currentAmount - 1);
+                                genPool.addCard(card.copy());
+                                count++;
+                            }
+                        } else {
+                            if (reservesAdded < genPool.getDeckSize() / 2) {
+                                genPool.tryAddReserve(card, cardCMC);
+                                reservesAdded++;
+                            }
+                        }
+                    }
+                }
+                tries++;
+                if (tries > MAX_TRIES) {
+                    // Break here, we'll fill in random missing ones later
+                    break;
+                }
+            }
+        } else {
+            throw new IllegalStateException("Not enough cards to generate deck.");
         }
 
-        int randomInt = new Random().nextInt(cards.size());
-        return cards.get(randomInt).getMockCard();
+    }
 
+    private static void generateLands(CardCriteria criteria, int landsCount, Map<String, List<CardInfo>> basicLands) {
+
+        int tries = 0;
+        int countNonBasic = 0;
+        // Store the nonbasic lands (if any) we'll add
+        List<Card> deckLands = new ArrayList<>();
+
+        // Calculates the percentage of coloured mana symbols over all spells in the deck
+        Map<String, Double> percentage = genPool.calculateSpellColourPercentages();
+
+        // Only dual/tri colour lands are generated for now, and not non-basic lands that only produce colourless mana.
+        if (!genPool.isMonoColoredDeck() && genDialog.useNonBasicLand()) {
+            List<Card> landCards = genPool.filterLands(CardRepository.instance.findCards(criteria));
+            int allCount = landCards.size();
+            Random random = new Random();
+            if (allCount > 0) {
+                while (countNonBasic < landsCount / 2) {
+                    Card card = landCards.get(random.nextInt(allCount));
+                    if (genPool.isValidLandCard(card)) {
+                        Card addedCard = card.copy();
+                        deckLands.add(addedCard);
+                        genPool.addCard(addedCard);
+                        countNonBasic++;
+                    }
+                    tries++;
+                    // to avoid infinite loop
+                    if (tries > MAX_TRIES) {
+                        // Not a problem, just use what we have
+                        break;
+                    }
+                }
+            }
+        }
+        // Calculate the amount of coloured mana already can be produced by the non-basic lands
+        Map<String, Integer> count = genPool.calculateManaCounts(deckLands);
+        // Fill up the rest of the land quota with basic lands adjusted to fit the deck's mana costs
+        addBasicLands(landsCount - countNonBasic, percentage, count, basicLands);
+    }
+
+    private static void addBasicLands(int landsNeeded, Map<String, Double> percentage, Map<String, Integer> count, Map<String, List<CardInfo>> basicLands) {
+        int colorTotal = 0;
+        ColoredManaSymbol colourToAdd = null;
+
+        // Add up the totals for all colors, to keep track of the percentage a color is.
+        for (Map.Entry<String, Integer> c : count.entrySet()) {
+            colorTotal += c.getValue();
+        }
+
+        // Keep adding basic lands until we fill the deck
+        while (landsNeeded > 0) {
+
+            double minPercentage = Integer.MIN_VALUE;
+
+            for (ColoredManaSymbol color : ColoredManaSymbol.values()) {
+                // What percentage of this color is requested
+                double neededPercentage = percentage.get(color.toString());
+                // If there is a 0% need for basic lands of this colour, skip it
+                if (neededPercentage <= 0) {
+                    continue;
+                }
+                int currentCount = count.get(color.toString());
+                double thisPercentage = 0.0;
+                // Calculate the percentage of lands so far that produce this colour
+                if (currentCount > 0)
+                    thisPercentage = (currentCount / (double) colorTotal) * 100.0;
+                // Check if the color is the most "needed" (highest percentage) we have seen so far
+                if (neededPercentage - thisPercentage > minPercentage) {
+                    // Put this color land forward to be added
+                    colourToAdd = color;
+                    minPercentage = (neededPercentage - thisPercentage);
+                }
+            }
+            genPool.addCard(getBasicLand(colourToAdd, basicLands));
+            count.put(colourToAdd.toString(), count.get(colourToAdd.toString()) + 1);
+            colorTotal++;
+            landsNeeded--;
+        }
+    }
+
+    private static Card getBasicLand(ColoredManaSymbol color, Map<String, List<CardInfo>> basicLands) {
+        Random random = new Random();
+        String landName = genPool.getBasicLandName(color.toString());
+        return basicLands.get(landName).get(random.nextInt(basicLands.size() - 1)).getMockCard().copy();
     }
 
 }

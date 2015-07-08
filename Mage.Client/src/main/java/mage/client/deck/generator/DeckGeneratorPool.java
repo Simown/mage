@@ -27,7 +27,6 @@
  */
 package mage.client.deck.generator;
 
-import mage.Mana;
 import mage.abilities.Ability;
 import mage.cards.Card;
 import mage.cards.decks.Deck;
@@ -94,7 +93,6 @@ public class DeckGeneratorPool
             this.creatureCount = CREATURE_COUNT_40;
             this.nonCreatureCount = NONCREATURE_COUNT_40;
             this.landCount = LAND_COUNT_40;
-            // TODO: TESTING OUT SOME DIFFERENT NUMBERS
             poolCMCs = new ArrayList<DeckGeneratorCMC>() {{
                 add(new DeckGeneratorCMC(0, 2, 0.30f));
                 add(new DeckGeneratorCMC(3, 4, 0.45f));
@@ -112,7 +110,7 @@ public class DeckGeneratorPool
     public boolean isValidSpellCard(Card card)
     {
         int cardCount = getCardCount((card.getName()));
-        // Check it hasn't already got the maximum number of copies in a deck)
+        // Check it hasn't already got the maximum number of copies in a deck
         if(cardCount < (isSingleton ? 1 : 4)) {
             if(cardFitsChosenColors(card)) {
                 return true;
@@ -124,10 +122,11 @@ public class DeckGeneratorPool
     public boolean isValidLandCard(Card card)
     {
         int cardCount = getCardCount((card.getName()));
+        // No need to check if the land is valid for the colors chosen
+        // They are all filtered before searching for lands to include
+        // in the deck.
         if(cardCount < 4) {
-            if(cardProducesChosenColors(card)) {
-                return true;
-            }
+            return true;
         }
         return false;
     }
@@ -136,7 +135,7 @@ public class DeckGeneratorPool
         for (String symbol : card.getManaCost().getSymbols()) {
             boolean found = false;
             symbol = symbol.replace("{", "").replace("}", "");
-            if (isColoredMana(symbol)) {
+            if (isColoredManaSymbol(symbol)) {
                 for (ColoredManaSymbol allowed : allowedColors) {
                     if (symbol.contains(allowed.toString())) {
                         found = true;
@@ -176,7 +175,6 @@ public class DeckGeneratorPool
         return  cardCounts.get((cardName));
     }
 
-    // TODO: Check card to add is valid
     private List<Card> getFixedSpells()
     {
         Random random = new Random();
@@ -212,7 +210,6 @@ public class DeckGeneratorPool
                 deckCards.remove(random.nextInt(deckCards.size()));
             }
         }
-
         if(deckCards.size() != nonLandSize)
             throw new IllegalStateException("Not enough cards found to generate deck. Please try again");
 
@@ -235,7 +232,7 @@ public class DeckGeneratorPool
         for(Card spell: fixedSpells) {
             for (String symbol : spell.getManaCost().getSymbols()) {
                 symbol = symbol.replace("{", "").replace("}", "");
-                if (isColoredMana(symbol)) {
+                if (isColoredManaSymbol(symbol)) {
                     for (ColoredManaSymbol allowed : allowedColors) {
                         if (symbol.contains(allowed.toString())) {
                             int cnt = colorCount.get(allowed.toString());
@@ -267,7 +264,9 @@ public class DeckGeneratorPool
         for(Card land: deckLands)  {
             for(Ability landAbility: land.getAbilities()) {
                 for (ColoredManaSymbol color : allowedColors) {
-                    if(isBasicLandAbility(landAbility.getRule(), color.toString())) {
+                    String abilityString = landAbility.getRule();
+                    // TODO: Only count mana generation of taplands now, need a way of including other mana sources.
+                    if(abilityString.matches(".*Add \\{" + color.toString() + "\\} to your mana pool.")) {
                         Integer count = manaCounts.get(color.toString());
                         manaCounts.put(color.toString(), count + 1);
                     }
@@ -277,28 +276,6 @@ public class DeckGeneratorPool
         return manaCounts;
     }
 
-
-    private boolean cardProducesChosenColors(Card card) {
-        int count = 0;
-        // All mock card abilities will be MockAbilities so we can't differentiate between ManaAbilities
-        // so we have to do some basic string matching on land cards to tell TODO: reword and fix
-        List<Ability> landAbilities = card.getAbilities();
-        for(Ability ability: landAbilities) {
-            String abilityString = ability.getRule();
-            // Produces mana for selected colors
-            for(ColoredManaSymbol color: allowedColors) {
-                String manaSymbol = color.toString();
-                if(isBasicLandAbility(abilityString, manaSymbol)) {
-                    count++;
-                }
-            }
-        }
-        return (count > 1);
-    }
-
-    private boolean isBasicLandAbility(String ability, String manaSymbol) {
-        return ability.contains("Add {" + manaSymbol + "} ");
-    }
 
     public List<Card> filterLands(List<CardInfo> landCardsInfo) {
         List<Card> matchingLandList = new ArrayList<>();
@@ -311,7 +288,62 @@ public class DeckGeneratorPool
         return matchingLandList;
     }
 
-    protected static boolean isColoredMana(String symbol) {
+
+    private boolean cardProducesChosenColors(Card card) {
+        // All mock card abilities will be MockAbilities so we can't differentiate between ManaAbilities
+        // and other Abilities so we have to do some basic string matching on land cards for now.
+        List<Ability> landAbilities = card.getAbilities();
+        int count = 0;
+        for(Ability ability : landAbilities) {
+
+            String abilityString = ability.getRule();
+
+            // Lands that tap to produce mana of the chosen type
+            // TODO,: For 3 color decks, prefer tri-lands that produce exactly the colors chosen.
+            for(ColoredManaSymbol symbol : allowedColors) {
+                if(abilityString.matches(".*Add \\{" + symbol.toString() + "\\} to your mana pool."))
+                    count++;
+            }
+            if(count > 1) {
+                return true;
+            }
+
+            // Fetchlands of the chosen colors
+            // FIXME: Only add fetchlands when there is basic lands to fetch (usually fine)
+            if(abilityString.matches(makeFetchLandAbilityRegex())) {
+                return true;
+            }
+
+            // TODO: Consider adding generic fetchlands (Evolving Wilds, Terramorphic Expanse etc)
+        }
+        return false;
+
+    }
+
+    // ... Search your library for <land card (A|B|C)> or <land card (A|B|C)> ...
+    private String makeFetchLandAbilityRegex() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(".*Search your library for.*");
+
+        // Generate color matching group
+        StringBuilder sb2 = new StringBuilder();
+        sb2.append("(");
+        for(ColoredManaSymbol color : allowedColors) {
+            sb2.append(getBasicLandName(color.toString()));
+            if(!color.equals(allowedColors.get(allowedColors.size() - 1))) {
+                sb2.append("|");
+            }
+        }
+        sb2.append(")");
+
+        sb.append(sb2);
+        sb.append(".*or.*");
+        sb.append(sb2);
+        sb.append(".*");
+        return sb.toString();
+    }
+
+    private static boolean isColoredManaSymbol(String symbol) {
         // Hybrid mana
         if(symbol.contains("/")) {
             return true;
@@ -322,6 +354,23 @@ public class DeckGeneratorPool
             }
         }
         return false;
+    }
+
+    public static String getBasicLandName(String symbolString) {
+        switch(symbolString) {
+            case "B":
+                return "Swamp";
+            case "G":
+                return "Forest";
+            case "R":
+                return "Mountain";
+            case "U":
+                return "Island";
+            case "W":
+                return "Plains";
+            default:
+                return "";
+        }
     }
 
     public Deck getDeck() {

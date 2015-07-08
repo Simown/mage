@@ -130,7 +130,7 @@ public class DeckGeneratorDialog {
 
         // Non-basic lands
         cNonBasicLands = new JCheckBox("Non-basic Lands", false);
-        cNonBasicLands.setToolTipText("Use non-basic lands in your deck.");
+        cNonBasicLands.setToolTipText("Use non-basic lands in your deck (if applicable).");
         String nonBasicEnabled = PreferencesDialog.getCachedValue(PreferencesDialog.KEY_NEW_DECK_GENERATOR_NON_BASIC_LANDS, "false");
         cNonBasicLands.setSelected(Boolean.valueOf(nonBasicEnabled));
         jCheckBoxes.add(cNonBasicLands);
