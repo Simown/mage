@@ -265,7 +265,7 @@ public class DeckGeneratorPool
             for(Ability landAbility: land.getAbilities()) {
                 for (ColoredManaSymbol color : allowedColors) {
                     String abilityString = landAbility.getRule();
-                    // FIXME: Only count mana generation of taplands now, need a way of including other mana sources.
+                    // TODO: Only count mana generation of taplands now, need a way of including other mana sources.
                     if(abilityString.matches(".*Add \\{" + color.toString() + "\\} to your mana pool.")) {
                         Integer count = manaCounts.get(color.toString());
                         manaCounts.put(color.toString(), count + 1);
@@ -289,7 +289,6 @@ public class DeckGeneratorPool
     }
 
 
-    // FIXME: For 3 color decks, prefer tri-lands that produce exactly the colors chosen.
     private boolean cardProducesChosenColors(Card card) {
         // All mock card abilities will be MockAbilities so we can't differentiate between ManaAbilities
         // and other Abilities so we have to do some basic string matching on land cards for now.
@@ -300,11 +299,11 @@ public class DeckGeneratorPool
             String abilityString = ability.getRule();
 
             // Lands that tap to produce mana of the chosen type
+            // TODO,: For 3 color decks, prefer tri-lands that produce exactly the colors chosen.
             for(ColoredManaSymbol symbol : allowedColors) {
                 if(abilityString.matches(".*Add \\{" + symbol.toString() + "\\} to your mana pool."))
                     count++;
             }
-            // If the land taps to produce 2 or more of the chosen colors
             if(count > 1) {
                 return true;
             }
@@ -315,7 +314,7 @@ public class DeckGeneratorPool
                 return true;
             }
 
-            // TODO: Possibly include generic fetchlands,
+            // TODO: Consider adding generic fetchlands (Evolving Wilds, Terramorphic Expanse etc)
         }
         return false;
 

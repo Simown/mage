@@ -150,7 +150,7 @@ public class DeckGenerator {
         nonBasicLandCriteria.notSupertypes("Basic");
 
         // Generate basic land cards
-        Map<String, Card> basicLands = generateBasicLands(setsToUse);
+        Map<String, List<CardInfo>> basicLands = generateBasicLands(setsToUse);
 
         generateSpells(creatureCriteria, genPool.getCreatureCount());
         generateSpells(nonCreatureCriteria, genPool.getNonCreatureCount());
@@ -160,9 +160,62 @@ public class DeckGenerator {
         return genPool.getDeck();
     }
 
-    private static Map<String, Card> generateBasicLands(List<String> setsToUse) {
-        return null;
+    private static Map<String, List<CardInfo>> generateBasicLands(List<String> setsToUse) {
+
+        List<String> landSets = new LinkedList<>();
+
+        // decide from which sets basic lands are taken from
+        for (String setCode :setsToUse) {
+            ExpansionInfo expansionInfo = ExpansionRepository.instance.getSetByCode(setCode);
+            if (expansionInfo.hasBasicLands()) {
+                landSets.add(expansionInfo.getCode());
+            }
+        }
+
+        // if sets have no basic land, take land from block
+        if (landSets.isEmpty()) {
+            for (String setCode :setsToUse) {
+                ExpansionInfo expansionInfo = ExpansionRepository.instance.getSetByCode(setCode);
+                List<ExpansionInfo> blockSets = ExpansionRepository.instance.getSetsFromBlock(expansionInfo.getBlockName());
+                for (ExpansionInfo blockSet: blockSets) {
+                    if (blockSet.hasBasicLands()) {
+                        landSets.add(blockSet.getCode());
+                    }
+                }
+            }
+        }
+        // if still no set with lands found, take one by random
+        if (landSets.isEmpty()) {
+            // if sets have no basic lands and also it has no parent or parent has no lands get last set with lands
+            // select a set with basic lands by random
+            Random generator = new Random();
+            List<ExpansionInfo> basicLandSets = ExpansionRepository.instance.getSetsWithBasicLandsByReleaseDate();
+            if (basicLandSets.size() > 0) {
+                landSets.add(basicLandSets.get(generator.nextInt(basicLandSets.size())).getCode());
+            }
+        }
+
+        if (landSets.isEmpty()) {
+            throw new IllegalArgumentException("No set with basic land was found");
+        }
+
+        CardCriteria criteria = new CardCriteria();
+        if (!landSets.isEmpty()) {
+            criteria.setCodes(landSets.toArray(new String[landSets.size()]));
+        }
+
+        Map<String, List<CardInfo>> basicLandMap = new HashMap<>();
+
+        for(ColoredManaSymbol c: ColoredManaSymbol.values()) {
+            String landName = genPool.getBasicLandName(c.toString());
+            criteria.rarities(Rarity.LAND).name(landName);
+            List<CardInfo> cards = CardRepository.instance.findCards(criteria);
+            basicLandMap.put(landName, cards);
+        }
+        return basicLandMap;
     }
+
+
 
     private static void generateSpells(CardCriteria criteria, int spellCount) {
         List<CardInfo> cardPool = CardRepository.instance.findCards(criteria);
@@ -205,7 +258,7 @@ public class DeckGenerator {
 
     }
 
-    private static void generateLands(CardCriteria criteria, int landsCount, Map<String, Card> basicLands) {
+    private static void generateLands(CardCriteria criteria, int landsCount, Map<String, List<CardInfo>> basicLands) {
 
         int tries = 0;
         int countNonBasic = 0;
@@ -244,7 +297,7 @@ public class DeckGenerator {
         addBasicLands(landsCount - countNonBasic, percentage, count, basicLands);
     }
 
-    private static void addBasicLands(int landsNeeded, Map<String, Double> percentage, Map<String, Integer> count, Map<String, Card> basicLands) {
+    private static void addBasicLands(int landsNeeded, Map<String, Double> percentage, Map<String, Integer> count, Map<String, List<CardInfo>> basicLands) {
         int colorTotal = 0;
         ColoredManaSymbol colourToAdd = null;
 
@@ -277,7 +330,6 @@ public class DeckGenerator {
                     minPercentage = (neededPercentage - thisPercentage);
                 }
             }
-            // TODO: Massive loops for each land selected, fix this
             genPool.addCard(getBasicLand(colourToAdd, basicLands));
             count.put(colourToAdd.toString(), count.get(colourToAdd.toString()) + 1);
             colorTotal++;
@@ -285,69 +337,10 @@ public class DeckGenerator {
         }
     }
 
-    private static Card getBasicLand(String landName) {
-        return null;
-    }
-
-    private static Card getBasicLand(ColoredManaSymbol color, Map<String, Card> basicLands) {
-
+    private static Card getBasicLand(ColoredManaSymbol color, Map<String, List<CardInfo>> basicLands) {
+        Random random = new Random();
         String landName = genPool.getBasicLandName(color.toString());
-        return getBasicLand(landName);
+        return basicLands.get(landName).get(random.nextInt(basicLands.size() - 1)).getMockCard().copy();
     }
-
-//    private static Card refactorThisNow()
-//    {
-//        List<String> landSets = new LinkedList<String>();
-//
-//        // decide from which sets basic lands are taken from
-//        for (String setCode :setsToUse) {
-//            ExpansionInfo expansionInfo = ExpansionRepository.instance.getSetByCode(setCode);
-//            if (expansionInfo.hasBasicLands()) {
-//                landSets.add(expansionInfo.getCode());
-//            }
-//        }
-//
-//        // if sets have no basic land, take land from block
-//        if (landSets.isEmpty()) {
-//            for (String setCode :setsToUse) {
-//                ExpansionInfo expansionInfo = ExpansionRepository.instance.getSetByCode(setCode);
-//                List<ExpansionInfo> blockSets = ExpansionRepository.instance.getSetsFromBlock(expansionInfo.getBlockName());
-//                for (ExpansionInfo blockSet: blockSets) {
-//                    if (blockSet.hasBasicLands()) {
-//                        landSets.add(blockSet.getCode());
-//                    }
-//                }
-//            }
-//        }
-//        // if still no set with lands found, take one by random
-//        if (landSets.isEmpty()) {
-//            // if sets have no basic lands and also it has no parent or parent has no lands get last set with lands
-//            // select a set with basic lands by random
-//            Random generator = new Random();
-//            List<ExpansionInfo> basicLandSets = ExpansionRepository.instance.getSetsWithBasicLandsByReleaseDate();
-//            if (basicLandSets.size() > 0) {
-//                landSets.add(basicLandSets.get(generator.nextInt(basicLandSets.size())).getCode());
-//            }
-//        }
-//
-//        if (landSets.isEmpty()) {
-//            throw new IllegalArgumentException("No set with basic land was found");
-//        }
-//
-//        CardCriteria criteria = new CardCriteria();
-//        if (!landSets.isEmpty()) {
-//            criteria.setCodes(landSets.toArray(new String[landSets.size()]));
-//        }
-//        criteria.rarities(Rarity.LAND).name(landName);
-//        List<CardInfo> cards = CardRepository.instance.findCards(criteria);
-//
-//        if (cards.isEmpty() && !setsToUse.isEmpty()) {
-//            cards = CardRepository.instance.findCards(landName);
-//        }
-//
-//        int randomInt = new Random().nextInt(cards.size());
-//        return cards.get(randomInt).getMockCard();
-//
-//    }
 
 }
