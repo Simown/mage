@@ -54,6 +54,27 @@ import mage.util.TournamentUtil;
  */
 public class DeckGenerator {
 
+	// Stores the mana symbol name and the basic land associated with that symbol
+    enum ManaSymbol {
+
+        W("Plains"),
+        G("Forest"),
+        B("Swamp"),
+        U("Island"),
+        R("Mountain"),
+        C("Wastes");
+
+        private String basicLand;
+
+        ManaSymbol(String basicLand) {
+            this.basicLand = basicLand;
+        }
+
+        public String getBasicLandName() {
+            return basicLand;
+        }
+    }
+
     public static class DeckGeneratorException extends RuntimeException {
 
         public DeckGeneratorException(String message) {
@@ -85,7 +106,7 @@ public class DeckGenerator {
     protected static Deck buildDeck() {
 
         String selectedColors = genDialog.getSelectedColors();
-        List<ColoredManaSymbol> allowedColors = new ArrayList<>();
+        List<ManaSymbol> allowedSymbols = new ArrayList<>();
         selectedColors = selectedColors != null ? selectedColors.toUpperCase() : getRandomColors("X");
         String format = genDialog.getSelectedFormat();
 
@@ -106,10 +127,14 @@ public class DeckGenerator {
 
         for (int i = 0; i < selectedColors.length(); i++) {
             char c = selectedColors.charAt(i);
-            allowedColors.add(ColoredManaSymbol.lookup(c));
+            allowedSymbols.add(ManaSymbol.valueOf(c));
+        }
+        // Colorless is allowed in any deck, if the user has chosen to include colorless cards
+        if(genDialog.isColorless() {
+        	allowedSymbols.add(DeckGeneratorPool.ManaSymbol.C);
         }
 
-        return generateDeck(deckSize, allowedColors, setsToUse);
+        return generateDeck(deckSize, allowedSymbols, setsToUse);
     }
 
     /**
@@ -150,14 +175,14 @@ public class DeckGenerator {
      * size and color of the cards retrieved.
      *
      * @param deckSize how big the deck is to generate.
-     * @param allowedColors which colors are allowed in the deck.
+     * @param allowedSymbols which colors are allowed in the deck.
      * @param setsToUse which sets to use to retrieve cards for this deck.
      * @return the final deck to use.
      */
-    private static Deck generateDeck(int deckSize, List<ColoredManaSymbol> allowedColors, List<String> setsToUse) {
+    private static Deck generateDeck(int deckSize, List<ManaSymbol> allowedSymbols, List<String> setsToUse) {
 
         genPool = new DeckGeneratorPool(deckSize, genDialog.getCreaturePercentage(), genDialog.getNonCreaturePercentage(),
-                                        genDialog.getLandPercentage(), allowedColors, genDialog.isSingleton(), genDialog.isColorless(),
+                                        genDialog.getLandPercentage(), allowedSymbols, genDialog.isSingleton(), genDialog.isColorless(),
                                         genDialog.isAdvanced(), genDialog.getDeckGeneratorCMC());
 
         final String[] sets = setsToUse.toArray(new String[setsToUse.size()]);
@@ -274,7 +299,7 @@ public class DeckGenerator {
         List<Card> deckLands = new ArrayList<>();
 
         // Calculates the percentage of colored mana symbols over all spells in the deck
-        Map<String, Double> percentage = genPool.calculateSpellColorPercentages();
+        Map<String, Double> percentage = genPool.calculateSpellSymbolPercentages();
 
         // Only dual/tri color lands are generated for now, and not non-basic lands that only produce colorless mana.
         if (!genPool.isMonoColoredDeck() && genDialog.useNonBasicLand()) {
@@ -322,8 +347,8 @@ public class DeckGenerator {
 
         Map<String, List<CardInfo>> basicLandMap = new HashMap<>();
 
-        for (ColoredManaSymbol c : ColoredManaSymbol.values()) {
-            String landName = DeckGeneratorPool.getBasicLandName(c.toString());
+        for (ManaSymbol c : ManaSymbol.values()) {
+            String landName = c.getBasicLandName();
             criteria.rarities(Rarity.LAND).name(landName);
             List<CardInfo> cards = CardRepository.instance.findCards(criteria);
             basicLandMap.put(landName, cards);
@@ -343,57 +368,57 @@ public class DeckGenerator {
      */
     private static void addBasicLands(int landsNeeded, Map<String, Double> percentage, Map<String, Integer> count, Map<String, List<CardInfo>> basicLands) {
 
-        int colorTotal = 0;
-        ColoredManaSymbol colorToAdd = ColoredManaSymbol.U;
+        int basicTotal = 0;
+        ManaSymbol basicToAdd = ManaSymbol.U;
 
         // Add up the totals for all colors, to keep track of the percentage a color is.
         for (Map.Entry<String, Integer> c : count.entrySet()) {
-            colorTotal += c.getValue();
+            basicTotal += c.getValue();
         }
-
+        
         // Keep adding basic lands until we fill the deck
         while (landsNeeded > 0) {
 
             double minPercentage = Integer.MIN_VALUE;
 
-            for (ColoredManaSymbol color : ColoredManaSymbol.values()) {
+            for (ManaSymbol symbol : ManaSymbol.values()) {
                 // What percentage of this color is requested
-                double neededPercentage = percentage.get(color.toString());
+                double neededPercentage = percentage.get(symbol.name());
                 // If there is a 0% need for basic lands of this color, skip it
                 if (neededPercentage <= 0) {
                     continue;
                 }
-                int currentCount = count.get(color.toString());
+                int currentCount = count.get(symbol.name());
                 double thisPercentage = 0.0;
                 // Calculate the percentage of lands so far that produce this color
                 if (currentCount > 0) {
-                    thisPercentage = (currentCount / (double) colorTotal) * 100.0;
+                    thisPercentage = (currentCount / (double) basicTotal) * 100.0;
                 }
                 // Check if the color is the most "needed" (highest percentage) we have seen so far
                 if (neededPercentage - thisPercentage > minPercentage) {
                     // Put this color land forward to be added
-                    colorToAdd = color;
+                    basicToAdd = symbol;
                     minPercentage = (neededPercentage - thisPercentage);
                 }
             }
-            genPool.addCard(getBasicLand(colorToAdd, basicLands));
-            count.put(colorToAdd.toString(), count.get(colorToAdd.toString()) + 1);
-            colorTotal++;
+            genPool.addCard(getBasicLand(basicToAdd, basicLands));
+            count.put(basicToAdd.name(), count.get(basicToAdd.name() + 1);
+            basicTotal++;
             landsNeeded--;
         }
     }
 
     /**
-     * Return a random basic land of the chosen color.
+     * Return a random basic land of the chosen symbol.
      *
-     * @param color the color the basic land should produce.
+     * @param symbol the type of mana the basic land should produce.
      * @param basicLands list of information about basic lands from the
      * database.
      * @return a single basic land that produces the color needed.
      */
-    private static Card getBasicLand(ColoredManaSymbol color, Map<String, List<CardInfo>> basicLands) {
+    private static Card getBasicLand(ManaSymbol symbol, Map<String, List<CardInfo>> basicLands) {
         Random random = new Random();
-        String landName = DeckGeneratorPool.getBasicLandName(color.toString());
+        String landName = symbol.getBasicLandName();
         List<CardInfo> basicLandsInfo = basicLands.get(landName);
         return basicLandsInfo.get(random.nextInt(basicLandsInfo.size() - 1)).getMockCard().copy();
     }

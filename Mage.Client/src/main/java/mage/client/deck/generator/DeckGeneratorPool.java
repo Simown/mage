@@ -31,7 +31,7 @@ import mage.abilities.Ability;
 import mage.cards.Card;
 import mage.cards.decks.Deck;
 import mage.cards.repository.CardInfo;
-import mage.constants.ColoredManaSymbol;
+import mage.constants.DeckGenerator.ManaSymbol;
 
 import java.util.*;
 
@@ -41,13 +41,11 @@ import java.util.*;
  */
 public class DeckGeneratorPool
 {
-
-
     public static int DEFAULT_CREATURE_PERCENTAGE = 38;
     public static int DEFAULT_NON_CREATURE_PERCENTAGE = 21;
     public static int DEFAULT_LAND_PERCENTAGE = 41;
 
-    private final List<ColoredManaSymbol> allowedColors;
+    private final List<DeckGenerator.ManaSymbol> allowedSymbols;
     private boolean colorlessAllowed;
     private final List<DeckGeneratorCMC.CMC> poolCMCs;
     private final int creatureCount;
@@ -73,17 +71,17 @@ public class DeckGeneratorPool
      * @param creaturePercentage what percentage of creatures to use when generating the deck.
      * @param nonCreaturePercentage percentage of non-creatures to use when generating the deck.
      * @param landPercentage percentage of lands to use when generating the deck.
-     * @param allowedColors which card colors are allowed in the generated deck.
+     * @param allowedSymbols which card mana symbols are allowed in the generated deck.
      * @param isSingleton if the deck only has 1 copy of each non-land card.
      * @param colorlessAllowed if colourless mana symbols are allowed in costs in the deck.
      * @param isAdvanced if the user has provided advanced options to generate the deck.
      * @param deckGeneratorCMC the CMC curve to use for this deck
      */
     public DeckGeneratorPool(final int deckSize, final int creaturePercentage, final int nonCreaturePercentage, final int landPercentage,
-                             final List<ColoredManaSymbol> allowedColors, boolean isSingleton, boolean colorlessAllowed, boolean isAdvanced, DeckGeneratorCMC deckGeneratorCMC)
+                             final List<DeckGenerator.ManaSymbol> allowedSymbols, boolean isSingleton, boolean colorlessAllowed, boolean isAdvanced, DeckGeneratorCMC deckGeneratorCMC)
     {
         this.deckSize = deckSize;
-        this.allowedColors = allowedColors;
+        this.allowedSymbols = allowedSymbols;
         this.isSingleton = isSingleton;
         this.colorlessAllowed = colorlessAllowed;
 
@@ -111,10 +109,9 @@ public class DeckGeneratorPool
             }
         }
 
-        if(allowedColors.size() == 1) {
+        if(allowedSymbols.size() == 1) {
             monoColored = true;
         }
-
     }
 
 
@@ -144,7 +141,7 @@ public class DeckGeneratorPool
         int cardCount = getCardCount((card.getName()));
         // Check it hasn't already got the maximum number of copies in a deck
         if(cardCount < (isSingleton ? 1 : 4)) {
-            if(cardFitsChosenColors(card)) {
+            if(cardFitsChosenSymbols(card)) {
                 return true;
             }
         }
@@ -198,16 +195,16 @@ public class DeckGeneratorPool
     }
 
     /**
-     * Checks if the mana symbols in the card all match the allowed colors for this pool.
+     * Checks if the mana symbols in the card all match the allowed symbols for this pool.
      * @param card the spell card to check.
      * @return if all the mana symbols fit the chosen colors.
      */
-    private boolean cardFitsChosenColors(Card card) {
+    private boolean cardFitsChosenSymbols(Card card) {
         for (String symbol : card.getManaCost().getSymbols()) {
             boolean found = false;
             symbol = symbol.replace("{", "").replace("}", "");
-            if (isColoredManaSymbol(symbol)) {
-                for (ColoredManaSymbol allowed : allowedColors) {
+            if (isManaSymbol(symbol)) {
+                for (DeckGenerator.ManaSymbol allowed : allowedSymbols) {
                     if (symbol.contains(allowed.toString())) {
                         found = true;
                         break;
@@ -217,25 +214,22 @@ public class DeckGeneratorPool
                     return false;
                 }
             }
-            if (symbol.equals("C") && !colorlessAllowed) {
-                return false;
-            }
         }
         return true;
     }
 
 
     /**
-     * Calculates the percentage of colored mana symbols over all spell cards in the deck.
+     * Calculates the percentage of mana symbols over all spell cards in the deck.
      * Used to balance the generation of basic lands so the amount of lands matches the
-     * cards mana costs.
-     * @return a list of colored mana symbols and the percentage of symbols seen in cards mana costs.
+     * card's mana costs.
+     * @return a list of mana symbols and the percentage of symbols seen in cards mana costs.
      */
-    public Map<String, Double> calculateSpellColorPercentages() {
+    public Map<String, Double> calculateSpellSymbolPercentages() {
 
-        final Map<String, Integer> colorCount = new HashMap<>();
-        for (final ColoredManaSymbol color : ColoredManaSymbol.values()) {
-            colorCount.put(color.toString(), 0);
+        final Map<String, Integer> symbolCount = new HashMap<>();
+        for (final DeckGenerator.ManaSymbol symbol : DeckGenerator.ManaSymbol.values()) {
+        	symbolCount.put(symbol.toString(), 0);
         }
 
         // Counts how many colored mana symbols we've seen in total so we can get the percentage of each color
@@ -245,11 +239,11 @@ public class DeckGeneratorPool
         for(Card spell: fixedSpells) {
             for (String symbol : spell.getManaCost().getSymbols()) {
                 symbol = symbol.replace("{", "").replace("}", "");
-                if (isColoredManaSymbol(symbol)) {
-                    for (ColoredManaSymbol allowed : allowedColors) {
+                if (isManaSymbol(symbol)) {
+                    for (DeckGenerator.ManaSymbol allowed : allowedSymbols) {
                         if (symbol.contains(allowed.toString())) {
-                            int cnt = colorCount.get(allowed.toString());
-                            colorCount.put(allowed.toString(), cnt+1);
+                            int cnt = symbolCount.get(allowed.name());
+                            symbolCount.put(allowed.name(), cnt+1);
                             totalCount++;
                         }
                     }
@@ -257,12 +251,12 @@ public class DeckGeneratorPool
             }
         }
         final Map<String, Double> percentages = new HashMap<>();
-        for(Map.Entry<String, Integer> singleCount: colorCount.entrySet()) {
-            String color = singleCount.getKey();
+        for(Map.Entry<String, Integer> singleCount: symbolCount.entrySet()) {
+            String basic = singleCount.getKey();
             int count = singleCount.getValue();
-            // Calculate the percentage this color has out of the total color counts
+            // Calculate the percentage this symbol has over all the symbol counts
             double percentage = (count / (double) totalCount) * 100;
-            percentages.put(color, percentage);
+            percentages.put(basic, percentage);
         }
         return percentages;
     }
@@ -270,19 +264,19 @@ public class DeckGeneratorPool
     /**
      * Calculates how many of each mana the non-basic lands produce.
      * @param deckLands the non-basic lands which will be used in the deck.
-     * @return a mapping of colored mana symbol to the amount that can be produced.
+     * @return a mapping of mana symbol to the amount that can be produced.
      */
     public Map<String,Integer> countManaProduced(List<Card> deckLands)
     {
         Map<String, Integer> manaCounts = new HashMap<>();
-        for (final ColoredManaSymbol color : ColoredManaSymbol.values()) {
-            manaCounts.put(color.toString(), 0);
+        for (final DeckGenerator.ManaSymbol symbol : DeckGenerator.ManaSymbol.values()) {
+            manaCounts.put(symbol.toString(), 0);
         }
         for(Card land: deckLands)  {
             for(Ability landAbility: land.getAbilities()) {
-                for (ColoredManaSymbol symbol : allowedColors) {
+                for (DeckGenerator.ManaSymbol symbol : allowedSymbols) {
                     String abilityString = landAbility.getRule();
-                    if(landTapsForAllowedColor(abilityString, symbol.toString())) {
+                    if(landTapsForAllowedSymbol(abilityString, symbol.toString())) {
                         Integer count = manaCounts.get(symbol.toString());
                         manaCounts.put(symbol.toString(), count + 1);
                     }
@@ -294,41 +288,18 @@ public class DeckGeneratorPool
 
     /** Filter all the non-basic lands retrieved from the database.
      * @param landCardsInfo information about all the cards.
-     * @return a list of cards that produce the allowed colors for this pool.
+     * @return a list of cards that produce the allowed symbols for this pool.
      */
     public List<Card> filterLands(List<CardInfo> landCardsInfo) {
         List<Card> matchingLandList = new ArrayList<>();
         for(CardInfo landCardInfo: landCardsInfo) {
             Card landCard = landCardInfo.getMockCard();
-            if(landProducesChosenColors(landCard)) {
+            if(S(landCard)) {
                 matchingLandList.add(landCard);
             }
         }
         return matchingLandList;
     }
-
-    /**
-     * Returns the card name that represents the basic land for this color.
-     * @param symbolString the colored mana symbol.
-     * @return the name of a basic land card.
-     */
-    public static String getBasicLandName(String symbolString) {
-        switch(symbolString) {
-            case "B":
-                return "Swamp";
-            case "G":
-                return "Forest";
-            case "R":
-                return "Mountain";
-            case "U":
-                return "Island";
-            case "W":
-                return "Plains";
-            default:
-                return "";
-        }
-    }
-
 
     /**
      * Returns a complete deck.
@@ -437,31 +408,31 @@ public class DeckGeneratorPool
     }
 
     /**
-     * Returns if this land taps for the given color.
+     * Returns if this land taps for the given symbol.
      * Basic string matching to check the ability adds one of the chosen mana when tapped.
      * @param ability MockAbility of the land card
      * @param symbol colored mana symbol.
      * @return if the ability is tapping to produce the mana the symbol represents.
      */
-    private boolean landTapsForAllowedColor(String ability, String symbol)  {
+    private boolean landTapsForAllowedSymbol(String ability, String symbol)  {
         return ability.matches(".*Add \\{" + symbol + "\\} to your mana pool.");
     }
 
     /**
-     * Returns if this land will produce the chosen colors for this pool.
+     * Returns if this land will produce the chosen mana symbols for this pool.
      * @param card a non-basic land card.
-     * @return if this land card taps to produces the colors chosen.
+     * @return if this land card taps to produces some of the mana symbols chosen.
      */
-    private boolean landProducesChosenColors(Card card) {
+    private boolean landProducesChosenSymbols(Card card) {
         // All mock card abilities will be MockAbilities so we can't differentiate between ManaAbilities
         // and other Abilities so we have to do some basic string matching on land cards for now.
         List<Ability> landAbilities = card.getAbilities();
         int count = 0;
         for(Ability ability : landAbilities) {
             String abilityString = ability.getRule();
-            // Lands that tap to produce mana of the chosen colors
-            for(ColoredManaSymbol symbol : allowedColors) {
-                if(landTapsForAllowedColor(abilityString, symbol.toString())) {
+            // Lands that tap to produce mana of the chosen mana symbol
+            for(DeckGenerator.ManaSymbol symbol : allowedSymbols) {
+                if(landTapsForAllowedSymbol(abilityString, symbol.toString())) {
                     count++;
                 }
             }
@@ -473,16 +444,16 @@ public class DeckGeneratorPool
     }
 
     /**
-     * Returns if the symbol is a colored mana symbol.
+     * Returns if the symbol is mana symbol.
      * @param symbol the symbol to check.
      * @return If it is a basic mana symbol or a hybrid mana symbol.
      */
-    private static boolean isColoredManaSymbol(String symbol) {
+    private static boolean isManaSymbol(String symbol) {
         // Hybrid mana
         if(symbol.contains("/")) {
             return true;
         }
-        for(ColoredManaSymbol c: ColoredManaSymbol.values()) {
+        for(DeckGenerator.ManaSymbol c: DeckGenerator.ManaSymbol.values()) {
             if (symbol.charAt(0) == (c.toString().charAt(0))) {
                 return true;
             }
