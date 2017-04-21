@@ -953,54 +953,55 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         Assert.assertEquals("message", currentGame.getState().getActivePlayerId(), player.getId());
     }
 
-    public Permanent getPermanent(String cardName) {
+    
+    public Permanent getPermanent(String cardName, UUID controller) {
         Permanent found = null;
+    	Pattern indexedName = "(\\w)(\\d+)$"; // Ends with <:number>
+        Matcher indexedMatcher = indexedName.matcher(cardName);
+        int index = 0;
+        int count = 0;
+        if(indexedMatcher.matches()) {
+        	cardName = matcher.group(1);
+        	index = matcher.group(2);
+        }
         for (Permanent permanent : currentGame.getBattlefield().getAllActivePermanents()) {
             if (permanent.getName().equals(cardName)) {
-                found = permanent;
-                break;
+            	if controller == -1 || (permanent.getControllerId().equals(controller))) {
+	            	found = permanent;
+	            	if(count == index) {
+	                	return found;	
+	            	} else {
+	            		count++;
+	            	}
+            	}
             }
         }
-
-        Assert.assertNotNull("Couldn't find a card with specified name: " + cardName, found);
-
-        return found;
+        assertNotNull("Couldn't find a card with specified name: " + cardName);
+        assertEqual("Only " + count + " permanents were found and " + cardName + " " + index + " was requested", index, count);
     }
-
+    
     public Permanent getPermanent(String cardName, Player player) {
         return getPermanent(cardName, player.getId());
     }
-
-    public Permanent getPermanent(String cardName, UUID controller) {
-        Permanent permanent0 = null;
-        int count = 0;
-        for (Permanent permanent : currentGame.getBattlefield().getAllPermanents()) {
-            if (permanent.getControllerId().equals(controller)) {
-                if (permanent.getName().equals(cardName)) {
-                    permanent0 = permanent;
-                    count++;
-                }
-            }
-        }
-        Assert.assertNotNull("Couldn't find a card with specified name: " + cardName, permanent0);
-        Assert.assertEquals("More than one permanent was found: " + cardName + '(' + count + ')', 1, count);
-        return permanent0;
+    
+    public Permanent getPermanent(String cardName) {
+    	return getPermanent(cardName, -1);
     }
 
     public void playLand(int turnNum, PhaseStep step, TestPlayer player, String cardName) {
         player.addAction(turnNum, step, "activate:Play " + cardName);
     }
 
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName) {
-        player.addAction(turnNum, step, "activate:Cast " + cardName);
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String ... cardNames) {
+        player.addAction(turnNum, step, "activate:Cast " + String.join("^", cardNames));
     }
 
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, Player target) {
-        player.addAction(turnNum, step, "activate:Cast " + cardName + "$targetPlayer=" + target.getName());
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String ... cardNames, Player target) {
+        player.addAction(turnNum, step, "activate:Cast " + String.join("^", cardNames) + "$targetPlayer=" + target.getName());
     }
 
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, Player target, int manaInPool) {
-        player.addAction(turnNum, step, "activate:Cast " + cardName + "$targetPlayer=" + target.getName() + "$manaInPool=" + manaInPool);
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String ... cardNames, Player target, int manaInPool) {
+        player.addAction(turnNum, step, "activate:Cast " + String.join("^", cardNames) + "$targetPlayer=" + target.getName() + "$manaInPool=" + manaInPool);
     }
 
     /**
@@ -1025,8 +1026,8 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
      * @param targetName for modes you can add "mode=3" before target name,
      * multiple targets can be seperated by ^
      */
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName) {
-        player.addAction(turnNum, step, "activate:Cast " + cardName + "$target=" + targetName);
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String ... cardNames, String targetName) {
+        player.addAction(turnNum, step, "activate:Cast " + String.join("^", cardNames) + "$target=" + targetName);
     }
 
     public enum StackClause {
@@ -1048,8 +1049,8 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
      * "mode=2SilvercoatLion^mode3=PillarfieldOx"
      * @param spellOnStack
      */
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName, String spellOnStack) {
-        castSpell(turnNum, step, player, cardName, targetName, spellOnStack, StackClause.WHILE_ON_STACK);
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String ... cardNames, String targetName, String spellOnStack) {
+        castSpell(turnNum, step, player, cardNames, targetName, spellOnStack, StackClause.WHILE_ON_STACK);
     }
 
     /**
@@ -1064,7 +1065,7 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
      * @param spellOnStack
      * @param clause
      */
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName, String spellOnStack, StackClause clause) {
+    private void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName, String spellOnStack, StackClause clause) {
         if (StackClause.WHILE_ON_STACK == clause) {
             player.addAction(turnNum, step, "activate:Cast " + cardName
                     + '$' + (targetName != null && targetName.startsWith("target") ? targetName : "target=" + targetName)
@@ -1076,7 +1077,7 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         }
     }
 
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName, String spellOnStack, String spellOnTopOfStack) {
+    private void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName, String spellOnStack, String spellOnTopOfStack) {
         String action = "activate:Cast " + cardName + "$target=" + targetName;
         if (spellOnStack != null && !spellOnStack.isEmpty()) {
             action += "$spellOnStack=" + spellOnStack;
@@ -1099,26 +1100,15 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         player.addAction(turnNum, step, "activate:" + ability + "$targetPlayer=" + target.getName());
     }
 
-    public void activateAbility(int turnNum, PhaseStep step, TestPlayer player, String ability, String targetName) {
-        player.addAction(turnNum, step, "activate:" + ability + "$target=" + targetName);
+    public void activateAbility(int turnNum, PhaseStep step, TestPlayer player, String ability, String ... targetNames) {
+        player.addAction(turnNum, step, "activate:" + ability + "$target=" + String.join("^", targetNames));
     }
 
     public void activateAbility(int turnNum, PhaseStep step, TestPlayer player, String ability, String targetName, String spellOnStack) {
         this.activateAbility(turnNum, step, player, ability, targetName, spellOnStack, StackClause.WHILE_ON_STACK);
     }
 
-    /**
-     *
-     * @param turnNum
-     * @param step
-     * @param player
-     * @param ability
-     * @param targetName if not target has to be defined use the constant
-     * NO_TARGET
-     * @param spellOnStack
-     * @param clause
-     */
-    public void activateAbility(int turnNum, PhaseStep step, TestPlayer player, String ability, String targetName, String spellOnStack, StackClause clause) {
+    private void activateAbility(int turnNum, PhaseStep step, TestPlayer player, String ability, String targetName, String spellOnStack, StackClause clause) {
         StringBuilder sb = new StringBuilder("activate:").append(ability);
         if (targetName != null && !targetName.isEmpty()) {
             sb.append("$target=").append(targetName);
@@ -1232,33 +1222,6 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         gameOptions.skipInitShuffling = true;
     }
 
-    protected ExpectedType getExpectedType(String line) {
-        if (line.startsWith("turn:")) {
-            return ExpectedType.TURN_NUMBER;
-        }
-        if (line.startsWith("result:")) {
-            return ExpectedType.RESULT;
-        }
-        if (line.startsWith("life:")) {
-            return ExpectedType.LIFE;
-        }
-        if (line.startsWith("battlefield:")) {
-            return ExpectedType.BATTLEFIELD;
-        }
-        if (line.startsWith("graveyard:")) {
-            return ExpectedType.GRAVEYARD;
-        }
-        return ExpectedType.UNKNOWN;
-    }
-
-    protected String getStringParam(String line, int index) {
-        String[] params = line.split(":");
-        if (index > params.length - 1) {
-            throw new IllegalArgumentException("Not correct line: " + line);
-        }
-        return params[index];
-    }
-
     protected void checkPermanentPT(Player player, String cardName, int power, int toughness, Filter.ComparisonScope scope) {
         if (currentGame == null) {
             throw new IllegalStateException("Current game is null");
@@ -1275,13 +1238,4 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
             }
         }
     }
-
-    protected int getIntParam(String line, int index) {
-        String[] params = line.split(":");
-        if (index > params.length - 1) {
-            throw new IllegalArgumentException("Not correct line: " + line);
-        }
-        return Integer.parseInt(params[index]);
-    }
-
 }
