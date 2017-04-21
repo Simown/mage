@@ -170,7 +170,7 @@ public class TestPlayer implements Player {
     
     protected Permanent findPermanent(FilterPermanent filter, UUID controllerId, Game game) {
         List<Permanent> permanents = game.getBattlefield().getAllActivePermanents(filter, controllerId, game);
-        if(!permanents.isEmpty()) {
+        if (!permanents.isEmpty()) {
         	return permanents.get(0);
         }
         return null;
@@ -200,7 +200,7 @@ public class TestPlayer implements Player {
     	Pattern indexedName = "(\\w)(\\d+)$"; // Ends with <:number>
         Matcher indexedMatcher = indexedName.matcher(filteredName);
         int index = 0;
-        if(indexedMatcher.matches()) {
+        if (indexedMatcher.matches()) {
         	filteredName = matcher.group(1);
         	index = matcher.group(2);
         }
@@ -208,7 +208,7 @@ public class TestPlayer implements Player {
         List<Permanent> permanents = game.getBattlefield().getAllActivePermanents(filter, controllerId, game);
         if (permanents.isEmpty()) {
         	throw new UnsupportedOperationException("No permanents found called " + filteredName + " that match the filter criteria");
-        } else if(permanents.size() < index) {
+        } else if (permanents.size() < index) {
         	throw new UnsupportedOperationException("Unable to get " + filteredName + " " + index + ". ");
         }
         return permanents.get(index);
@@ -607,7 +607,7 @@ public class TestPlayer implements Player {
                 String attackerName = groups[1];
                 Permanent attacker = findPermanent(new FilterAttackingCreature(), attackerName, opponentId, game);
                 Permanent blocker = findPermanent(new FilterControllerPermanent(), blockerName, computerPlayer.getId(), game);
-                if(canBlockAnother(game, blocker, attacker, blockedCreaturesByCreature)) {
+                if (canBlockAnother(game, blocker, attacker, blockedCreaturesByCreature)) {
                 	computerPlayer.declareBlocker(defendingPlayerId, blocker.getId(), attacker.getId(), game);
                 } else {
                 	throw new UnsupportedOperationException(blockerName + " cannot block " + attackerName + " it is already blocking the maximum amount of creatures.");
@@ -645,7 +645,7 @@ public class TestPlayer implements Player {
         Map<MageObjectReference, Integer> blockersForAttacker = new HashMap<>();
         // Calculate the number of blockers each attacker has
         for (List<MageObjectReference> attackers : blockedCreaturesByCreature.values()) {
-            for (MageObjectReference mr : attackers) {
+            for (MageObjectReference mr: attackers) {
                 Integer blockers = blockersForAttacker.getOrDefault(mr, 0);
                 blockersForAttacker.put(mr, blockers + 1);
             }
