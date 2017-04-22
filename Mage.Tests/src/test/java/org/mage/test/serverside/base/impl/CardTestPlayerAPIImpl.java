@@ -3,6 +3,9 @@ package org.mage.test.serverside.base.impl;
 import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import mage.abilities.Ability;
 import mage.cards.Card;
 import mage.cards.decks.Deck;
@@ -158,12 +161,6 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         return player;
     }
 
-    /**
-     * Starts testing card by starting current game.
-     *
-     * @throws IllegalStateException In case game wasn't created previously. Use
-     * {@link #load} method to initialize the game.
-     */
     public void execute() throws IllegalStateException {
         if (currentGame == null || activePlayer == null) {
             throw new IllegalStateException("Game is not initialized. Use load method to load a test case and initialize a game.");
@@ -939,7 +936,7 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
     }
 
     /**
-     * Asserts added actions count. Usefull to make sure that all actions were
+     * Asserts added actions count. Useful to make sure that all actions were
      * executed.
      *
      * @param player
@@ -956,28 +953,27 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
     
     public Permanent getPermanent(String cardName, UUID controller) {
         Permanent found = null;
-    	Pattern indexedName = "(\\w)(\\d+)$"; // Ends with <:number>
+        Pattern indexedName = Pattern.compile("^([\\w| ]+):(\\d+)$"); // Ends with <:number>
         Matcher indexedMatcher = indexedName.matcher(cardName);
         int index = 0;
         int count = 0;
         if(indexedMatcher.matches()) {
-        	cardName = matcher.group(1);
-        	index = matcher.group(2);
+        	cardName = indexedMatcher.group(1);
+        	index = Integer.valueOf(indexedMatcher.group(2));
         }
         for (Permanent permanent : currentGame.getBattlefield().getAllActivePermanents()) {
             if (permanent.getName().equals(cardName)) {
-            	if controller == -1 || (permanent.getControllerId().equals(controller))) {
+            	if (controller == null || permanent.getControllerId().equals(controller)) {
 	            	found = permanent;
-	            	if(count == index) {
-	                	return found;	
-	            	} else {
+	            	if(count != index) {
 	            		count++;
 	            	}
             	}
             }
         }
-        assertNotNull("Couldn't find a card with specified name: " + cardName);
-        assertEqual("Only " + count + " permanents were found and " + cardName + " " + index + " was requested", index, count);
+        Assert.assertNotNull("Couldn't find a card with specified name: " + cardName, found);
+        Assert.assertEquals("Only " + count + " permanents were found and " + cardName + ":" + index + " was requested", index, count);
+        return found;
     }
     
     public Permanent getPermanent(String cardName, Player player) {
@@ -985,23 +981,23 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
     }
     
     public Permanent getPermanent(String cardName) {
-    	return getPermanent(cardName, -1);
+    	return getPermanent(cardName, (UUID)null);
     }
 
     public void playLand(int turnNum, PhaseStep step, TestPlayer player, String cardName) {
         player.addAction(turnNum, step, "activate:Play " + cardName);
     }
 
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String ... cardNames) {
-        player.addAction(turnNum, step, "activate:Cast " + String.join("^", cardNames));
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName) {
+        player.addAction(turnNum, step, "activate:Cast " + cardName);
     }
 
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String ... cardNames, Player target) {
-        player.addAction(turnNum, step, "activate:Cast " + String.join("^", cardNames) + "$targetPlayer=" + target.getName());
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, Player target) {
+        player.addAction(turnNum, step, "activate:Cast " + cardName + "$targetPlayer=" + target.getName());
     }
 
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String ... cardNames, Player target, int manaInPool) {
-        player.addAction(turnNum, step, "activate:Cast " + String.join("^", cardNames) + "$targetPlayer=" + target.getName() + "$manaInPool=" + manaInPool);
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, Player target, int manaInPool) {
+        player.addAction(turnNum, step, "activate:Cast " + cardName + "$targetPlayer=" + target.getName() + "$manaInPool=" + manaInPool);
     }
 
     /**
@@ -1026,8 +1022,8 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
      * @param targetName for modes you can add "mode=3" before target name,
      * multiple targets can be seperated by ^
      */
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String ... cardNames, String targetName) {
-        player.addAction(turnNum, step, "activate:Cast " + String.join("^", cardNames) + "$target=" + targetName);
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName) {
+        player.addAction(turnNum, step, "activate:Cast " + cardName + "$target=" + targetName);
     }
 
     public enum StackClause {
@@ -1049,9 +1045,10 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
      * "mode=2SilvercoatLion^mode3=PillarfieldOx"
      * @param spellOnStack
      */
-    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String ... cardNames, String targetName, String spellOnStack) {
-        castSpell(turnNum, step, player, cardNames, targetName, spellOnStack, StackClause.WHILE_ON_STACK);
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName, String spellOnStack) {
+        castSpell(turnNum, step, player, cardName, targetName, spellOnStack, StackClause.WHILE_ON_STACK);
     }
+
 
     /**
      * Spell will only be cast, if a spell / ability with the given name IS or
@@ -1065,7 +1062,7 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
      * @param spellOnStack
      * @param clause
      */
-    private void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName, String spellOnStack, StackClause clause) {
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName, String spellOnStack, StackClause clause) {
         if (StackClause.WHILE_ON_STACK == clause) {
             player.addAction(turnNum, step, "activate:Cast " + cardName
                     + '$' + (targetName != null && targetName.startsWith("target") ? targetName : "target=" + targetName)
@@ -1077,7 +1074,7 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         }
     }
 
-    private void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName, String spellOnStack, String spellOnTopOfStack) {
+    public void castSpell(int turnNum, PhaseStep step, TestPlayer player, String cardName, String targetName, String spellOnStack, String spellOnTopOfStack) {
         String action = "activate:Cast " + cardName + "$target=" + targetName;
         if (spellOnStack != null && !spellOnStack.isEmpty()) {
             action += "$spellOnStack=" + spellOnStack;
@@ -1108,7 +1105,18 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         this.activateAbility(turnNum, step, player, ability, targetName, spellOnStack, StackClause.WHILE_ON_STACK);
     }
 
-    private void activateAbility(int turnNum, PhaseStep step, TestPlayer player, String ability, String targetName, String spellOnStack, StackClause clause) {
+    /**
+     *
+     * @param turnNum
+     * @param step
+     * @param player
+     * @param ability
+     * @param targetName if not target has to be defined use the constant
+     * NO_TARGET
+     * @param spellOnStack
+     * @param clause
+     */
+    public void activateAbility(int turnNum, PhaseStep step, TestPlayer player, String ability, String targetName, String spellOnStack, StackClause clause) {
         StringBuilder sb = new StringBuilder("activate:").append(ability);
         if (targetName != null && !targetName.isEmpty()) {
             sb.append("$target=").append(targetName);

@@ -30,6 +30,7 @@ package org.mage.test.player;
 import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import mage.MageObject;
 import mage.MageObjectReference;
@@ -98,8 +99,6 @@ import mage.target.common.TargetCreatureOrPlayer;
 import mage.target.common.TargetCreaturePermanentAmount;
 import mage.target.common.TargetPermanentOrPlayer;
 import org.junit.Ignore;
-
-import com.sun.org.apache.xalan.internal.xsltc.compiler.Pattern;
 
 /**
  *
@@ -197,17 +196,17 @@ public class TestPlayer implements Player {
      */
     private Permanent findPermanent(FilterPermanent filter, String name, UUID controllerId, Game game) {
         String filteredName = name;
-    	Pattern indexedName = "(\\w)(\\d+)$"; // Ends with <:number>
+    	Pattern indexedName = Pattern.compile("^([\\w| ]+):(\\d+)$"); // Ends with <:number>
         Matcher indexedMatcher = indexedName.matcher(filteredName);
         int index = 0;
         if (indexedMatcher.matches()) {
-        	filteredName = matcher.group(1);
-        	index = matcher.group(2);
+        	filteredName = indexedMatcher.group(1);
+        	index = Integer.valueOf(indexedMatcher.group(2));
         }
         filter.add(new NamePredicate(filteredName));
         List<Permanent> permanents = game.getBattlefield().getAllActivePermanents(filter, controllerId, game);
         if (permanents.isEmpty()) {
-        	throw new UnsupportedOperationException("No permanents found called " + filteredName + " that match the filter criteria");
+        	throw new UnsupportedOperationException("No permanents found called " + filteredName + " that match the filter criteria \"" + filter.getMessage() + "\"");
         } else if (permanents.size() < index) {
         	throw new UnsupportedOperationException("Unable to get " + filteredName + " " + index + ". ");
         }
@@ -606,7 +605,7 @@ public class TestPlayer implements Player {
                 String blockerName = groups[0];
                 String attackerName = groups[1];
                 Permanent attacker = findPermanent(new FilterAttackingCreature(), attackerName, opponentId, game);
-                Permanent blocker = findPermanent(new FilterControllerPermanent(), blockerName, computerPlayer.getId(), game);
+                Permanent blocker = findPermanent(new FilterControlledPermanent(), blockerName, computerPlayer.getId(), game);
                 if (canBlockAnother(game, blocker, attacker, blockedCreaturesByCreature)) {
                 	computerPlayer.declareBlocker(defendingPlayerId, blocker.getId(), attacker.getId(), game);
                 } else {
