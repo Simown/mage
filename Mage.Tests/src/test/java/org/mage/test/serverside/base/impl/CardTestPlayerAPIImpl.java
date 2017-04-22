@@ -950,29 +950,31 @@ public abstract class CardTestPlayerAPIImpl extends MageTestPlayerBase implement
         Assert.assertEquals("message", currentGame.getState().getActivePlayerId(), player.getId());
     }
 
-    
+
     public Permanent getPermanent(String cardName, UUID controller) {
         Permanent found = null;
         Pattern indexedName = Pattern.compile("^([\\w| ]+):(\\d+)$"); // Ends with <:number>
         Matcher indexedMatcher = indexedName.matcher(cardName);
         int index = 0;
         int count = 0;
-        if(indexedMatcher.matches()) {
-        	cardName = indexedMatcher.group(1);
-        	index = Integer.valueOf(indexedMatcher.group(2));
+        if (indexedMatcher.matches()) {
+            cardName = indexedMatcher.group(1);
+            index = Integer.valueOf(indexedMatcher.group(2));
         }
         for (Permanent permanent : currentGame.getBattlefield().getAllActivePermanents()) {
             if (permanent.getName().equals(cardName)) {
-            	if (controller == null || permanent.getControllerId().equals(controller)) {
-	            	found = permanent;
-	            	if(count != index) {
-	            		count++;
-	            	}
-            	}
+                if (controller == null || permanent.getControllerId().equals(controller)) {
+                    found = permanent;
+                    count++;
+                    if (count == index) {
+                        break;
+                    }
+                }
             }
         }
         Assert.assertNotNull("Couldn't find a card with specified name: " + cardName, found);
-        Assert.assertEquals("Only " + count + " permanents were found and " + cardName + ":" + index + " was requested", index, count);
+        Assert.assertEquals(count + " permanents were found and " + cardName + ":" + index + " was requested", index, count-1);
+        Assert.assertTrue("Multiple cards with " + cardName + " were found (you can index the permanent to get specific ones)", !indexedMatcher.matches() && count == 1);
         return found;
     }
     

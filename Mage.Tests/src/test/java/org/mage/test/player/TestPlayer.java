@@ -207,8 +207,8 @@ public class TestPlayer implements Player {
         List<Permanent> permanents = game.getBattlefield().getAllActivePermanents(filter, controllerId, game);
         if (permanents.isEmpty()) {
         	throw new UnsupportedOperationException("No permanents found called " + filteredName + " that match the filter criteria \"" + filter.getMessage() + "\"");
-        } else if (permanents.size() < index) {
-        	throw new UnsupportedOperationException("Unable to get " + filteredName + " " + index + ". ");
+        } else if (permanents.size()-1 < index) {
+        	throw new UnsupportedOperationException("Permanent " + filteredName + ":" + index + " cannot be found.");
         }
         return permanents.get(index);
     }

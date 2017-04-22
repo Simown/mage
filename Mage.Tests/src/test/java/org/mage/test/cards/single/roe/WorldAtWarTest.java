@@ -26,10 +26,10 @@ public class WorldAtWarTest extends CardTestPlayerBase {
 
         castSpell(1, PhaseStep.PRECOMBAT_MAIN, playerA, "World at War");
 
-        attack(1, playerA, "Elite Vanguard");
-        attack(1, playerA, "Elite Vanguard");
-        attack(1, playerA, "Warclamp Mastiff");
-        attack(1, playerA, "Warclamp Mastiff");
+        attack(1, playerA, "Elite Vanguard:0");
+        attack(1, playerA, "Elite Vanguard:1");
+        attack(1, playerA, "Warclamp Mastiff:0");
+        attack(1, playerA, "Warclamp Mastiff:1");
 
         setStopAt(1, PhaseStep.END_TURN);
         execute();

@@ -93,11 +93,12 @@ public class CryptoplasmTest extends CardTestPlayerBase {
         // Exalted (Whenever a creature you control attacks alone, that creature gets +1/+1 until end of turn.)
         addCard(Zone.BATTLEFIELD, playerA, "Divinity of Pride", 1); //  {W}{W}
 
-        addCard(Zone.BATTLEFIELD, playerB, "Island", 5);
+        addCard(Zone.BATTLEFIELD, playerB, "Island", 6);
         // At the beginning of your upkeep, you may have Cryptoplasm become a copy of another target creature. If you do, Cryptoplasm gains this ability.
-        addCard(Zone.BATTLEFIELD, playerB, "Cryptoplasm", 2); // {1}{U}{U}
-        addTarget(playerB, "Divinity of Pride:0");
-        addTarget(playerB, "Divinity of Pride:0");
+        addCard(Zone.BATTLEFIELD, playerB, "Cryptoplasm", 1); // {1}{U}{U}
+        addTarget(playerB, "Divinity of Pride");
+        addCard(Zone.BATTLEFIELD, playerB, "Cryptoplasm", 1); // {1}{U}{U}
+        addTarget(playerB, "Divinity of Pride");
 
         attack(3, playerA, "Divinity of Pride:0");
         block(3, playerB, "Divinity of Pride:1", "Divinity of Pride:0");

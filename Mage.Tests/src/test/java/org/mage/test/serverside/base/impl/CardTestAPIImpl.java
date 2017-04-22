@@ -15,12 +15,8 @@ import org.mage.test.player.TestPlayer;
 import org.mage.test.serverside.base.CardTestAPI;
 import org.mage.test.serverside.base.MageTestBase;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * API for test initialization and asserting the test results.
@@ -306,6 +302,7 @@ public abstract class CardTestAPIImpl extends MageTestBase implements CardTestAP
                 }
             }
         }
+
         Assert.assertTrue("There is no such permanent under player's control, player=" + player.getName() +
                 ", cardName=" + cardName, count > 0);
 
@@ -315,16 +312,29 @@ public abstract class CardTestAPIImpl extends MageTestBase implements CardTestAP
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void assertAbilities(Player player, String cardName, List<Ability> abilities) throws AssertionError {
-        List<Permanent> permanent = getPermanents(cardName, player.getId());
-        Assert.assertTrue("There is no such permanent under player's control, player=" + player.getName() +
-                ", cardName=" + cardName, !permanent.isEmpty());
+    public void assertAbilities(Player player, String cardName, List<Ability> abilities)
+            throws AssertionError {
+        int count = 0;
+        Permanent found = null;
+        for (Permanent permanent : currentGame.getBattlefield().getAllActivePermanents(player.getId())) {
+            if (permanent.getName().equals(cardName)) {
+                found = permanent;
+            }
+        }
+
+        Assert.assertNotNull("There is no such permanent under player's control, player=" + player.getName() +
+                ", cardName=" + cardName, found);
+
         Assert.assertTrue("There is more than one such permanent under player's control, player=" + player.getName() +
-                ", cardName=" + cardName, permanent.size() > 1);
+                ", cardName=" + cardName, count == 1);
+
         for (Ability ability : abilities) {
             Assert.assertTrue("No such ability=" + ability.toString() + ", player=" + player.getName() +
-                    ", cardName" + cardName, permanent.get(0).getAbilities().contains(ability));
+                    ", cardName" + cardName, found.getAbilities().contains(ability));
         }
     }
 
@@ -354,21 +364,31 @@ public abstract class CardTestAPIImpl extends MageTestBase implements CardTestAP
      */
     @Override
     public void assertPermanentCount(Player player, String cardName, int count) throws AssertionError {
-        List<Permanent> permanents = getPermanents(cardName, player.getId());
-        Assert.assertEquals("(Battlefield) Card counts are not equal (" + cardName + ')', count, permanents.size());
+        int actualCount = 0;
+        for (Permanent permanent : currentGame.getBattlefield().getAllPermanents()) {
+            if (permanent.getControllerId().equals(player.getId())) {
+                if (permanent.getName().equals(cardName)) {
+                    actualCount++;
+                }
+            }
+        }
+        Assert.assertEquals("(Battlefield) Card counts are not equal (" + cardName + ')', count, actualCount);
     }
 
-    public Permanent getControlledPermanent(String cardName, UUID controller) {
-        List<Permanent> permanents = getPermanents(cardName, controller);
-        Assert.assertTrue("Found more than one permanent with name " + cardName, permanents.size() == 1);
-        Assert.assertTrue("Couldn't find a permanent with specified name: " + cardName + " controlled by this controller", !permanents.isEmpty());
-        return permanents.get(0);
-    }
-
-    public List<Permanent> getControlledPermanents(String cardName, UUID controller) {
-        List<Permanent> permanents = getPermanents(cardName, controller);
-        Assert.assertTrue("Couldn't find any permanents with specified name: " + cardName + " controlled by this controller", !permanents.isEmpty());
-        return permanents;
+    public Permanent getPermanent(String cardName, UUID controller) {
+        Permanent permanent0 = null;
+        int count = 0;
+        for (Permanent permanent : currentGame.getBattlefield().getAllPermanents()) {
+            if (permanent.getControllerId().equals(controller)) {
+                if (permanent.getName().equals(cardName)) {
+                    permanent0 = permanent;
+                    count++;
+                }
+            }
+        }
+        Assert.assertNotNull("Couldn't find a card with specified name: " + cardName, permanent0);
+        Assert.assertEquals("More than one permanent was found: " + cardName + '(' + count + ')', 1, count);
+        return permanent0;
     }
 
     public void playLand(Player player, String cardName) {
@@ -379,26 +399,18 @@ public abstract class CardTestAPIImpl extends MageTestBase implements CardTestAP
         player.addAction("cast:"+cardName);
     }
 
+    public void addFixedTarget(Player player, String cardName, Player target) {
+        player.addAction("cast:"+cardName + ";name=" + target.getName());
+    }
+
+    public void addFixedTarget(Player player, String cardName, String targetName) {
+        player.addAction("cast:"+cardName + ";name=" + targetName);
+    }
+
+    public void useAbility(Player player, String cardName) {
+    }
+
     public void attack(Player player, String cardName) {
         player.addAction("attack:"+cardName);
     }
-
-    private List<Permanent> getPermanents(String cardName, UUID controllerID) {
-        List<Permanent> foundPermanents = new ArrayList<>();
-        for (Permanent permanent : currentGame.getBattlefield().getAllPermanents()) {
-            if (permanent.getName().equals(cardName)) {
-                if (permanent.getControllerId().equals(controllerID)) {
-                    foundPermanents.add(permanent);
-                }
-            }
-        }
-        Pattern indexedName = Pattern.compile("^([\\w| ]+):(\\d+)$"); // Ends with <:number>
-        Matcher indexedMatcher = indexedName.matcher(cardName);
-        if(indexedMatcher.matches()) {
-            // Need to check the index is in range or SPLAT
-            return Collections.singletonList(foundPermanents.get(Integer.valueOf(indexedMatcher.group(2))));
-        }
-        return foundPermanents;
-    }
-
 }
