@@ -367,6 +367,7 @@ public class TestPlayer implements Player {
             if (index >= selectedMode.getTargets().size()) {
                 break; // this can happen if targets should be set but can't be used because of hexproof e.g.
             }
+            // TODO: Remove targeting player from here - method should only be for non-player targeting but this is needed for modal spells
             Target currentTarget = selectedMode.getTargets().get(index);
             if (targetName.startsWith("targetPlayer=")) {
                 target = targetName.substring(targetName.indexOf("targetPlayer=") + 13);
@@ -379,23 +380,18 @@ public class TestPlayer implements Player {
                     }
                 }
             } else {
-                boolean originOnly = false;
-                boolean copyOnly = false;
-                if (targetName.endsWith("]")) {
-                    if (targetName.endsWith("[no copy]")) {
-                        originOnly = true;
-                        targetName = targetName.substring(0, targetName.length() - 9);
-                    }
-                    if (targetName.endsWith("[only copy]")) {
-                        copyOnly = true;
-                        targetName = targetName.substring(0, targetName.length() - 11);
+                Set<UUID> possibleTargets = currentTarget.possibleTargets(ability.getSourceId(), ability.getControllerId(), game);
+                for(UUID controllerId: game.getPlayers().keySet()) {
+                    // Try and find the indexed permanent for either controller
+                    Permanent targetPermanent = findPermanent(new FilterControlledPermanent(), targetName, controllerId, game, false);
+                    if(targetPermanent != null && possibleTargets.contains(targetPermanent.getId())) {
+                        break;
                     }
                 }
                 for (UUID id : currentTarget.possibleTargets(ability.getSourceId(), ability.getControllerId(), game)) {
                     if (!currentTarget.getTargets().contains(id)) {
                         MageObject object = game.getObject(id);
                         if (object != null
-                                && ((object.isCopy() && !originOnly) || (!object.isCopy() && !copyOnly))
                                 && ((!targetName.isEmpty() && object.getName().startsWith(targetName)) || (targetName.isEmpty() && object.getName().isEmpty()))) {
                             if (currentTarget.getNumberOfTargets() == 1) {
                                 currentTarget.clearChosen();
